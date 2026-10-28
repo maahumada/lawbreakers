@@ -1,0 +1,35 @@
+{
+  "id": "06-final-breach",
+  "title": "FINAL BREACH",
+  "concept": "compound laws",
+  "briefing": "The Core: two capacitor banks exchange charge in pairs of units. Two meltdowns are possible: both banks empty (core shutdown) or bank A at exactly 3 (resonance cascade).",
+  "vars": [
+    { "name": "A", "label": "BANK A", "domain": "nat", "init": 2 },
+    { "name": "B", "label": "BANK B", "domain": "nat", "init": 4 }
+  ],
+  "controls": [
+    {
+      "id": "a2b",
+      "label": "PULSE A→B",
+      "guard": "A >= 2",
+      "update": { "A": "A - 2", "B": "B + 2" }
+    },
+    {
+      "id": "b2a",
+      "label": "PULSE B→A",
+      "guard": "B >= 2",
+      "update": { "A": "A + 2", "B": "B - 2" }
+    }
+  ],
+  "meltdown": "(A = 0 && B = 0) || A = 3",
+  "hand": { "cards": { "add": 1, "mod2": 1, "eq": 2, "and": 1, "or": 1 }, "budget": 10 },
+  "solutions": ["A + B = 6 && A mod 2 = 0"],
+  "knownWrong": [
+    { "law": "A + B = 6", "verdict": "insufficient" },
+    { "law": "A mod 2 = 0", "verdict": "insufficient" },
+    { "law": "A + B = 6 || A mod 2 = 0", "verdict": "insufficient" }
+  ],
+  "argus": {
+    "intro": ["THE CORE. AT LAST.", "TWO WAYS TO DIE. YOU CAN ONLY GUARD ONE."]
+  }
+}

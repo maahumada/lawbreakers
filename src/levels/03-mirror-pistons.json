@@ -1,0 +1,24 @@
+{
+  "id": "03-mirror-pistons",
+  "title": "MIRROR PISTONS",
+  "concept": "linear relation",
+  "briefing": "Two pistons are mechanically coupled: the big one always moves twice as far as the small one. If the big piston ever reaches position 7, it hits the fuel line.",
+  "vars": [
+    { "name": "x", "label": "SMALL PISTON", "domain": "int", "init": 0 },
+    { "name": "y", "label": "BIG PISTON", "domain": "int", "init": 0 }
+  ],
+  "controls": [
+    { "id": "push", "label": "PUSH", "guard": "true", "update": { "x": "x + 1", "y": "y + 2" } },
+    { "id": "pull", "label": "PULL", "guard": "x > 0", "update": { "x": "x - 1", "y": "y - 2" } }
+  ],
+  "meltdown": "y = 7",
+  "hand": { "cards": { "scale2": 1, "eq": 1, "ne": 1 }, "budget": 4 },
+  "solutions": ["y = 2 * x"],
+  "knownWrong": [
+    { "law": "y != 7", "verdict": "lab_breach" },
+    { "law": "y >= 0", "verdict": "lab_breach" },
+    { "law": "y >= 2 * x", "verdict": "insufficient" },
+    { "law": "x = y", "verdict": "live_breach" }
+  ],
+  "argus": { "intro": ["PISTON TELEMETRY ACQUIRED.", "COUPLINGS SLIP, LAWSMITH. EVENTUALLY."] }
+}

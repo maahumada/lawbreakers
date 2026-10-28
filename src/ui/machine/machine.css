@@ -1,0 +1,448 @@
+.machine {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  grid-template-areas:
+    "brief brief"
+    "gauges telemetry"
+    "controls telemetry";
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.machine__brief {
+  grid-area: brief;
+}
+.machine__gauges {
+  grid-area: gauges;
+}
+.machine__controls {
+  grid-area: controls;
+}
+.machine__telemetry {
+  grid-area: telemetry;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+@media (max-width: 720px) {
+  .machine {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "brief" "gauges" "controls" "telemetry";
+  }
+}
+
+/* --- Riveted brass plate ------------------------------------------------ */
+
+.panel {
+  --rivet: radial-gradient(
+    circle,
+    var(--human-secondary) 0 1.5px,
+    color-mix(in srgb, var(--human-secondary) 30%, transparent) 2.5px,
+    transparent 3px
+  );
+  padding: var(--space-4);
+  border: 1px solid var(--human-line);
+  border-top-color: color-mix(in srgb, var(--human-secondary) 45%, var(--human-line));
+  background:
+    var(--rivet) 6px 6px / 8px 8px no-repeat,
+    var(--rivet) calc(100% - 6px) 6px / 8px 8px no-repeat,
+    var(--rivet) 6px calc(100% - 6px) / 8px 8px no-repeat,
+    var(--rivet) calc(100% - 6px) calc(100% - 6px) / 8px 8px no-repeat,
+    linear-gradient(to bottom, var(--human-surface-2), var(--human-surface));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--human-text) 6%, transparent),
+    0 10px 24px color-mix(in srgb, var(--black) 60%, transparent);
+  min-width: 0;
+}
+
+.panel__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3);
+}
+
+.panel__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--human-secondary);
+  margin-bottom: var(--space-3);
+}
+
+.panel__bar .panel__title {
+  margin: 0 auto 0 0;
+}
+
+/* --- Briefing + meltdown placard ---------------------------------------- */
+
+.briefing {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-4) var(--space-5);
+  align-items: center;
+}
+
+.briefing__text {
+  max-width: 62ch;
+  font-size: var(--text-sm);
+  line-height: 1.65;
+  color: var(--human-text);
+}
+
+.meltdown {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + 14px);
+  border: 1px solid var(--meltdown);
+  background:
+    repeating-linear-gradient(-45deg, var(--meltdown) 0 6px, var(--human-bg) 6px 12px) left / 12px
+      100% no-repeat,
+    color-mix(in srgb, var(--meltdown) 8%, var(--human-bg));
+}
+
+.meltdown__tag {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-xs);
+  letter-spacing: 0.2em;
+  color: var(--meltdown);
+}
+
+.meltdown__expr {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  color: var(--human-text);
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .briefing {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .meltdown__expr {
+    white-space: normal;
+  }
+}
+
+/* --- Gauges: nixie tubes + bar ------------------------------------------ */
+
+.gauges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+}
+
+.gauge {
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+  flex: 1 1 9rem;
+}
+
+.gauge__label {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+}
+
+.gauge__name {
+  color: var(--human-text);
+}
+
+.gauge__var {
+  color: var(--human-muted);
+  text-transform: none;
+}
+
+.gauge__tubes {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.tube {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 4.4rem;
+  border: 1px solid color-mix(in srgb, var(--human-secondary) 40%, var(--human-line));
+  border-radius: var(--radius-tube);
+  background:
+    repeating-linear-gradient(
+      60deg,
+      transparent 0 3px,
+      color-mix(in srgb, var(--human-nixie) 7%, transparent) 3px 4px
+    ),
+    radial-gradient(
+      ellipse at 50% 60%,
+      color-mix(in srgb, var(--human-nixie) 22%, var(--human-nixie-off)),
+      var(--human-nixie-off) 70%
+    );
+  box-shadow:
+    inset 0 2px 6px color-mix(in srgb, var(--human-text) 10%, transparent),
+    inset 0 -6px 10px color-mix(in srgb, var(--black) 60%, transparent);
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 3.1rem;
+  line-height: 1;
+  color: var(--human-nixie);
+  text-shadow:
+    0 0 3px var(--human-nixie),
+    0 0 12px color-mix(in srgb, var(--human-nixie) 70%, transparent),
+    0 0 24px color-mix(in srgb, var(--human-nixie) 40%, transparent);
+  animation: tube-strike var(--dur-med) ease-out;
+}
+
+.tube--sign {
+  width: 2rem;
+  font-size: 2.2rem;
+}
+
+@keyframes tube-strike {
+  0% {
+    color: var(--human-text);
+    text-shadow: 0 0 18px var(--human-nixie);
+  }
+}
+
+.gauge__bar {
+  position: relative;
+  height: 10px;
+  border: 1px solid var(--human-line);
+  background:
+    repeating-linear-gradient(
+      to right,
+      transparent 0 calc(10% - 1px),
+      var(--human-line) calc(10% - 1px) 10%
+    ),
+    var(--human-bg);
+}
+
+.gauge__bar--signed::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -3px;
+  bottom: -3px;
+  width: 1px;
+  background: var(--human-secondary);
+}
+
+.gauge__fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(to right, var(--human-secondary), var(--human-primary));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--human-primary) 60%, transparent);
+  transition:
+    width var(--dur-med) ease-out,
+    left var(--dur-med) ease-out;
+}
+
+/* --- Control cards ------------------------------------------------------ */
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: var(--space-3);
+}
+
+.control-card {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  text-align: left;
+  border: 1px solid var(--human-secondary);
+  border-bottom-width: 4px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(to bottom, var(--human-surface-2), var(--human-bg));
+  box-shadow: 0 3px 0 var(--black);
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast),
+    border-color var(--dur-fast),
+    opacity var(--dur-fast);
+}
+
+.control-card:hover:enabled {
+  border-color: var(--human-primary);
+}
+
+.control-card:active:enabled {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--black);
+}
+
+.control-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  border-color: var(--human-line);
+}
+
+.control-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.control-card__lamp {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--human-primary);
+  box-shadow: 0 0 8px var(--human-primary);
+}
+
+.control-card:disabled .control-card__lamp {
+  background: var(--human-line);
+  box-shadow: none;
+}
+
+.control-card__label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  letter-spacing: 0.04em;
+  color: var(--human-text);
+}
+
+.control-card__state {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  color: var(--human-primary);
+}
+
+.control-card:disabled .control-card__state {
+  color: var(--human-muted);
+}
+
+.control-card__guard {
+  font-size: var(--text-sm);
+  color: var(--human-secondary);
+}
+
+.control-card__effect {
+  font-weight: 700;
+  font-size: var(--text-md);
+  color: var(--human-primary);
+}
+
+/* --- Telemetry ---------------------------------------------------------- */
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.toggle__switch {
+  position: relative;
+  width: 2.4rem;
+  height: 1.2rem;
+  border: 1px solid var(--human-secondary);
+  border-radius: 999px;
+  background: var(--human-bg);
+}
+
+.toggle__switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(1.2rem - 6px);
+  height: calc(1.2rem - 6px);
+  border-radius: 50%;
+  background: var(--human-muted);
+  transition: transform var(--dur-fast);
+}
+
+.toggle input:checked + .toggle__switch::after {
+  transform: translateX(1.2rem);
+  background: var(--human-primary);
+  box-shadow: 0 0 8px var(--human-primary);
+}
+
+.toggle input:focus-visible + .toggle__switch {
+  outline: 2px solid var(--human-primary);
+  outline-offset: 3px;
+}
+
+.btn-reset {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--human-secondary);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--human-secondary);
+  cursor: pointer;
+}
+
+.btn-reset:hover {
+  color: var(--human-primary);
+  border-color: var(--human-primary);
+}
+
+.telemetry__log {
+  padding: var(--space-2) 0;
+  list-style: none;
+  max-height: 20rem;
+  min-height: 8rem;
+  overflow-y: auto;
+  border: 1px solid var(--human-line);
+  background: var(--human-bg);
+  font-size: var(--text-sm);
+  scrollbar-color: var(--human-secondary) var(--human-bg);
+}
+
+.telemetry__row {
+  display: grid;
+  grid-template-columns: 3.5ch minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  padding: 2px var(--space-3);
+  color: var(--human-muted);
+}
+
+.telemetry__row:last-child {
+  color: var(--human-primary);
+  background: color-mix(in srgb, var(--human-primary) 8%, transparent);
+}
+
+.telemetry__control {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.telemetry__state {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.telemetry__state b {
+  margin-left: 0.5ch;
+  color: var(--human-text);
+}

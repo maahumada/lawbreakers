@@ -1,0 +1,174 @@
+/* Utility effects. Human side: CRT scanlines and phosphor glow. ARGUS side: hex grid, glitch,
+   chromatic aberration. Every animation is disabled under prefers-reduced-motion. */
+
+/* --- Human: CRT ---------------------------------------------------------- */
+
+.fx-crt {
+  position: relative;
+  isolation: isolate;
+}
+
+.fx-crt::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--black) 0%, transparent) 0 2px,
+      color-mix(in srgb, var(--black) 28%, transparent) 2px 3px
+    ),
+    radial-gradient(
+      ellipse at center,
+      transparent 55%,
+      color-mix(in srgb, var(--black) 55%, transparent) 100%
+    );
+  animation: fx-flicker 6s steps(1) infinite;
+}
+
+.fx-glow {
+  text-shadow:
+    0 0 4px color-mix(in srgb, var(--human-primary) 70%, transparent),
+    0 0 14px color-mix(in srgb, var(--human-primary) 35%, transparent);
+}
+
+@keyframes fx-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  47% {
+    opacity: 0.85;
+  }
+  48% {
+    opacity: 1;
+  }
+}
+
+/* --- ARGUS: hex grid ---------------------------------------------------- */
+
+.fx-hexgrid {
+  position: relative;
+  isolation: isolate;
+}
+
+.fx-hexgrid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background: var(--argus-primary);
+  opacity: 0.07;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cpath fill='black' d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z'/%3E%3C/svg%3E")
+    0 0 / 28px 49px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cpath fill='black' d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z'/%3E%3C/svg%3E")
+    0 0 / 28px 49px;
+}
+
+/* Digital scanlines: finer and colder than the CRT ones. */
+.fx-raster::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 3px,
+    color-mix(in srgb, var(--argus-secondary) 5%, transparent) 3px 4px
+  );
+}
+
+/* --- ARGUS: glitch (needs data-text equal to the element's text) ------- */
+
+.fx-glitch {
+  position: relative;
+  display: inline-block;
+}
+
+.fx-glitch::before,
+.fx-glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.fx-glitch::before {
+  color: var(--argus-secondary);
+  opacity: 0;
+  animation: fx-glitch-a 4.5s steps(1) infinite;
+}
+
+.fx-glitch::after {
+  color: var(--argus-primary);
+  opacity: 0;
+  animation: fx-glitch-b 4.5s steps(1) infinite;
+}
+
+@keyframes fx-glitch-a {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  91% {
+    opacity: 0.8;
+    clip-path: inset(20% 0 55% 0);
+    transform: translate(-7px, 1px);
+  }
+  93% {
+    clip-path: inset(62% 0 8% 0);
+    transform: translate(5px, -1px);
+  }
+  95% {
+    opacity: 0;
+  }
+}
+
+@keyframes fx-glitch-b {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  92% {
+    opacity: 0.8;
+    clip-path: inset(45% 0 30% 0);
+    transform: translate(8px, 0);
+  }
+  94% {
+    clip-path: inset(5% 0 75% 0);
+    transform: translate(-4px, 1px);
+  }
+  96% {
+    opacity: 0;
+  }
+}
+
+/* Blinking terminal cursor. */
+.fx-cursor::after {
+  content: "█";
+  margin-left: 0.15em;
+  animation: fx-blink 1s steps(1) infinite;
+}
+
+@keyframes fx-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-glitch::before,
+  .fx-glitch::after {
+    display: none;
+  }
+  .fx-crt::after,
+  .fx-glitch::before,
+  .fx-glitch::after,
+  .fx-cursor::after {
+    animation: none;
+  }
+}

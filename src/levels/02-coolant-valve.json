@@ -1,0 +1,22 @@
+{
+  "id": "02-coolant-valve",
+  "title": "COOLANT VALVE",
+  "concept": "bounds",
+  "briefing": "A coolant valve has eleven notches, 0 to 10. The control electronics refuse to open it past 10. At notch 11 the pipes burst.",
+  "vars": [{ "name": "x", "label": "VALVE", "domain": "int", "init": 0 }],
+  "controls": [
+    { "id": "open", "label": "OPEN", "guard": "x < 10", "update": { "x": "x + 1" } },
+    { "id": "close", "label": "CLOSE", "guard": "x > 0", "update": { "x": "x - 1" } }
+  ],
+  "meltdown": "x = 11",
+  "hand": { "cards": { "le": 1, "ne": 1 }, "budget": 3 },
+  "solutions": ["x <= 10"],
+  "knownWrong": [
+    { "law": "x != 11", "verdict": "lab_breach" },
+    { "law": "x <= 11", "verdict": "insufficient" },
+    { "law": "x = 0", "verdict": "live_breach" }
+  ],
+  "argus": {
+    "intro": ["COOLANT SUBSYSTEM ONLINE.", "ELEVEN NOTCHES. I ONLY NEED ONE MORE."]
+  }
+}

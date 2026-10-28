@@ -1,0 +1,74 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--human-bg);
+  color: var(--human-text);
+  font-family: var(--font-mono);
+  font-size: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+p,
+ol {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--human-primary);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* DEV page (?dev). Throwaway; replaced by the real theme in M2. */
+.dev-panel {
+  padding: 1rem;
+  max-width: 60rem;
+  overflow-wrap: anywhere;
+}
+
+.dev-spinner {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  border: 2px solid var(--human-primary);
+  border-right-color: transparent;
+  border-radius: 50%;
+  visibility: hidden;
+}
+
+.dev-spinner--on {
+  visibility: visible;
+  animation: dev-spin 0.8s linear infinite;
+}
+
+@keyframes dev-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

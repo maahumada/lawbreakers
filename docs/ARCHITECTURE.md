@@ -1,0 +1,211 @@
+# Architecture
+
+A static single-page web app. No backend for the MVP: everything, including the SMT solver, runs in
+the browser. Deployed to GitHub Pages.
+
+## Stack
+
+| Concern | Choice | Why |
+|---|---|---|
+| Build | Vite + TypeScript (strict) | fast, static output for Pages |
+| UI | React 18 | component model fits racks/cards/panels |
+| State | Zustand | small, no boilerplate |
+| Drag & drop | `@dnd-kit/core` | accessible, works with touch |
+| Animation | `motion` (Framer Motion) | attack replays, card movement |
+| Solver | `z3-solver` (official Z3 WASM build) | real verification in the browser and in Node tests |
+| Validation | `zod` | level JSON schema |
+| Tests | Vitest | same toolchain as Vite; engine tests run Z3 in Node |
+| Audio | WebAudio API, synthesized | no asset licensing |
+| Deploy | GitHub Actions → GitHub Pages | free, matches the deliverable |
+
+## Layout
+
+```
+lawbreakers/
+├── docs/                    design, levels, architecture, roadmap
+├── public/
+│   └── coi-serviceworker.js enables cross-origin isolation on GitHub Pages (Z3 needs SharedArrayBuffer)
+├── src/
+│   ├── engine/              PURE TypeScript. No React, no DOM. Fully unit-tested.
+│   │   ├── types.ts         Verdict / VerdictKind (shared by verify, worker, UI)
+│   │   ├── expr.ts          Expr AST, type checker, evaluator, pretty-printer
+│   │   ├── parse.ts         infix text → Expr (used by level files, tests, dev console)
+│   │   ├── level.ts         level schema (zod), loader, static validation
+│   │   ├── simulate.ts      step, enabled transitions, random telemetry, BFS live attack
+│   │   ├── smt.ts           Expr → Z3 terms
+│   │   ├── verify.ts        init / live / lab / safety pipeline → Verdict
+│   │   ├── score.ts         breach deltas and score formula
+│   │   └── dafny.ts         level + Law → Dafny program text
+│   ├── worker/
+│   │   ├── verify.worker.ts runs verify.ts off the main thread (loads Z3, see "Z3 in the browser")
+│   │   ├── protocol.ts      request/response message types
+│   │   └── client.ts        typed promise API for the UI: warmUp(), verifyLaw(levelId, law)
+│   ├── levels/              01-last-reactor.json … 06-final-breach.json
+│   ├── game/                Zustand stores: missionStore.ts (machine state, telemetry, auto-run); later rack, breach, campaign
+│   ├── ui/
+│   │   ├── screens/         Title, Intro, MissionSelect, Mission, Results
+│   │   ├── rack/            Rack, Socket, Module, Wire, Hand
+│   │   ├── layout/          Slot (reserved areas for later features, `data-slot`)
+│   │   ├── machine/         MachineView, Briefing, Gauge, ControlCard, Telemetry, format.ts (guard/effect text)
+│   │   ├── argus/           ArgusTerminal, AttackReplay, BreachMeter
+│   │   └── proof/           ShowTheProof
+│   ├── audio/               sfx.ts (synth helpers)
+│   └── styles/              tokens.css (palettes, type, space; self-hosted @fontsource fonts), effects.css (fx-* utilities), global.css
+├── scripts/
+│   ├── smoke-worker.mjs     headless Chromium check of the worker on the `?dev` page (not in npm test)
+│   └── screenshot-mission.mjs  mission screen screenshots (1440×900, 390×844) + interaction checks (`npm run screenshots`)
+└── tests/                   engine tests, level conformance (+ a few component smoke tests)
+```
+
+**Hard rule: `src/engine` never imports from `src/ui`, `src/game` or React.** The UI depends on the
+engine, never the reverse. This is what lets agents build and test the engine in isolation.
+
+## Core types (engine)
+
+```ts
+type NumExpr =
+  | { k: "var"; name: string }
+  | { k: "const"; value: number }
+  | { k: "add" | "sub"; l: NumExpr; r: NumExpr }
+  | { k: "scale"; factor: number; e: NumExpr }       // constant × expr (keeps it linear)
+  | { k: "mod"; divisor: number; e: NumExpr };       // divisor > 0, constant
+
+type BoolExpr =
+  | { k: "bool"; value: boolean }
+  | { k: "cmp"; op: "=" | "!=" | "<" | "<=" | ">" | ">="; l: NumExpr; r: NumExpr }
+  | { k: "and" | "or"; l: BoolExpr; r: BoolExpr }
+  | { k: "not"; e: BoolExpr };
+
+type State = Record<string, number>;
+
+type Verdict =
+  | { kind: "init_failure"; state: State }
+  | { kind: "live_breach"; trace: { control: string; state: State }[] }   // starts at init
+  | { kind: "lab_breach"; before: State; control: string; after: State }
+  | { kind: "insufficient"; state: State }                                // satisfies Law, is meltdown
+  | { kind: "holds" };
+```
+
+The rack in the UI is a *partial* tree (empty sockets allowed). It converts to an `Expr` only when
+complete; an incomplete rack cannot be engaged.
+
+## Level file format
+
+```json
+{
+  "id": "01-last-reactor",
+  "title": "THE LAST REACTOR",
+  "concept": "conservation",
+  "briefing": "The last fusion reactor stores energy in two cells...",
+  "vars": [
+    { "name": "A", "label": "CELL A", "domain": "nat", "init": 2 },
+    { "name": "B", "label": "CELL B", "domain": "nat", "init": 4 }
+  ],
+  "controls": [
+    { "id": "a2b", "label": "TRANSFER A→B", "guard": "A >= 1", "update": { "A": "A - 1", "B": "B + 1" } },
+    { "id": "b2a", "label": "TRANSFER B→A", "guard": "B >= 1", "update": { "A": "A + 1", "B": "B - 1" } }
+  ],
+  "meltdown": "A = 0 && B = 0",
+  "hand": { "cards": { "add": 1, "eq": 1, "ge": 1 }, "budget": 5 },
+  "solutions": ["A + B = 6", "A + B >= 1"],
+  "knownWrong": [
+    { "law": "A >= 1",     "verdict": "live_breach" },
+    { "law": "A >= 0",     "verdict": "insufficient" },
+    { "law": "A + B = 7",  "verdict": "init_failure" }
+  ],
+  "argus": { "intro": ["REACTOR LOCATED. BEGINNING ANALYSIS."] }
+}
+```
+
+Expressions in level files are infix strings parsed by `parse.ts`
+(`+ - * mod = != < <= > >= && || ! ( ) true false`, `*` only with a constant operand).
+Safe is `!meltdown`.
+
+Precedence, loosest to tightest: `||` < `&&` < `!` < comparisons (non-chaining) < `+ -` <
+`* mod` < unary `-`. Binary operators are left-associative. `e mod k` needs a positive integer
+literal `k`. A unary minus on a literal is a negative constant; on anything else it is `-1 * e`.
+
+`hand.cards` keys are card ids (`CARD_IDS` in `level.ts`): `add sub scale2 scale3 mod2 mod3 eq ne
+lt le gt ge and or not`. `scaleK` is the `×k` card, `modK` the `MOD k` card. Sensors and constants
+have no card (unlimited). Module count (`size` in `expr.ts`): every AST node is one module; `×k`
+and `MOD k` include their constant, so `y = 2 * x` costs 4.
+
+## Verification pipeline (`verify.ts`)
+
+Let `D(s)` be the domain constraints (`x ≥ 0` for every `nat` variable), `I` the Law, `Safe = ¬meltdown`.
+Run in order and return the first failure:
+
+1. **Init.** Evaluate `I(s0)` directly. False → `init_failure`.
+2. **Live attack.** BFS from `s0` over enabled controls, depth ≤ 12, at most 5 000 states. First state
+   with `¬I` → `live_breach` with the shortest trace. (Cheap, and gives the most dramatic replay.)
+3. **Lab simulation.** For each control `t`, ask Z3:
+   `D(s) ∧ I(s) ∧ guard_t(s) ∧ s' = update_t(s) ∧ D(s') ∧ ¬I(s')`.
+   SAT → `lab_breach` from the model. To keep counterexamples readable, first solve with the extra
+   bound `|v| ≤ 10` on every variable, then `≤ 100`, then unbounded.
+4. **Safety.** Ask Z3: `D(s) ∧ I(s) ∧ ¬Safe(s)`. SAT → `insufficient` (same small-model trick).
+5. Otherwise → `holds`.
+
+Implementation notes: `I(s')` and `D(s')` are built by substituting `update_t` into the
+expressions (`substBool`), so every query is a list of `BoolExpr` over one state passed to
+`findModel(constraints, vars, bound?)` in `smt.ts`. `before` comes from the model and `after` from
+`applyUpdate`; both are re-checked with the evaluator (a disagreement throws). Traces
+(`bfsAttack`, `randomRun`, `live_breach.trace`) start with the init state under
+`control: TRACE_START` (`""`).
+
+Note that step 2 is only a fast path: soundness comes from steps 3–4, and step 3 also catches every
+live breach the BFS bound misses.
+
+### Z3 in the browser
+
+`z3-solver`'s `browser` entry does not bundle Z3: it reads a global `initZ3` that the Emscripten
+glue `z3-built.js` defines, and that glue fetches `z3-built.wasm` (35 MB, ~8 MB gzipped) and spawns
+its own pthread Web Workers by re-loading `z3-built.js`. How LAWBREAKERS wires it:
+
+- **Assets.** The `lawbreakers:z3-assets` plugin in `vite.config.ts` serves both files from
+  `node_modules/z3-solver/build/` at `<base>z3/` in `vite dev` (with the COOP/COEP headers), and emits
+  them to `dist/z3/` in `vite build`. Nothing is copied into `public/` or committed.
+- **Loading.** `verify.worker.ts` is a module worker (`importScripts` is not available there), so on
+  warm-up it fetches `<base>z3/z3-built.js` and runs it with an indirect `eval`, which defines
+  `initZ3` globally exactly like a classic script. It also sets `self.global = self` (browser.js reads
+  `global.initZ3`).
+- **Paths.** Run that way, Emscripten cannot infer its own URL, so `initZ3(overrides)` in `smt.ts`
+  passes `locateFile` (→ `<base>z3/z3-built.wasm`) and `mainScriptUrlOrBlob` (→ the script URL the
+  nested pthread workers load). `<base>` is `import.meta.env.BASE_URL` resolved against the origin,
+  so `base` must be absolute (`/` or `/<repo>/`), which GitHub Pages needs anyway.
+- **Isolation.** `SharedArrayBuffer` needs a cross-origin-isolated page *and* workers: COOP/COEP in
+  `vite dev`/`vite preview`, `coi-serviceworker` on Pages (M2-T6). All Z3 files are same-origin.
+- **Protocol.** Requests carry an `id`; the worker answers `{ id, ok: true, result }` or
+  `{ id, ok: false, error }`, and `client.ts` settles the matching promise. A worker crash rejects
+  every pending request and the next call starts a fresh worker. A failed Z3 init can be retried.
+- **Checked** with `scripts/smoke-worker.mjs` (headless Chromium via Playwright) on `vite dev`,
+  `vite preview`, and both again with `--base /lawbreakers/`. Locally, Z3 init takes ~0.16 s (the
+  35 MB wasm comes from localhost; a real network adds the ~8 MB gzipped download) and Mission 01's
+  reference Law verifies in ~0.13 s while the page's animation frames keep advancing.
+
+### Gotchas
+
+- **Modulo semantics.** Z3 `mod` is Euclidean (result in `[0, k)` for `k > 0`). JavaScript `%` is not
+  (`-3 % 2 === -1`). The evaluator must use `((a % k) + k) % k`. A test must cover negative operands.
+- **Cross-origin isolation.** `z3-solver` needs `SharedArrayBuffer`, so the page must be
+  cross-origin isolated. Vite dev server: set COOP/COEP headers in `vite.config.ts`. GitHub Pages:
+  cannot set headers, so ship `coi-serviceworker.js`.
+- **Z3 init is slow** (~1–3 s, large WASM). Initialize it in the worker during the intro/briefing so
+  the first ENGAGE feels instant; show ARGUS "BOOTING" text if not ready yet.
+- **Worker.** All Z3 calls go through `verify.worker.ts`; the main thread never blocks. The UI only
+  imports `src/worker/client.ts`, never `smt.ts`/`verify.ts` directly (that would pull Z3 into the
+  main bundle).
+- **Level validation at test time:** `Safe(s0)` holds; every control keeps `nat` variables in domain
+  (Z3 check); every `solutions` entry yields `holds`; every `knownWrong` entry yields its verdict;
+  every solution is buildable within the hand and budget.
+
+## Dafny export (`dafny.ts`)
+
+Generates a method that models the facility: variables initialized, a loop that nondeterministically
+fires an enabled control, the Law as `invariant`, and Safe as an `assert` inside the loop. Uses
+Dafny's nondeterministic `if *` / `while *` (verification-only). The output for every mission's
+reference solution must be checked once with a real Dafny install (see ROADMAP M3-T6).
+
+## Deploy
+
+GitHub Actions on push to `main`: `npm ci → npm run lint → npm test → npm run build →
+actions/deploy-pages`. Vite `base` set to `/<repo-name>/`.

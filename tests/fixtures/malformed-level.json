@@ -1,0 +1,15 @@
+{
+  "id": "99-malformed",
+  "title": "MALFORMED",
+  "concept": "test fixture",
+  "briefing": "Every expression below has a problem the loader must report.",
+  "vars": [{ "name": "x", "label": "X", "domain": "nat", "init": 0 }],
+  "controls": [
+    { "id": "grow", "label": "GROW", "guard": "x * y > 0", "update": { "x": "x + 1", "z": "1" } }
+  ],
+  "meltdown": "x + 1",
+  "hand": { "cards": { "add": 1 }, "budget": 3 },
+  "solutions": ["q >= 0"],
+  "knownWrong": [],
+  "argus": { "intro": ["TEST."] }
+}

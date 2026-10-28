@@ -1,0 +1,262 @@
+// Level files: zod schema for the raw JSON, loader that parses every expression string,
+// and static checks that do not need the solver.
+
+import { z } from "zod";
+import type { BoolExpr, Expr, NumExpr, State } from "./expr.ts";
+import { freeVars } from "./expr.ts";
+import { ParseError, parseBool, parseNum } from "./parse.ts";
+import type { VerdictKind } from "./types.ts";
+import { VERDICT_KINDS } from "./types.ts";
+
+import level01 from "../levels/01-last-reactor.json";
+import level02 from "../levels/02-coolant-valve.json";
+import level03 from "../levels/03-mirror-pistons.json";
+import level04 from "../levels/04-parity-lock.json";
+import level05 from "../levels/05-false-defense.json";
+import level06 from "../levels/06-final-breach.json";
+
+// ---------------------------------------------------------------------------
+// Cards
+
+/**
+ * Operator cards a mission can deal. Sensors and constant dials are unlimited and have no card.
+ * `scaleK` is the `×k` card (builds `scale(k, e)`); `modK` is the `MOD k` card (builds
+ * `mod(e, k)`). Add more `scaleK` / `modK` ids here when a mission needs another constant.
+ */
+export const CARD_IDS = [
+  "add",
+  "sub",
+  "scale2",
+  "scale3",
+  "mod2",
+  "mod3",
+  "eq",
+  "ne",
+  "lt",
+  "le",
+  "gt",
+  "ge",
+  "and",
+  "or",
+  "not",
+] as const;
+
+export type CardId = (typeof CARD_IDS)[number];
+
+const CMP_CARD = { "=": "eq", "!=": "ne", "<": "lt", "<=": "le", ">": "gt", ">=": "ge" } as const;
+
+/**
+ * The card a node consumes from the hand, `null` for free modules (sensors, constants, and the
+ * `true`/`false` literals), or `"unavailable"` when no card can build it (e.g. `×5`).
+ */
+export function cardOf(e: Expr): CardId | null | "unavailable" {
+  switch (e.k) {
+    case "var":
+    case "const":
+    case "bool":
+      return null;
+    case "add":
+    case "sub":
+    case "and":
+    case "or":
+    case "not":
+      return e.k;
+    case "cmp":
+      return CMP_CARD[e.op];
+    case "scale":
+    case "mod": {
+      const id = `${e.k}${e.k === "scale" ? e.factor : e.divisor}`;
+      return (CARD_IDS as readonly string[]).includes(id) ? (id as CardId) : "unavailable";
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Raw schema (the JSON on disk)
+
+const identifier = z.string().regex(/^[A-Za-z_][A-Za-z0-9_]*$/, "must be an identifier");
+const nonEmpty = z.string().min(1);
+
+const rawVar = z.strictObject({
+  name: identifier,
+  label: nonEmpty,
+  domain: z.enum(["nat", "int"]),
+  init: z.int(),
+});
+
+const rawControl = z.strictObject({
+  id: identifier,
+  label: nonEmpty,
+  guard: nonEmpty,
+  update: z.record(z.string(), nonEmpty),
+});
+
+export const rawLevelSchema = z.strictObject({
+  id: z.string().regex(/^\d{2}-[a-z0-9-]+$/, "must look like '01-some-name'"),
+  title: nonEmpty,
+  concept: nonEmpty,
+  briefing: nonEmpty,
+  vars: z.array(rawVar).min(1),
+  controls: z.array(rawControl).min(1),
+  meltdown: nonEmpty,
+  hand: z.strictObject({
+    cards: z.partialRecord(z.enum(CARD_IDS), z.int().positive()),
+    budget: z.int().positive(),
+  }),
+  solutions: z.array(nonEmpty).min(1),
+  knownWrong: z.array(z.strictObject({ law: nonEmpty, verdict: z.enum(VERDICT_KINDS) })),
+  argus: z.strictObject({ intro: z.array(nonEmpty).min(1) }),
+});
+
+export type RawLevel = z.infer<typeof rawLevelSchema>;
+
+// ---------------------------------------------------------------------------
+// Loaded level (expressions parsed)
+
+export type Domain = "nat" | "int";
+
+export interface VarDecl {
+  name: string;
+  label: string;
+  domain: Domain;
+  init: number;
+}
+
+export interface Control {
+  id: string;
+  label: string;
+  guard: BoolExpr;
+  /** Simultaneous assignment; variables not listed keep their value. */
+  update: Record<string, NumExpr>;
+}
+
+export interface Level {
+  id: string;
+  title: string;
+  concept: string;
+  briefing: string;
+  vars: VarDecl[];
+  controls: Control[];
+  meltdown: BoolExpr;
+  hand: { cards: Partial<Record<CardId, number>>; budget: number };
+  /** Test-only: reference Laws that must verify. Never used to decide a verdict. */
+  solutions: BoolExpr[];
+  /** Test-only: wrong Laws with the verdict the engine must return. */
+  knownWrong: { law: BoolExpr; verdict: VerdictKind }[];
+  argus: { intro: string[] };
+}
+
+export class LevelError extends Error {
+  constructor(
+    readonly levelId: string,
+    readonly issues: string[],
+  ) {
+    super(`Invalid level '${levelId}':\n${issues.map((i) => `  - ${i}`).join("\n")}`);
+    this.name = "LevelError";
+  }
+}
+
+export function initialState(level: Level): State {
+  return Object.fromEntries(level.vars.map((x) => [x.name, x.init]));
+}
+
+function pathToString(path: readonly PropertyKey[]): string {
+  return path.reduce<string>(
+    (acc, key) =>
+      typeof key === "number" ? `${acc}[${key}]` : acc ? `${acc}.${String(key)}` : String(key),
+    "",
+  );
+}
+
+/** Validate and parse a raw level object. Throws `LevelError` listing every problem found. */
+export function loadLevel(raw: unknown): Level {
+  const fallbackId =
+    typeof raw === "object" && raw !== null && "id" in raw && typeof raw.id === "string"
+      ? raw.id
+      : "<unknown>";
+
+  const parsed = rawLevelSchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new LevelError(
+      fallbackId,
+      parsed.error.issues.map((i) => `${pathToString(i.path) || "(root)"}: ${i.message}`),
+    );
+  }
+  const r = parsed.data;
+  const issues: string[] = [];
+  const declared = new Set(r.vars.map((x) => x.name));
+
+  const parseWith = <T extends Expr>(parse: (s: string) => T, src: string, where: string) => {
+    try {
+      const e = parse(src);
+      for (const name of freeVars(e)) {
+        if (!declared.has(name)) issues.push(`${where}: unknown variable '${name}' in "${src}"`);
+      }
+      return e;
+    } catch (err) {
+      if (!(err instanceof ParseError)) throw err;
+      // Source and caret on their own lines, indented to sit under the "  - " bullet text.
+      const pad = "      ";
+      issues.push(
+        `${where}: ${err.reason} at column ${err.pos + 1}\n${pad}${src}\n${pad}${" ".repeat(err.pos)}^`,
+      );
+      return undefined;
+    }
+  };
+
+  const seenVars = new Set<string>();
+  r.vars.forEach((x, i) => {
+    if (seenVars.has(x.name)) issues.push(`vars[${i}]: duplicate variable '${x.name}'`);
+    seenVars.add(x.name);
+    if (x.domain === "nat" && x.init < 0) {
+      issues.push(`vars[${i}]: '${x.name}' is nat but init is ${x.init}`);
+    }
+  });
+
+  const seenControls = new Set<string>();
+  const controls: Control[] = r.controls.map((ctl, i) => {
+    const where = `controls[${i}] (${ctl.id})`;
+    if (seenControls.has(ctl.id)) issues.push(`${where}: duplicate control id`);
+    seenControls.add(ctl.id);
+    const guard = parseWith(parseBool, ctl.guard, `${where}.guard`);
+    const update: Record<string, NumExpr> = {};
+    for (const [name, src] of Object.entries(ctl.update)) {
+      if (!declared.has(name))
+        issues.push(`${where}.update: assigns undeclared variable '${name}'`);
+      const e = parseWith(parseNum, src, `${where}.update.${name}`);
+      if (e) update[name] = e;
+    }
+    return { id: ctl.id, label: ctl.label, guard: guard ?? { k: "bool", value: false }, update };
+  });
+
+  const meltdown = parseWith(parseBool, r.meltdown, "meltdown");
+  const solutions = r.solutions.map((s, i) => parseWith(parseBool, s, `solutions[${i}]`));
+  const knownWrong = r.knownWrong.map((w, i) => ({
+    law: parseWith(parseBool, w.law, `knownWrong[${i}].law`),
+    verdict: w.verdict,
+  }));
+
+  if (issues.length > 0 || !meltdown) throw new LevelError(r.id, issues);
+
+  return {
+    id: r.id,
+    title: r.title,
+    concept: r.concept,
+    briefing: r.briefing,
+    vars: r.vars,
+    controls,
+    meltdown,
+    hand: r.hand,
+    // No issues means every entry parsed.
+    solutions: solutions.filter((s) => s !== undefined),
+    knownWrong: knownWrong.flatMap((w) => (w.law ? [{ law: w.law, verdict: w.verdict }] : [])),
+    argus: r.argus,
+  };
+}
+
+const BUNDLED: readonly unknown[] = [level01, level02, level03, level04, level05, level06];
+
+/** All shipped missions, in campaign order. Throws `LevelError` if any file is invalid. */
+export function loadBundledLevels(): Level[] {
+  return BUNDLED.map(loadLevel);
+}

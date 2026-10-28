@@ -1,0 +1,36 @@
+{
+  "id": "01-last-reactor",
+  "title": "THE LAST REACTOR",
+  "concept": "conservation",
+  "briefing": "The last fusion reactor stores energy in two cells. Energy can be moved between them, never created or destroyed. If both cells empty, the reactor dies — and with it, the city.",
+  "vars": [
+    { "name": "A", "label": "CELL A", "domain": "nat", "init": 2 },
+    { "name": "B", "label": "CELL B", "domain": "nat", "init": 4 }
+  ],
+  "controls": [
+    {
+      "id": "a2b",
+      "label": "TRANSFER A→B",
+      "guard": "A >= 1",
+      "update": { "A": "A - 1", "B": "B + 1" }
+    },
+    {
+      "id": "b2a",
+      "label": "TRANSFER B→A",
+      "guard": "B >= 1",
+      "update": { "A": "A + 1", "B": "B - 1" }
+    }
+  ],
+  "meltdown": "A = 0 && B = 0",
+  "hand": { "cards": { "add": 1, "eq": 1, "ge": 1 }, "budget": 5 },
+  "solutions": ["A + B = 6", "A + B >= 1"],
+  "knownWrong": [
+    { "law": "A >= 1", "verdict": "live_breach" },
+    { "law": "A >= 0", "verdict": "insufficient" },
+    { "law": "A = 2", "verdict": "live_breach" },
+    { "law": "A + B = 7", "verdict": "init_failure" }
+  ],
+  "argus": {
+    "intro": ["REACTOR LOCATED. BEGINNING ANALYSIS.", "TWO CELLS. ONE CITY. HOW FRAGILE."]
+  }
+}

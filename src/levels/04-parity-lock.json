@@ -1,0 +1,22 @@
+{
+  "id": "04-parity-lock",
+  "title": "PARITY LOCK",
+  "concept": "modular invariant",
+  "briefing": "The vault lock holds an odd number of pins. Pins are always inserted or removed in pairs. If the count ever hits zero, the vault opens.",
+  "vars": [{ "name": "n", "label": "PINS", "domain": "int", "init": 1 }],
+  "controls": [
+    { "id": "insert", "label": "INSERT PAIR", "guard": "true", "update": { "n": "n + 2" } },
+    { "id": "remove", "label": "REMOVE PAIR", "guard": "n >= 2", "update": { "n": "n - 2" } }
+  ],
+  "meltdown": "n = 0",
+  "hand": { "cards": { "mod2": 1, "eq": 1, "ge": 1 }, "budget": 4 },
+  "solutions": ["n mod 2 = 1"],
+  "knownWrong": [
+    { "law": "n >= 1", "verdict": "lab_breach" },
+    { "law": "n != 0", "verdict": "lab_breach" },
+    { "law": "n = 1", "verdict": "live_breach" }
+  ],
+  "argus": {
+    "intro": ["VAULT LOCK DETECTED. COUNTING PINS.", "ONE PIN. HOW... ODD."]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "id": "05-false-defense",
+  "title": "THE FALSE DEFENSE",
+  "concept": "strengthening",
+  "briefing": "A turbine accumulates momentum. Every cycle, the momentum grows by the drive, and the drive itself grows by one. If momentum ever goes negative, the turbine reverses and tears itself apart.",
+  "vars": [
+    { "name": "x", "label": "MOMENTUM", "domain": "int", "init": 0 },
+    { "name": "y", "label": "DRIVE", "domain": "int", "init": 0 }
+  ],
+  "controls": [
+    { "id": "cycle", "label": "CYCLE", "guard": "true", "update": { "x": "x + y", "y": "y + 1" } }
+  ],
+  "meltdown": "x < 0",
+  "hand": { "cards": { "ge": 2, "and": 1 }, "budget": 7 },
+  "solutions": ["x >= 0 && y >= 0"],
+  "knownWrong": [
+    { "law": "x >= 0", "verdict": "lab_breach" },
+    { "law": "y >= 0", "verdict": "insufficient" },
+    { "law": "x = 0", "verdict": "live_breach" }
+  ],
+  "argus": {
+    "intro": ["TURBINE SPINNING UP.", "WRITE THE OBVIOUS LAW, LAWSMITH. I DARE YOU."]
+  }
+}
