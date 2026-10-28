@@ -20,9 +20,14 @@ const SYMBOLS: [RegExp, string][] = [
   [/\bfalse\b/g, "FALSE"],
 ];
 
-/** `pretty` with typographic operators: `A >= 1 && !(B = 0)` → `A ≥ 1 AND NOT (B = 0)`. */
+/** Typographic operators for `pretty`-syntax text: `A >= 1 && !(B = 0)` → `A ≥ 1 AND NOT (B = 0)`. */
+export function typeset(text: string): string {
+  return SYMBOLS.reduce((acc, [re, sym]) => acc.replace(re, sym), text);
+}
+
+/** `pretty` with typographic operators. */
 export function formatExpr(e: BoolExpr | NumExpr): string {
-  return SYMBOLS.reduce((text, [re, sym]) => text.replace(re, sym), pretty(e));
+  return typeset(pretty(e));
 }
 
 /** Guard line of a control card: `IF A ≥ 1`, or `ALWAYS` for an unconditional control. */

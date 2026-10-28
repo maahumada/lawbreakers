@@ -126,7 +126,7 @@ The root of the rack is the **SHIELD** socket (square): whatever signal reaches 
 | Family | Modules | Plug | Sockets |
 |---|---|---|---|
 | Sensor | one per gauge (`A`, `B`, `x`, …) | round | – |
-| Constant | dial `0…20` (or values fixed by the mission) | round | – |
+| Constant | dial `−20…20`, set after plugging it in | round | – |
 | Arithmetic | `ADD`, `SUB` | round | 2 round |
 | Scale | `×k` (constant multiplier, k from the hand) | round | 1 round |
 | Modulo | `MOD k` | round | 1 round |

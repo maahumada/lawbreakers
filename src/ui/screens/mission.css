@@ -99,35 +99,6 @@
 
 /* --- Reserved slots ----------------------------------------------------- */
 
-.rack-slot {
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: var(--space-1);
-  min-height: 9rem;
-  border: 1px dashed var(--human-line);
-  background: repeating-linear-gradient(
-    -45deg,
-    transparent 0 14px,
-    color-mix(in srgb, var(--human-line) 35%, transparent) 14px 15px
-  );
-  color: var(--human-muted);
-  text-align: center;
-}
-
-.slot__title {
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: var(--text-lg);
-  letter-spacing: var(--track-wide);
-  text-transform: uppercase;
-  color: var(--human-secondary);
-}
-
-.slot__note {
-  font-size: var(--text-sm);
-}
-
 .engage {
   width: 100%;
   padding: var(--space-4);
@@ -158,4 +129,11 @@
 .engage:disabled {
   opacity: 0.35;
   cursor: not-allowed;
+}
+
+/* Law complete: the interlock arms (the click lands in M2-T4). */
+.engage[data-ready] {
+  opacity: 1;
+  text-shadow: 0 0 12px color-mix(in srgb, var(--human-primary) 60%, transparent);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--human-primary) 25%, transparent);
 }

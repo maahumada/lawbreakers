@@ -1,0 +1,608 @@
+/* Law Engine rack: hand tray, wired board flowing into the SHIELD, live readout.
+   Shapes carry the types: round = number (brass), square = signal (amber). */
+
+.rack {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.rack .panel__bar {
+  margin-bottom: 0;
+}
+
+.rack .btn-reset:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.rack__hint {
+  font-size: var(--text-xs);
+  color: var(--human-muted);
+}
+
+/* --- Module plates (hand chips, placed modules, drag ghost) ------------- */
+
+.mod {
+  --mod-c: var(--human-secondary);
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto;
+  place-content: center;
+  justify-items: center;
+  gap: 2px;
+  border: 1px solid var(--mod-c);
+  border-bottom-width: 3px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(to bottom, var(--human-surface-2), var(--human-bg));
+  box-shadow: 0 3px 0 var(--black);
+  color: var(--human-text);
+  text-align: center;
+  touch-action: manipulation;
+}
+
+.mod--bool {
+  --mod-c: var(--human-primary);
+}
+
+.mod__face {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-xl);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--mod-c);
+  white-space: nowrap;
+}
+
+.mod__caption {
+  max-width: 100%;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 0.6875rem;
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--human-muted);
+}
+
+/* Output plug on the right edge, input jacks down the left edge. */
+.plug,
+.jack {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  transform: translateY(-50%);
+}
+
+.plug {
+  top: 50%;
+  right: -7px;
+  background: var(--mod-c);
+  box-shadow: 0 0 0 2px var(--human-bg);
+}
+
+.plug--num,
+.jack--num {
+  border-radius: 50%;
+}
+
+.plug--bool,
+.jack--bool {
+  border-radius: 1px;
+}
+
+.jack {
+  left: -7px;
+  border: 2px solid var(--human-secondary);
+  background: var(--human-bg);
+}
+
+.jack--bool {
+  border-color: var(--human-primary);
+}
+
+/* --- Hand -------------------------------------------------------------- */
+
+.hand {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
+  padding: var(--space-3);
+  border: 1px solid var(--human-line);
+  background: color-mix(in srgb, var(--black) 35%, transparent);
+  transition: border-color var(--dur-fast);
+}
+
+.hand[data-returning] {
+  border-style: dashed;
+  border-color: var(--human-secondary);
+}
+
+.hand[data-over] {
+  border-color: var(--human-primary);
+  background: color-mix(in srgb, var(--human-primary) 8%, transparent);
+}
+
+.hand__return {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--human-primary);
+}
+
+.hand__group {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.hand__label {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--human-secondary);
+}
+
+.hand__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) calc(var(--space-3) + 6px);
+  padding-inline: 8px;
+}
+
+.chip {
+  min-width: 4.75rem;
+  height: 3.5rem;
+  padding: 0 var(--space-4);
+  cursor: grab;
+  transition:
+    transform var(--dur-fast),
+    box-shadow var(--dur-fast),
+    opacity var(--dur-fast);
+}
+
+.chip:hover:enabled {
+  transform: translateY(-2px);
+}
+
+.chip[aria-pressed="true"] {
+  transform: translateY(-3px);
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--mod-c) 22%, var(--human-surface-2)),
+    var(--human-bg)
+  );
+  box-shadow:
+    0 0 0 2px var(--mod-c),
+    0 0 18px color-mix(in srgb, var(--mod-c) 45%, transparent);
+}
+
+.chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+  filter: grayscale(1);
+  box-shadow: none;
+}
+
+.chip[data-dragging] {
+  opacity: 0.4;
+}
+
+.chip__count {
+  position: absolute;
+  top: -9px;
+  right: 6px;
+  padding: 0 4px;
+  border: 1px solid var(--mod-c);
+  border-radius: var(--radius-sm);
+  background: var(--human-bg);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--human-text);
+}
+
+.chip:focus-visible,
+.socket:focus-visible,
+.placed__remove:focus-visible,
+.dial__value:focus-visible {
+  outline: 2px solid var(--human-primary);
+  outline-offset: 3px;
+}
+
+/* --- Board ------------------------------------------------------------- */
+
+.board {
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--human-line);
+  border-top-color: var(--black);
+  background:
+    radial-gradient(
+        circle,
+        color-mix(in srgb, var(--human-line) 80%, transparent) 1px,
+        transparent 1.5px
+      )
+      0 0 / 16px 16px,
+    color-mix(in srgb, var(--black) 55%, var(--human-bg));
+  box-shadow: inset 0 4px 14px color-mix(in srgb, var(--black) 80%, transparent);
+  scrollbar-color: var(--human-secondary) transparent;
+}
+
+.board__canvas {
+  position: relative;
+  margin-inline: auto;
+}
+
+.board__wires {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+
+.board__cell {
+  position: absolute;
+  display: grid;
+}
+
+/* Wires */
+
+.wire path {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.wire__core {
+  stroke: var(--human-line);
+  stroke-width: 2;
+  stroke-dasharray: 4 5;
+}
+
+.wire[data-plugged] .wire__core {
+  stroke: color-mix(in srgb, var(--human-secondary) 70%, var(--human-line));
+  stroke-width: 3;
+  stroke-dasharray: none;
+}
+
+.wire--bool[data-plugged] .wire__core {
+  stroke: color-mix(in srgb, var(--human-primary) 55%, var(--human-line));
+}
+
+.wire__glow {
+  stroke: transparent;
+  stroke-width: 9;
+}
+
+.board[data-live] .wire__core {
+  stroke: var(--human-primary);
+}
+
+.board[data-live] .wire__glow {
+  stroke: color-mix(in srgb, var(--human-primary) 22%, transparent);
+}
+
+.wire__current {
+  stroke: var(--human-text);
+  stroke-width: 2;
+  stroke-dasharray: 2 16;
+  animation: wire-flow 0.9s linear infinite;
+}
+
+@keyframes wire-flow {
+  to {
+    stroke-dashoffset: -18;
+  }
+}
+
+/* Empty sockets */
+
+.socket {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px dashed var(--human-line);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--black) 40%, transparent);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--human-muted);
+  cursor: default;
+  transition:
+    opacity var(--dur-fast),
+    border-color var(--dur-fast),
+    background var(--dur-fast);
+}
+
+.socket__hole {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--human-secondary);
+  background: var(--black);
+  box-shadow: inset 0 2px 4px var(--black);
+}
+
+.socket__hole--num {
+  border-radius: 50%;
+}
+
+.socket__hole--bool {
+  border-color: var(--human-primary);
+  border-radius: 2px;
+}
+
+.socket[data-accept="yes"] {
+  border-style: solid;
+  border-color: var(--human-primary);
+  color: var(--human-primary);
+  cursor: pointer;
+  animation: socket-ready 1.2s ease-in-out infinite;
+}
+
+.socket[data-accept="no"] {
+  opacity: 0.35;
+  cursor: not-allowed;
+  border-color: var(--meltdown);
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent 0 6px,
+    color-mix(in srgb, var(--meltdown) 18%, transparent) 6px 7px
+  );
+}
+
+.socket[data-over] {
+  background: color-mix(in srgb, var(--human-primary) 18%, transparent);
+}
+
+@keyframes socket-ready {
+  50% {
+    box-shadow: 0 0 14px color-mix(in srgb, var(--human-primary) 45%, transparent);
+  }
+}
+
+/* Placed modules */
+
+.placed {
+  cursor: grab;
+}
+
+.placed[data-dragging] {
+  opacity: 0.35;
+}
+
+/* Unplug tab on the top edge, clear of the face and the dial. */
+.placed__remove {
+  position: absolute;
+  top: -9px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  padding: 0;
+  border: 1px solid var(--human-line);
+  border-radius: 50%;
+  background: var(--human-bg);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1;
+  color: var(--human-muted);
+  cursor: pointer;
+}
+
+.placed__remove:hover {
+  border-color: var(--meltdown);
+  color: var(--meltdown);
+}
+
+.ghost {
+  width: 7rem;
+  height: 3.5rem;
+  cursor: grabbing;
+  box-shadow:
+    0 0 0 2px var(--mod-c),
+    0 12px 28px var(--black);
+}
+
+/* Constant dial */
+
+.dial {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.dial__btn {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--human-secondary);
+  border-radius: 50%;
+  background: var(--human-bg);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--human-secondary);
+  cursor: pointer;
+}
+
+.dial__btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.dial__value {
+  min-width: 2.2ch;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-xl);
+  line-height: 1;
+  color: var(--human-nixie);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--human-nixie) 60%, transparent);
+  cursor: ns-resize;
+}
+
+/* SHIELD */
+
+.shield {
+  position: absolute;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-1);
+  border: 2px solid var(--human-line);
+  border-radius: var(--radius-md);
+  background:
+    repeating-linear-gradient(-45deg, var(--human-line) 0 6px, transparent 6px 12px) top / 100% 8px
+      no-repeat,
+    linear-gradient(to bottom, var(--human-surface-2), var(--human-bg));
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  transition:
+    border-color var(--dur-med),
+    box-shadow var(--dur-med);
+}
+
+.shield .jack {
+  left: -8px;
+}
+
+.shield__lamp {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--human-line);
+}
+
+.shield__name {
+  font-weight: 700;
+  font-size: var(--text-md);
+  letter-spacing: 0.16em;
+  color: var(--human-muted);
+}
+
+.shield__state {
+  font-size: 0.6875rem;
+  letter-spacing: var(--track-wide);
+  color: var(--human-muted);
+}
+
+.board[data-live] .shield {
+  border-color: var(--human-primary);
+  background:
+    repeating-linear-gradient(-45deg, var(--human-primary) 0 6px, transparent 6px 12px) top / 100%
+      8px no-repeat,
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--human-primary) 16%, var(--human-surface-2)),
+      var(--human-bg)
+    );
+  box-shadow: 0 0 22px color-mix(in srgb, var(--human-primary) 35%, transparent);
+}
+
+.board[data-live] .shield__lamp {
+  background: var(--human-primary);
+  box-shadow: 0 0 10px var(--human-primary);
+}
+
+.board[data-live] .shield__name,
+.board[data-live] .shield__state {
+  color: var(--human-primary);
+}
+
+/* --- Readout ----------------------------------------------------------- */
+
+.readout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+}
+
+.readout__law {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.readout__tag,
+.readout__cost {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--human-secondary);
+}
+
+.readout__expr {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  color: var(--human-text);
+  overflow-wrap: anywhere;
+}
+
+.readout__law[data-complete] .readout__expr {
+  color: var(--human-primary);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--human-primary) 45%, transparent);
+}
+
+.readout__hole {
+  color: var(--human-muted);
+}
+
+.readout__cost b {
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  color: var(--human-text);
+}
+
+.readout__cost[data-over],
+.readout__cost[data-over] b {
+  color: var(--meltdown);
+}
+
+@media (max-width: 520px) {
+  .hand {
+    gap: var(--space-3) var(--space-4);
+    padding: var(--space-3) var(--space-2);
+  }
+  .chip {
+    min-width: 3.75rem;
+    height: 3.1rem;
+    padding: 0 var(--space-3);
+  }
+  .mod__face,
+  .dial__value {
+    font-size: var(--text-lg);
+  }
+  .mod__caption {
+    font-size: 0.625rem;
+  }
+  .dial__btn {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  .shield__name {
+    font-size: var(--text-sm);
+    letter-spacing: 0.1em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wire__current,
+  .socket[data-accept="yes"] {
+    animation: none;
+  }
+}

@@ -53,7 +53,7 @@ Goal: a stranger can open the URL, play Mission 01 start to finish and understan
   glitch utility classes, base layout (human panel left, ARGUS panel right; stacked on mobile).
 - [x] **M2-T2 Machine view.** Gauges (nixie-style numbers + bar), control cards showing guard and
   effect, clickable to operate the machine manually; reset button; telemetry log (auto-run toggle).
-- [ ] **M2-T3 Rack editor.** Hand of module cards, SHIELD root socket, round/square sockets by type,
+- [x] **M2-T3 Rack editor.** Hand of module cards, SHIELD root socket, round/square sockets by type,
   drag & drop with dnd-kit, auto-drawn wires (SVG), remove module, live formula readout, cost counter
   against budget, cards consumed from the hand.
   *Accept:* every Mission 01 Law in `LEVELS.md` can be built; ill-typed drops are impossible.

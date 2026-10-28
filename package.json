@@ -13,9 +13,11 @@
     "format": "prettier --write .",
     "typecheck": "tsc -b",
     "smoke": "node scripts/smoke-worker.mjs",
-    "screenshots": "node scripts/screenshot-mission.mjs"
+    "screenshots": "node scripts/screenshot-mission.mjs",
+    "rack-smoke": "node scripts/rack-smoke.mjs"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
     "@fontsource/jetbrains-mono": "^5.3.0",
     "@fontsource/oswald": "^5.3.0",
     "@fontsource/vt323": "^5.3.0",

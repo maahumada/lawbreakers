@@ -7,7 +7,7 @@ along the way, and a log of each work session.
 ## Current state
 
 - **Milestone:** M2 — Vertical slice: Mission 01 playable
-- **Next task:** M2-T3 Rack editor
+- **Next task:** M2-T4 Engage + verdict
 - **Blockers:** none
 - **Deployed URL:** not yet
 
@@ -17,6 +17,12 @@ Decisions that deviate from or refine the docs. Newest first.
 
 | Date | Decision | Why |
 |---|---|---|
+| 2026-10-28 | Over-budget Laws are allowed in the rack; the cost counter turns red (`--meltdown`). Scoring (M2-T5) decides the penalty | never block a player from testing an idea; budget is a score target, not a typing rule |
+| 2026-10-28 | Constant dial range `−20…20` (DESIGN §4 updated), starts at 0, set after plugging (−/+ buttons, arrow keys, PgUp/PgDn ±5, Home/End) | keyboard accessible; negatives allowed for `sub`-free Laws |
+| 2026-10-28 | Rack layout flows left → right into the SHIELD (columns = depth, leaves one row each); computed in pure `ui/rack/layout.ts`, wires are SVG Béziers from those coordinates (no DOM measuring) | deterministic, testable, no resize observers; horizontal scroll inside the board on phones |
+| 2026-10-28 | Two ways to place: click-to-place (pick a hand item, click a lit socket; Esc cancels) and dnd-kit drag (mouse: 6 px threshold; touch: 180 ms press). Incompatible sockets are disabled droppables (hatched red while dragging/selecting) | touch and keyboard users get a first-class path; illegal drops are impossible, not just refused |
+| 2026-10-28 | Unplug = the × tab on a module or dragging it back onto the hand; dragging a placed module onto another empty compatible socket moves its subtree | cards return automatically because the hand count is derived from the rack |
+| 2026-10-28 | ENGAGE stays `disabled` in M2-T3 but gets `data-ready` (lit) when `law !== null` | M2-T4 only needs to add the click handler |
 | 2026-10-28 | Fonts self-hosted with `@fontsource` (Oswald, JetBrains Mono, VT323) instead of Google Fonts | the page is COEP `require-corp`; same-origin fonts avoid CORP/CORS surprises on Pages and work offline |
 | 2026-10-28 | Theme tokens are namespaced `--human-*` / `--argus-*` (plus type/space/shape); `--color-*` kept only as aliases for the dev page | the two worlds stay visibly separate in CSS; effects live in `effects.css` as `fx-*` classes |
 | 2026-10-28 | Mission screen reads `?mission=NN` to open another mission until mission select exists | lets every level be checked in the machine view now |
@@ -44,6 +50,39 @@ Decisions that deviate from or refine the docs. Newest first.
 
 Newest first. One entry per completed task: what was done, files touched, anything surprising,
 follow-ups.
+
+### 2026-10-28 — M2-T3 Rack editor
+- Model: `src/game/rack.ts` (pure): `Rack = RackNode | null` under the SHIELD, sockets addressed by
+  `SlotPath`; `canPlace` (type / occupied / exhausted / unknown sensor), `placeAt`, `removeAt`,
+  `moveTo`, `setConstAt` (clamped `−20…20`), `rackToLaw` → `BoolExpr | null`, `rackCost`,
+  `cardsUsed` / `cardsLeft`, `rackText` (`pretty` syntax with `?` holes), card shapes/labels.
+  `src/game/rackStore.ts` (Zustand): `rack`, `selected`, derived `law` and `cost`, `reset(level)` /
+  `clear` / `select` / `place` / `remove` / `move` / `setConst`. `MissionScreen` resets it with the
+  mission.
+- UI: `src/ui/rack/` `RackEditor` (DndContext, `pointerWithin`, DragOverlay ghost, Esc cancels),
+  `Hand` (sensors + dial unlimited, dealt cards with `×n` counts, greyed at 0; also the drop zone to
+  unplug), `RackBoard` (empty sockets as buttons/droppables, placed modules with × tab, SVG wires
+  with amber current when complete, SHIELD plate lights up), `Dial` (spinbutton), `Readout` (`LAW
+  A + B = 6`, `COST 5 / BUDGET 5`, red when over), `Shapes` (round/square plugs and jacks),
+  `faces.ts`, `layout.ts` (pure), `useCompact` (phone metrics), `rack.css`. `format.ts` now exports
+  `typeset`. ENGAGE gets `data-ready` when the Law is complete. Dependency: `@dnd-kit/core@6.3.1`.
+- Tests: `tests/rack.test.ts` (31): every LEVELS.md reference solution built through `placeAt` /
+  `setConstAt` gives the same `pretty`, `rackText`, `rackCost = size = budget`, cards within the
+  hand; typed rejection at SHIELD/comparator/logic sockets; exhaustion; unplug returns cards;
+  persistence; dial clamping; moves; `?` readout incl. parentheses and negatives; layout has no
+  overlapping plates for Mission 06 at both metrics; store click-to-place flow.
+- Browser: `scripts/rack-smoke.mjs` (`npm run rack-smoke`, needs a server) builds Mission 01 by
+  click-to-place on desktop and mobile (desktop also drag & drop: a sensor dropped on the SHIELD is
+  rejected, `=` dropped there plugs in), checks readout/cost/exhausted ADD/ENGAGE ready/unplug and no
+  page overflow, then builds Mission 06's reference Law. Screenshots: `docs/screenshots/m2-t3-desktop.png`,
+  `-desktop-selecting.png`, `-mobile.png`, `-m06-desktop.png`, `-m06-mobile.png`. The M2-T2 script and
+  `npm run smoke` still pass.
+- **Surprises:** Playwright refuses to click `aria-disabled` buttons (the smoke uses `force` to prove
+  a rejected socket ignores clicks).
+- **Follow-ups:** M2-T4: add the ENGAGE click (`useRack.getState().law` → `verifyLaw`), lock the
+  rack while ARGUS attacks, and decide whether a breach highlights modules. On phones the SHIELD
+  of deep Laws sits off-screen to the right (board scrolls); consider auto-scroll or a vertical
+  layout after playtesting. Dial has no direct number typing (arrows/±only).
 
 ### 2026-10-28 — M2-T1 Theme + M2-T2 Machine view
 - Theme: `src/styles/tokens.css` (both DESIGN §8 palettes as `--human-*`/`--argus-*`, type scale,

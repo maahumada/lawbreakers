@@ -41,10 +41,10 @@ lawbreakers/
 │   │   ├── protocol.ts      request/response message types
 │   │   └── client.ts        typed promise API for the UI: warmUp(), verifyLaw(levelId, law)
 │   ├── levels/              01-last-reactor.json … 06-final-breach.json
-│   ├── game/                Zustand stores: missionStore.ts (machine state, telemetry, auto-run); later rack, breach, campaign
+│   ├── game/                missionStore.ts (machine state, telemetry, auto-run); rack.ts (pure partial-tree model); rackStore.ts; later breach, campaign
 │   ├── ui/
 │   │   ├── screens/         Title, Intro, MissionSelect, Mission, Results
-│   │   ├── rack/            Rack, Socket, Module, Wire, Hand
+│   │   ├── rack/            RackEditor (dnd-kit context), Hand, RackBoard (sockets, modules, SVG wires, SHIELD), Dial, Readout, layout.ts (pure)
 │   │   ├── layout/          Slot (reserved areas for later features, `data-slot`)
 │   │   ├── machine/         MachineView, Briefing, Gauge, ControlCard, Telemetry, format.ts (guard/effect text)
 │   │   ├── argus/           ArgusTerminal, AttackReplay, BreachMeter
@@ -53,7 +53,8 @@ lawbreakers/
 │   └── styles/              tokens.css (palettes, type, space; self-hosted @fontsource fonts), effects.css (fx-* utilities), global.css
 ├── scripts/
 │   ├── smoke-worker.mjs     headless Chromium check of the worker on the `?dev` page (not in npm test)
-│   └── screenshot-mission.mjs  mission screen screenshots (1440×900, 390×844) + interaction checks (`npm run screenshots`)
+│   ├── screenshot-mission.mjs  mission screen screenshots (1440×900, 390×844) + interaction checks (`npm run screenshots`)
+│   └── rack-smoke.mjs       rack editor in Chromium: builds Missions 01 and 06, screenshots (`npm run rack-smoke`)
 └── tests/                   engine tests, level conformance (+ a few component smoke tests)
 ```
 
@@ -88,6 +89,19 @@ type Verdict =
 
 The rack in the UI is a *partial* tree (empty sockets allowed). It converts to an `Expr` only when
 complete; an incomplete rack cannot be engaged.
+
+```ts
+// src/game/rack.ts
+type RackModule = { kind: "sensor"; name: string } | { kind: "const"; value: number } | { kind: "card"; card: CardId };
+interface RackNode { id: number; mod: RackModule; inputs: (RackNode | null)[] }  // null = empty socket
+type Rack = RackNode | null;      // content of the SHIELD socket
+type SlotPath = readonly number[]; // [] = SHIELD, [i] = input i of its module, …
+```
+
+Pure functions: `canPlace` / `placeAt` / `removeAt` / `moveTo` / `setConstAt`, `rackToLaw` (→
+`BoolExpr | null`), `rackCost` (= `size` once complete), `cardsUsed` / `cardsLeft`, `rackText`
+(`pretty` syntax with `?` holes). `rackStore.ts` (Zustand) holds the rack, the click-to-place
+selection and the derived `law` / `cost`; `MissionScreen` resets it whenever the mission changes.
 
 ## Level file format
 
