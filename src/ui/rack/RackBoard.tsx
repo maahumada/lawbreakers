@@ -3,6 +3,8 @@ import type { SyntheticEvent } from "react";
 import type { Level } from "../../engine/level.ts";
 import type { RackNode, SlotPath } from "../../game/rack.ts";
 import { moduleShape, pathKey } from "../../game/rack.ts";
+import type { EngagePhase } from "../../game/engageStore.ts";
+import { useEngage } from "../../game/engageStore.ts";
 import { useRack } from "../../game/rackStore.ts";
 import { Dial } from "./Dial.tsx";
 import { faceOf, typeWord } from "./faces.ts";
@@ -92,10 +94,32 @@ interface BoardProps {
   accepts: Accepts;
 }
 
+type ShieldState = "scanning" | "breached" | "sealed";
+
+const SHIELD_TEXT: Record<ShieldState, string> = {
+  scanning: "Under attack",
+  breached: "Breached",
+  sealed: "Sealed",
+};
+
+function shieldState(phase: EngagePhase, holds: boolean | null): ShieldState | undefined {
+  if (phase === "attacking" || phase === "replaying") return "scanning";
+  if (phase === "idle" || holds === null) return undefined;
+  return holds ? "sealed" : "breached";
+}
+
 export function RackBoard({ level, layout, metrics: m, live, accepts }: BoardProps) {
   const { shield } = layout;
+  const verdictState = useEngage((s) =>
+    shieldState(s.phase, s.verdict ? s.verdict.kind === "holds" : null),
+  );
   return (
-    <div className="board" data-live={live || undefined} data-testid="rack-board">
+    <div
+      className="board"
+      data-live={live || undefined}
+      data-shield={verdictState}
+      data-testid="rack-board"
+    >
       <div className="board__canvas" style={{ width: layout.width, height: layout.height }}>
         <svg
           className="board__wires"
@@ -139,7 +163,16 @@ export function RackBoard({ level, layout, metrics: m, live, accepts }: BoardPro
           <span className="jack jack--bool" style={{ top: shield.jack.y - shield.y }} aria-hidden />
           <span className="shield__lamp" aria-hidden />
           <span className="shield__name">Shield</span>
-          <span className="shield__state">{live ? "Closed" : "Open"}</span>
+          <span className="shield__state" data-testid="shield-state">
+            {verdictState ? SHIELD_TEXT[verdictState] : live ? "Closed" : "Open"}
+          </span>
+          {verdictState === "breached" && (
+            <span className="shield__sparks" aria-hidden>
+              {Array.from({ length: 6 }, (_, i) => (
+                <span key={i} className="spark" />
+              ))}
+            </span>
+          )}
         </div>
       </div>
     </div>

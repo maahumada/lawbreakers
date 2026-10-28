@@ -17,5 +17,6 @@ export function App() {
   if (params.has("dev")) return <DevVerifyPanel />;
   const level = pickLevel(params);
   if (!level) throw new Error("no bundled levels");
-  return <MissionScreen level={level} />;
+  const next = LEVELS[LEVELS.indexOf(level) + 1];
+  return <MissionScreen key={level.id} level={level} next={next} />;
 }

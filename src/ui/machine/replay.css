@@ -1,0 +1,306 @@
+/* Verdict replays on the machine view (`.machine[data-mode]`): live attack in solid red on the
+   real machine, lab simulation as a cyan hologram, meltdown and power-on alarms, sealed relays. */
+
+.machine__gauges {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* --- Strip: what is shown, and how the Law reads on it ------------------- */
+
+.replay {
+  --replay-accent: var(--argus-primary);
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  border-left: 4px solid var(--replay-accent);
+  background: color-mix(in srgb, var(--replay-accent) 9%, var(--human-bg));
+}
+
+.replay[data-mode="lab"] {
+  --replay-accent: var(--argus-secondary);
+}
+
+.replay[data-mode="holds"] {
+  --replay-accent: var(--human-primary);
+}
+
+.replay__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+}
+
+.replay__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--replay-accent);
+}
+
+.replay__sub {
+  font-size: var(--text-sm);
+  color: var(--human-text);
+}
+
+.probe {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.probe__row {
+  --probe: var(--argus-primary);
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.probe__row[data-ok] {
+  --probe: var(--probe-ok);
+}
+
+.probe dt {
+  font-family: var(--font-display);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--human-muted);
+}
+
+.probe dd {
+  margin: 0;
+}
+
+.probe__expr {
+  font-weight: 700;
+  color: var(--human-text);
+  overflow-wrap: anywhere;
+}
+
+.probe__value {
+  min-width: 4.5rem;
+  padding: 2px var(--space-2);
+  border: 1px solid var(--probe);
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--probe);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--probe) 45%, transparent);
+}
+
+.probe__row:not([data-ok]) .probe__value {
+  background: color-mix(in srgb, var(--probe) 22%, transparent);
+  animation: probe-alarm 0.9s steps(1) 3;
+}
+
+@keyframes probe-alarm {
+  50% {
+    background: var(--probe);
+    color: var(--argus-bg);
+  }
+}
+
+/* --- Control cards firing in a replay ------------------------------------ */
+
+/* Resolved here, before the lab/meltdown panels recolour --human-primary: TRUE stays amber. */
+.machine {
+  --fire: var(--argus-primary);
+  --probe-ok: var(--human-primary);
+}
+
+.control-card[data-firing] {
+  border-color: var(--fire);
+  box-shadow:
+    0 3px 0 var(--black),
+    0 0 0 2px var(--fire),
+    0 0 26px color-mix(in srgb, var(--fire) 55%, transparent);
+  opacity: 1;
+  animation: card-fire 0.6s ease-out;
+}
+
+.control-card[data-firing] .control-card__state {
+  color: var(--fire);
+  font-weight: 700;
+}
+
+@keyframes card-fire {
+  0% {
+    transform: translateY(3px);
+    background: color-mix(in srgb, var(--fire) 35%, var(--human-bg));
+  }
+}
+
+/* --- Live attack: the real machine, alarms when the Law reads false ------ */
+
+.machine[data-mode="live"]
+  .machine__gauges:has(.probe__row[data-testid="probe-law"]:not([data-ok])),
+.machine[data-mode="init"] .machine__gauges {
+  border-color: var(--argus-primary);
+  box-shadow:
+    0 0 0 1px var(--argus-primary),
+    0 0 32px color-mix(in srgb, var(--argus-primary) 35%, transparent);
+  animation: breach-shake 0.4s ease-in-out;
+}
+
+@keyframes breach-shake {
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+/* --- Lab simulation: everything inside turns into ARGUS's cyan hologram --- */
+
+.machine[data-mode="lab"] {
+  --fire: var(--argus-secondary);
+}
+
+.machine[data-mode="lab"] :is(.machine__gauges, .machine__controls) {
+  --human-nixie: var(--argus-secondary);
+  --human-nixie-off: color-mix(in srgb, var(--argus-secondary) 8%, var(--argus-bg));
+  --human-primary: var(--argus-secondary);
+  --human-secondary: color-mix(in srgb, var(--argus-secondary) 65%, var(--argus-muted));
+  --human-surface: var(--argus-bg);
+  --human-surface-2: color-mix(in srgb, var(--argus-secondary) 7%, var(--argus-surface));
+  --human-line: color-mix(in srgb, var(--argus-secondary) 28%, var(--argus-bg));
+  --human-text: var(--argus-text);
+  --human-muted: var(--argus-muted);
+  border-style: dashed;
+  border-color: var(--argus-secondary);
+}
+
+.machine[data-mode="lab"] .machine__gauges::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 2px,
+    color-mix(in srgb, var(--argus-secondary) 10%, transparent) 2px 3px
+  );
+  animation: holo-flicker 2.4s steps(1) infinite;
+}
+
+@keyframes holo-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  33% {
+    opacity: 0.6;
+  }
+  34% {
+    opacity: 1;
+  }
+}
+
+/* Behind the gauges (z-index −1 inside the panel's own stacking context). */
+.holo-mark {
+  position: absolute;
+  z-index: -1;
+  right: var(--space-3);
+  bottom: var(--space-1);
+  pointer-events: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.2rem, 7vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--argus-secondary) 45%, transparent);
+  opacity: 0.4;
+  transform: rotate(-4deg);
+}
+
+/* --- Meltdown allowed: red nixies, the placard alarms -------------------- */
+
+.machine[data-mode="meltdown"] .machine__gauges {
+  --human-nixie: var(--argus-primary);
+  --human-nixie-off: color-mix(in srgb, var(--argus-primary) 10%, var(--argus-bg));
+  --human-primary: var(--argus-primary);
+  --human-secondary: color-mix(in srgb, var(--argus-primary) 70%, var(--human-muted));
+  border-color: var(--argus-primary);
+}
+
+.meltdown[data-lit] {
+  outline: 2px solid var(--meltdown);
+  outline-offset: 3px;
+  background:
+    repeating-linear-gradient(-45deg, var(--meltdown) 0 6px, var(--human-bg) 6px 12px) left / 12px
+      100% no-repeat,
+    color-mix(in srgb, var(--meltdown) 30%, var(--human-bg));
+  box-shadow: 0 0 28px color-mix(in srgb, var(--meltdown) 55%, transparent);
+  animation: meltdown-alarm 0.8s steps(1) 4;
+}
+
+@keyframes meltdown-alarm {
+  50% {
+    box-shadow: 0 0 6px color-mix(in srgb, var(--meltdown) 30%, transparent);
+  }
+}
+
+/* --- Power-on failure: the nixies themselves are wrong ------------------- */
+
+.machine[data-mode="init"] .tube {
+  border-color: var(--argus-primary);
+}
+
+/* --- Holds: relays clack shut one after the other ------------------------ */
+
+.machine[data-mode="holds"] .machine__gauges,
+.machine[data-mode="holds"] .machine__controls {
+  border-color: var(--human-primary);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--human-primary) 22%, transparent);
+}
+
+.machine[data-mode="holds"] .control-card__lamp {
+  animation: relay-close 0.25s ease-out both;
+}
+
+.machine[data-mode="holds"] .control-card:nth-child(2) .control-card__lamp {
+  animation-delay: 0.2s;
+}
+
+.machine[data-mode="holds"] .control-card:nth-child(3) .control-card__lamp {
+  animation-delay: 0.4s;
+}
+
+.machine[data-mode="holds"] .control-card:nth-child(n + 4) .control-card__lamp {
+  animation-delay: 0.6s;
+}
+
+@keyframes relay-close {
+  0% {
+    transform: scale(2.2);
+    background: var(--human-text);
+    box-shadow: 0 0 18px var(--human-primary);
+  }
+}
+
+@media (max-width: 520px) {
+  .probe__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .probe dt {
+    grid-column: 1 / -1;
+  }
+}

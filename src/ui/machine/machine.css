@@ -283,6 +283,9 @@
 
 .control-card:disabled {
   cursor: not-allowed;
+}
+
+.control-card:not([data-armed]) {
   opacity: 0.4;
   border-color: var(--human-line);
 }
@@ -302,7 +305,7 @@
   box-shadow: 0 0 8px var(--human-primary);
 }
 
-.control-card:disabled .control-card__lamp {
+.control-card:not([data-armed]) .control-card__lamp {
   background: var(--human-line);
   box-shadow: none;
 }
@@ -321,7 +324,7 @@
   color: var(--human-primary);
 }
 
-.control-card:disabled .control-card__state {
+.control-card:not([data-armed]) .control-card__state {
   color: var(--human-muted);
 }
 

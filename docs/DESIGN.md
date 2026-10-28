@@ -207,8 +207,11 @@ score = 1000
       + time bonus (max 200, decays over 5 minutes)
 ```
 
-Invalid Laws never score. Adding redundant conjuncts only costs points. Stored per mission in
-`localStorage`; global leaderboard is a stretch goal.
+Invalid Laws never score. Adding redundant conjuncts only costs points. A Law over budget is
+allowed: its efficiency term is negative. The total never goes below 0. "Failed attempts" counts
+the engagements of this mission that did not hold; the clock starts when the mission opens (or
+on retry) and the time bonus decays linearly. Best score stored per mission in `localStorage`;
+global leaderboard is a stretch goal.
 
 ---
 

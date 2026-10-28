@@ -7,7 +7,7 @@ along the way, and a log of each work session.
 ## Current state
 
 - **Milestone:** M2 — Vertical slice: Mission 01 playable
-- **Next task:** M2-T4 Engage + verdict
+- **Next task:** M2-T6 Deploy
 - **Blockers:** none
 - **Deployed URL:** not yet
 
@@ -17,6 +17,13 @@ Decisions that deviate from or refine the docs. Newest first.
 
 | Date | Decision | Why |
 |---|---|---|
+| 2026-10-28 | Score: over budget gives a negative efficiency term (`50 × (budget − cost)`), total clamped at 0; failed attempts = this mission's non-holds engagements; clock starts at mission load / retry; time bonus decays linearly over 5 min (DESIGN §6 updated) | never block an idea, but make padding and overspending cost; no negative scores on the results screen |
+| 2026-10-28 | Breach is added when the replay ends (not when the verifier answers); MISSION FAILED at ≥ 100% restarts breach, attempts, clock, rack and machine | the meter moves at the dramatic moment; retry = "from the briefing" |
+| 2026-10-28 | Verdict replays go through `missionStore.show` / `replayFire` (engine `step`); a live replay restarts the telemetry log from power-on, a lab replay never touches it | the log only ever contains real runs; hypothetical lab states stay out of it |
+| 2026-10-28 | Machine view shows a probe during verdicts: the engaged Law and the meltdown evaluated on the shown state (TRUE/FALSE, YES/NO) | makes every verdict readable without the terminal (phones) |
+| 2026-10-28 | Lab simulation = recolouring the gauges/controls panels via `--human-*` overrides to hologram cyan + dashed border + "SIMULATION" watermark; verdict banner is cyan dashed too | same components, unmistakably different world |
+| 2026-10-28 | Verdict banner lives in the ENGAGE slot under the rack (with REBUILD / View results); during the attack that slot mirrors ARGUS's latest line | on phones ARGUS's panel is below the fold |
+| 2026-10-28 | REBUILD keeps the player's circuit and the session; RETRY (results / mission failed) wipes everything. Best score in `localStorage` key `lawbreakers:best:<levelId>` | editing after a breach is the main loop; retry is a clean slate |
 | 2026-10-28 | Over-budget Laws are allowed in the rack; the cost counter turns red (`--meltdown`). Scoring (M2-T5) decides the penalty | never block a player from testing an idea; budget is a score target, not a typing rule |
 | 2026-10-28 | Constant dial range `−20…20` (DESIGN §4 updated), starts at 0, set after plugging (−/+ buttons, arrow keys, PgUp/PgDn ±5, Home/End) | keyboard accessible; negatives allowed for `sub`-free Laws |
 | 2026-10-28 | Rack layout flows left → right into the SHIELD (columns = depth, leaves one row each); computed in pure `ui/rack/layout.ts`, wires are SVG Béziers from those coordinates (no DOM measuring) | deterministic, testable, no resize observers; horizontal scroll inside the board on phones |
@@ -50,6 +57,49 @@ Decisions that deviate from or refine the docs. Newest first.
 
 Newest first. One entry per completed task: what was done, files touched, anything surprising,
 follow-ups.
+
+### 2026-10-28 — M2-T4 Engage + verdict, M2-T5 Breach meter + results
+- Engine: `src/engine/score.ts` (`BREACH_DELTA`, `addBreach`, `BREACH_MAX`, `timeBonus`,
+  `scoreMission` → breakdown or `null` unless `holds`). Tests `tests/score.test.ts`.
+- Game: `missionStore` gains `locked`, `display` (`mode`, `firing`, `pulse`), `breach`, `attempts`,
+  `failures`, `startedAt` and `lock` / `show` / `replayFire` / `release` / `recordVerdict` /
+  `restart`; player actions are ignored while locked. `rackStore` gains `locked` / `setLocked`
+  (edits ignored). New `engageStore.ts` (phase `idle → attacking → replaying → verdict | results |
+  failed`, terminal lines, engaged Law, verdict, breach delta, result), `argusLines.ts` (pools per
+  moment and verdict with `{placeholders}`, `pickLine`/`fillLine`, for M3-T3), `bestScores.ts`.
+- UI: `ui/argus/engage.ts` (sequence, cancellable; `engage` / `rebuild` / `retry`),
+  `EngageConsole` (ENGAGE → live status → `VerdictBanner`), `Terminal` (typed lines, screen readers
+  get whole lines), `BreachMeter` (cells light one by one, `+N%` flash, critical blink ≥ 60%),
+  `verdictText.ts` (banner copy, non-breaking formulas), `useCountUp`. Machine: `ReplayStrip`
+  (mode title + Law/meltdown probe), firing card flash, `replay.css` (live red alarm + shake, lab
+  hologram, meltdown red nixies + lit placard, init red tubes, holds relay clack). Rack: locked
+  hand, SHIELD "Under attack" / "Breached" (sparks, red wires) / "Sealed". Screens:
+  `ResultsOverlay` (nixie count-up, breakdown table, Law, cost/budget, attempts, breach, best,
+  Next mission `?mission=NN` / Retry / Back to console), `MissionFailedOverlay`. Z3 warms up on
+  mount. `App` passes `next` and keys the screen by mission. `src/ui/motion.ts` (reduced motion,
+  `revealElement`).
+- Tests: `tests/engageFlow.test.ts` (line pools, verdict copy, replays through `step`, lock,
+  session, rack lock). 204 tests total.
+- Browser: `scripts/engage-smoke.mjs` (`npm run engage-smoke`, needs a server) — Mission 01 `A ≥ 1`
+  live breach ends at (0, 6), probe FALSE, breach 20%, SHIELD breached, 3 telemetry rows; REBUILD
+  keeps the circuit; `A + B = 6` holds → results, best saved, next link; retry resets. Mobile:
+  gauges scrolled into view during replay, banner in view after, no overflow. `A ≥ 0` insufficient
+  (0, 0) + lit placard; `A + B = 7` init failure; Missions 02 `x ≠ 11` and 05 `x ≥ 0` lab breach
+  with SIMULATION; verifier fault (Z3 blocked) → fault line, unlocked, no breach; 5 live breaches →
+  MISSION FAILED → retry. Passes on `vite dev` and `vite preview`. Screenshots:
+  `docs/screenshots/m2-t4-{attacking,live-desktop,live-mobile,live-mobile-replay,insufficient,init,lab-m02,lab-m05}.png`,
+  `m2-t5-{results,results-mobile,mission-failed}.png`. `npm run smoke`, `rack-smoke`,
+  `screenshots` still pass.
+- **Surprises:** a `scaleY` entrance animation made `scrollIntoView` measure a shrunken banner on
+  phones (REBUILD ended below the fold) — switched to a `clip-path` reveal. `−0` from
+  `-100 × 0` broke `toEqual`. Custom properties used by the probe had to be resolved on `.machine`
+  before the lab/meltdown panels recolour `--human-primary`.
+- **Follow-ups:** M3-T5 juice (screen shake on the whole console, audio) can hook into
+  `.machine[data-mode]` and `data-shield`. Live-breach hint text is generic ("what stays the
+  same…"); per-mission hints belong to M3-T3. Breach is not shown on the phone until the banner
+  (meter sits in ARGUS's panel below). The SIMULATION watermark sits behind the nixies; may need
+  a per-layout position for 3+ gauges. Results "Next mission" is a plain link (full reload) until
+  M3-T1.
 
 ### 2026-10-28 — M2-T3 Rack editor
 - Model: `src/game/rack.ts` (pure): `Rack = RackNode | null` under the SHIELD, sockets addressed by

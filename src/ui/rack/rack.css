@@ -10,6 +10,28 @@
   margin-bottom: 0;
 }
 
+.rack__body {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* ARGUS has the Law: the hand greys out, the board stays visible for the SHIELD's verdict. */
+.rack[data-locked] .hand {
+  opacity: 0.4;
+  filter: grayscale(0.6);
+}
+
+.rack__lock {
+  padding: 2px var(--space-2);
+  border: 1px solid var(--argus-primary);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--argus-primary);
+}
+
 .rack .btn-reset:disabled {
   opacity: 0.35;
   cursor: not-allowed;
@@ -516,6 +538,126 @@
 .board[data-live] .shield__name,
 .board[data-live] .shield__state {
   color: var(--human-primary);
+}
+
+/* SHIELD under attack, breached (sparks) or sealed. */
+
+.board[data-shield="scanning"] .shield {
+  animation: shield-scan 0.7s steps(1) infinite;
+}
+
+@keyframes shield-scan {
+  50% {
+    border-color: var(--argus-primary);
+  }
+}
+
+.board[data-shield="breached"] .shield {
+  border-color: var(--argus-primary);
+  background:
+    repeating-linear-gradient(-45deg, var(--argus-primary) 0 6px, transparent 6px 12px) top / 100%
+      8px no-repeat,
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--argus-primary) 22%, var(--human-surface-2)),
+      var(--human-bg)
+    );
+  box-shadow: 0 0 26px color-mix(in srgb, var(--argus-primary) 50%, transparent);
+  animation: shield-hit 0.45s ease-out;
+}
+
+.board[data-shield="breached"] .shield__lamp {
+  background: var(--argus-primary);
+  box-shadow: 0 0 12px var(--argus-primary);
+}
+
+.board[data-shield="breached"] :is(.shield__name, .shield__state) {
+  color: var(--argus-primary);
+}
+
+.board[data-shield="breached"] .wire__current {
+  display: none;
+}
+
+.board[data-shield="breached"] .wire__core {
+  stroke: var(--argus-primary);
+}
+
+.board[data-shield="sealed"] .shield {
+  box-shadow:
+    0 0 0 2px var(--human-primary),
+    0 0 36px color-mix(in srgb, var(--human-primary) 55%, transparent);
+}
+
+@keyframes shield-hit {
+  20% {
+    transform: translate(-4px, 2px);
+  }
+  50% {
+    transform: translate(3px, -2px);
+  }
+}
+
+.shield__sparks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.spark {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  width: 3px;
+  height: 12px;
+  background: linear-gradient(var(--human-text), var(--argus-primary));
+  border-radius: 2px;
+  opacity: 0;
+  animation: spark 1.6s ease-out infinite;
+}
+
+.spark:nth-child(1) {
+  --a: -60deg;
+}
+.spark:nth-child(2) {
+  --a: -20deg;
+  animation-delay: 0.25s;
+}
+.spark:nth-child(3) {
+  --a: 25deg;
+  animation-delay: 0.5s;
+}
+.spark:nth-child(4) {
+  --a: 70deg;
+  animation-delay: 0.15s;
+}
+.spark:nth-child(5) {
+  --a: 160deg;
+  animation-delay: 0.7s;
+}
+.spark:nth-child(6) {
+  --a: 210deg;
+  animation-delay: 0.4s;
+}
+
+@keyframes spark {
+  0% {
+    opacity: 1;
+    transform: rotate(var(--a)) translateY(0);
+  }
+  60% {
+    opacity: 0;
+    transform: rotate(var(--a)) translateY(-46px);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shield__sparks {
+    display: none;
+  }
 }
 
 /* --- Readout ----------------------------------------------------------- */

@@ -1,5 +1,5 @@
 // Rack editor state: the partial Law tree for the current mission, the hand selection used by
-// click-to-place, and the derived `law` / `cost` that ENGAGE (M2-T4) reads.
+// click-to-place, and the derived `law` / `cost` that ENGAGE reads, and a lock held while ARGUS attacks.
 
 import { create } from "zustand";
 import type { BoolExpr } from "../engine/expr.ts";
@@ -25,6 +25,9 @@ interface RackStore {
   law: BoolExpr | null;
   /** Modules in the rack (equals `size(law)` once complete). May exceed the budget. */
   cost: number;
+  /** While ARGUS attacks, the rack is frozen: every edit is ignored. */
+  locked: boolean;
+  setLocked: (locked: boolean) => void;
   /** Empty rack for `level` (called whenever the mission changes). */
   reset: (level: Level) => void;
   clear: () => void;
@@ -45,21 +48,32 @@ export const useRack = create<RackStore>()((set, get) => ({
   selected: null,
   law: null,
   cost: 0,
-  reset: (level) => set({ level, selected: null, ...derive(null) }),
-  clear: () => set({ selected: null, ...derive(null) }),
+  locked: false,
+  setLocked: (locked) => set(locked ? { locked, selected: null } : { locked }),
+  reset: (level) => set({ level, selected: null, locked: false, ...derive(null) }),
+  clear: () => {
+    if (!get().locked) set({ selected: null, ...derive(null) });
+  },
   select: (item) => {
-    const { selected } = get();
+    const { selected, locked } = get();
+    if (locked) return;
     const same = item !== null && selected !== null && itemKey(item) === itemKey(selected);
     set({ selected: same ? null : item });
   },
   place: (path, item) => {
-    const { level, rack, selected } = get();
+    const { level, rack, selected, locked } = get();
     const what = item ?? selected;
-    if (!level || !what || canPlace(level, rack, path, what) !== "ok") return false;
+    if (locked || !level || !what || canPlace(level, rack, path, what) !== "ok") return false;
     set({ selected: null, ...derive(placeAt(level, rack, path, what)) });
     return true;
   },
-  remove: (path) => set(derive(removeAt(get().rack, path))),
-  move: (from, to) => set(derive(moveTo(get().rack, from, to))),
-  setConst: (path, value) => set(derive(setConstAt(get().rack, path, value))),
+  remove: (path) => {
+    if (!get().locked) set(derive(removeAt(get().rack, path)));
+  },
+  move: (from, to) => {
+    if (!get().locked) set(derive(moveTo(get().rack, from, to)));
+  },
+  setConst: (path, value) => {
+    if (!get().locked) set(derive(setConstAt(get().rack, path, value)));
+  },
 }));

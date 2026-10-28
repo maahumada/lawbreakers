@@ -57,11 +57,11 @@ Goal: a stranger can open the URL, play Mission 01 start to finish and understan
   drag & drop with dnd-kit, auto-drawn wires (SVG), remove module, live formula readout, cost counter
   against budget, cards consumed from the hand.
   *Accept:* every Mission 01 Law in `LEVELS.md` can be built; ill-typed drops are impossible.
-- [ ] **M2-T4 Engage + verdict.** ENGAGE button → worker → ARGUS terminal lines → verdict banner.
+- [x] **M2-T4 Engage + verdict.** ENGAGE button → worker → ARGUS terminal lines → verdict banner.
   Live breach: replay the trace on the machine view step by step. Lab breach: same, inside a cyan
   "SIMULATION" overlay starting from the hypothetical state. Insufficient: show the meltdown state the
   Law allows. Init failure: highlight power-on state.
-- [ ] **M2-T5 Breach meter + results.** Meter with the deltas from `DESIGN.md §6`, mission failure at
+- [x] **M2-T5 Breach meter + results.** Meter with the deltas from `DESIGN.md §6`, mission failure at
   100%, score computation (`score.ts`), results screen.
 - [ ] **M2-T6 Deploy.** GitHub Actions workflow to Pages, `coi-serviceworker`, Vite `base`.
   *Accept:* the public URL plays Mission 01 in a fresh Chrome and Firefox.

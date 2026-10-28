@@ -34,27 +34,28 @@ lawbreakers/
 │   │   ├── simulate.ts      step, enabled transitions, random telemetry, BFS live attack
 │   │   ├── smt.ts           Expr → Z3 terms
 │   │   ├── verify.ts        init / live / lab / safety pipeline → Verdict
-│   │   ├── score.ts         breach deltas and score formula
+│   │   ├── score.ts         breach deltas (`addBreach`) and the score formula (`scoreMission`)
 │   │   └── dafny.ts         level + Law → Dafny program text
 │   ├── worker/
 │   │   ├── verify.worker.ts runs verify.ts off the main thread (loads Z3, see "Z3 in the browser")
 │   │   ├── protocol.ts      request/response message types
 │   │   └── client.ts        typed promise API for the UI: warmUp(), verifyLaw(levelId, law)
 │   ├── levels/              01-last-reactor.json … 06-final-breach.json
-│   ├── game/                missionStore.ts (machine state, telemetry, auto-run); rack.ts (pure partial-tree model); rackStore.ts; later breach, campaign
+│   ├── game/                missionStore.ts (machine state, telemetry, auto-run, replay display, breach/attempts/clock); rack.ts (pure partial-tree model); rackStore.ts (+ lock); engageStore.ts (ENGAGE phase, terminal lines, verdict, result); argusLines.ts (line pools); bestScores.ts (localStorage); later campaign
 │   ├── ui/
-│   │   ├── screens/         Title, Intro, MissionSelect, Mission, Results
+│   │   ├── screens/         Mission, ResultsOverlay, MissionFailedOverlay (later Title, Intro, MissionSelect)
 │   │   ├── rack/            RackEditor (dnd-kit context), Hand, RackBoard (sockets, modules, SVG wires, SHIELD), Dial, Readout, layout.ts (pure)
 │   │   ├── layout/          Slot (reserved areas for later features, `data-slot`)
-│   │   ├── machine/         MachineView, Briefing, Gauge, ControlCard, Telemetry, format.ts (guard/effect text)
-│   │   ├── argus/           ArgusTerminal, AttackReplay, BreachMeter
+│   │   ├── machine/         MachineView, Briefing, Gauge, ControlCard, Telemetry, ReplayStrip (shown state + Law/meltdown probe), format.ts (guard/effect text), replay.css (verdict modes)
+│   │   ├── argus/           ArgusPanel, Terminal (typed lines), BreachMeter, EngageConsole + VerdictBanner (engage slot), engage.ts (the ENGAGE sequence), verdictText.ts
 │   │   └── proof/           ShowTheProof
 │   ├── audio/               sfx.ts (synth helpers)
 │   └── styles/              tokens.css (palettes, type, space; self-hosted @fontsource fonts), effects.css (fx-* utilities), global.css
 ├── scripts/
 │   ├── smoke-worker.mjs     headless Chromium check of the worker on the `?dev` page (not in npm test)
 │   ├── screenshot-mission.mjs  mission screen screenshots (1440×900, 390×844) + interaction checks (`npm run screenshots`)
-│   └── rack-smoke.mjs       rack editor in Chromium: builds Missions 01 and 06, screenshots (`npm run rack-smoke`)
+│   ├── rack-smoke.mjs       rack editor in Chromium: builds Missions 01 and 06, screenshots (`npm run rack-smoke`)
+│   └── engage-smoke.mjs     ENGAGE end to end with real Z3: every verdict, breach, results, mission failed (`npm run engage-smoke`)
 └── tests/                   engine tests, level conformance (+ a few component smoke tests)
 ```
 
@@ -102,6 +103,18 @@ Pure functions: `canPlace` / `placeAt` / `removeAt` / `moveTo` / `setConstAt`, `
 `BoolExpr | null`), `rackCost` (= `size` once complete), `cardsUsed` / `cardsLeft`, `rackText`
 (`pretty` syntax with `?` holes). `rackStore.ts` (Zustand) holds the rack, the click-to-place
 selection and the derived `law` / `cost`; `MissionScreen` resets it whenever the mission changes.
+
+### ENGAGE flow (UI)
+
+`ui/argus/engage.ts` runs the sequence: lock the rack (`rackStore.setLocked`) and the machine
+(`missionStore.lock`), call `verifyLaw` while ARGUS's lines type, then present the verdict on the
+machine only through store actions: `show(state, mode)` and `replayFire(control)` (which goes
+through the engine's `step`; `live` mode restarts and extends the telemetry log, `lab` leaves it).
+`mode` (`live | lab | meltdown | init | holds`) drives `.machine[data-mode]` styling and the
+`ReplayStrip`, which evaluates the engaged Law and the meltdown on the shown state. Then
+`recordVerdict` adds the breach, and the banner (or the results / MISSION FAILED overlay) shows.
+Every await checks a run token, so REBUILD / RETRY / unmount cancel a sequence in flight. Timings
+shrink under `prefers-reduced-motion` (same information).
 
 ## Level file format
 

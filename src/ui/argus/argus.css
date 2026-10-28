@@ -76,7 +76,7 @@
   animation: fx-blink 1.2s steps(1) infinite;
 }
 
-/* --- Breach meter (placeholder for M2-T5) -------------------------------- */
+/* --- Breach meter ------------------------------------------------------- */
 
 .breach__label {
   display: flex;
@@ -87,7 +87,29 @@
 }
 
 .breach__value {
+  display: inline-flex;
+  gap: var(--space-2);
   color: var(--argus-primary);
+}
+
+.breach__delta {
+  color: var(--argus-text);
+  animation: breach-delta 2.4s ease-out both;
+}
+
+@keyframes breach-delta {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  15%,
+  70% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0.35;
+  }
 }
 
 .breach__track {
@@ -102,9 +124,34 @@
   border: 1px solid var(--argus-line);
   background: color-mix(in srgb, var(--argus-primary) 6%, transparent);
   transform: skewX(-20deg);
+  transition: background-color var(--dur-med);
 }
 
-/* --- Terminal (lines arrive in M2-T4) ------------------------------------ */
+.breach__cell[data-lit] {
+  border-color: var(--argus-primary);
+  background: var(--argus-primary);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--argus-primary) 60%, transparent);
+}
+
+/* Cells added by the last verdict light up one after the other. */
+.breach__cell[data-new] {
+  animation: breach-cell 0.5s ease-out both;
+  animation-delay: calc(var(--i) * 90ms);
+}
+
+@keyframes breach-cell {
+  0% {
+    background: var(--argus-text);
+    box-shadow: 0 0 16px var(--argus-primary);
+  }
+}
+
+.breach[data-critical] .breach__label span:first-child {
+  color: var(--argus-primary);
+  animation: fx-blink 1s steps(1) infinite;
+}
+
+/* --- Terminal ----------------------------------------------------------- */
 
 .terminal {
   position: relative;
@@ -123,6 +170,9 @@
 }
 
 .terminal__lines {
+  max-height: min(70vh, 40rem);
+  overflow-y: auto;
+  scrollbar-color: var(--argus-line) transparent;
   list-style: none;
   padding: 0;
   display: grid;
@@ -133,4 +183,17 @@
 
 .terminal__prompt {
   color: var(--argus-primary);
+}
+
+.terminal__line--system {
+  color: var(--argus-muted);
+}
+
+.terminal__line--error,
+.terminal__line--error .terminal__prompt {
+  color: var(--argus-secondary);
+}
+
+.terminal[data-busy] {
+  border-color: var(--argus-primary);
 }

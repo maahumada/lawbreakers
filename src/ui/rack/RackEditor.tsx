@@ -8,7 +8,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Level } from "../../engine/level.ts";
 import type { HandItem, RackNode, SlotPath } from "../../game/rack.ts";
 import {
@@ -51,6 +51,8 @@ export function RackEditor({ level }: { level: Level }) {
   const rack = useRack((s) => s.rack);
   const selected = useRack((s) => s.selected);
   const live = useRack((s) => s.law !== null);
+  const locked = useRack((s) => s.locked);
+  const lockRef = useRef<HTMLDivElement>(null);
   const { place, move, remove, select, clear } = useRack.getState();
   const [dragging, setDragging] = useState<Dragging | null>(null);
   const compact = useCompact();
@@ -61,6 +63,11 @@ export function RackEditor({ level }: { level: Level }) {
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
   );
+
+  // React 18 has no `inert` prop: set the attribute so a locked rack drops out of the tab order.
+  useEffect(() => {
+    lockRef.current?.toggleAttribute("inert", locked);
+  }, [locked]);
 
   useEffect(() => {
     if (!selected) return;
@@ -106,28 +113,39 @@ export function RackEditor({ level }: { level: Level }) {
       onDragEnd={onDragEnd}
       onDragCancel={() => setDragging(null)}
     >
-      <div className="rack panel" data-testid="rack">
+      <div className="rack panel" data-testid="rack" data-locked={locked || undefined}>
         <div className="panel__bar">
           <h2 className="panel__title">Law engine rack</h2>
+          {locked && <span className="rack__lock">Locked</span>}
           <button
             type="button"
             className="btn-reset"
             onClick={clear}
-            disabled={rack === null}
+            disabled={rack === null || locked}
             data-testid="rack-clear"
           >
             Clear
           </button>
         </div>
-        <Hand level={level} />
-        <p className="rack__hint" aria-live="polite">
-          {selected
-            ? `Plug ${faceOf(selected, level).face} into a lit ${
-                moduleShape(selected).out === "num" ? "round" : "square"
-              } socket. Esc to cancel.`
-            : "Pick a module, then a socket. Or drag it in."}
-        </p>
-        <RackBoard level={level} layout={layout} metrics={metrics} live={live} accepts={accepts} />
+        <div className="rack__body" ref={lockRef}>
+          <Hand level={level} />
+          <p className="rack__hint" aria-live="polite">
+            {locked
+              ? "Rack locked while ARGUS has your Law."
+              : selected
+                ? `Plug ${faceOf(selected, level).face} into a lit ${
+                    moduleShape(selected).out === "num" ? "round" : "square"
+                  } socket. Esc to cancel.`
+                : "Pick a module, then a socket. Or drag it in."}
+          </p>
+          <RackBoard
+            level={level}
+            layout={layout}
+            metrics={metrics}
+            live={live}
+            accepts={accepts}
+          />
+        </div>
         <Readout level={level} />
       </div>
       <DragOverlay dropAnimation={null}>

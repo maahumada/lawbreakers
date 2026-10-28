@@ -1,24 +1,46 @@
 import { useEffect } from "react";
 import type { Level } from "../../engine/level.ts";
+import { useEngage } from "../../game/engageStore.ts";
 import { useMission } from "../../game/missionStore.ts";
 import { useRack } from "../../game/rackStore.ts";
+import { warmUp } from "../../worker/client.ts";
 import { ArgusPanel } from "../argus/ArgusPanel.tsx";
+import { cancelEngage } from "../argus/engage.ts";
+import { EngageConsole } from "../argus/EngageConsole.tsx";
 import { Slot } from "../layout/Slot.tsx";
 import { MachineView } from "../machine/MachineView.tsx";
 import { RackEditor } from "../rack/RackEditor.tsx";
+import { MissionFailedOverlay } from "./MissionFailedOverlay.tsx";
+import { ResultsOverlay } from "./ResultsOverlay.tsx";
 import "./mission.css";
+import "./overlays.css";
+import "../argus/verdict.css";
 
-export function MissionScreen({ level }: { level: Level }) {
+interface Props {
+  level: Level;
+  /** The mission after this one (for "Next mission"), if any. */
+  next?: Level | undefined;
+}
+
+export function MissionScreen({ level, next }: Props) {
   const loaded = useMission((m) => m.level?.id === level.id);
   const load = useMission((m) => m.load);
   const rackReady = useRack((r) => r.level?.id === level.id);
   const resetRack = useRack((r) => r.reset);
-  // ENGAGE is wired in M2-T4; until then it only lights up when the Law is complete.
-  const lawComplete = useRack((r) => r.law !== null);
+  const resetEngage = useEngage((s) => s.reset);
+  const phase = useEngage((s) => s.phase);
+
   useEffect(() => {
     load(level);
     resetRack(level);
-  }, [level, load, resetRack]);
+    resetEngage(level);
+    return cancelEngage;
+  }, [level, load, resetRack, resetEngage]);
+
+  // Z3 takes a moment to boot: start it while the player reads the briefing.
+  useEffect(() => {
+    warmUp().catch(() => undefined); // a failure resurfaces (and is reported) on ENGAGE
+  }, []);
 
   const number = level.id.slice(0, 2);
 
@@ -44,20 +66,15 @@ export function MissionScreen({ level }: { level: Level }) {
           <Slot name="rack">{rackReady && <RackEditor level={level} />}</Slot>
 
           <Slot name="engage" className="engage-slot">
-            <button
-              type="button"
-              className="engage"
-              disabled
-              data-ready={lawComplete || undefined}
-              data-testid="engage"
-            >
-              Engage interlock
-            </button>
+            <EngageConsole level={level} />
           </Slot>
         </section>
 
-        <ArgusPanel level={level} />
+        <ArgusPanel />
       </main>
+
+      {phase === "results" && <ResultsOverlay level={level} next={next} />}
+      {phase === "failed" && <MissionFailedOverlay level={level} />}
     </div>
   );
 }

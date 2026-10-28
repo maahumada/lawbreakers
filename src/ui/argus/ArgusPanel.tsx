@@ -1,10 +1,9 @@
-import type { Level } from "../../engine/level.ts";
 import { Slot } from "../layout/Slot.tsx";
+import { BreachMeter } from "./BreachMeter.tsx";
+import { Terminal } from "./Terminal.tsx";
 import "./argus.css";
 
-const BREACH_SEGMENTS = 20;
-
-export function ArgusPanel({ level }: { level: Level }) {
+export function ArgusPanel() {
   return (
     <aside className="argus fx-hexgrid" aria-label="ARGUS">
       <header className="argus__head">
@@ -16,27 +15,12 @@ export function ArgusPanel({ level }: { level: Level }) {
         </p>
       </header>
 
-      <Slot name="breach-meter" className="breach">
-        <div className="breach__label">
-          <span>AI breach</span>
-          <span className="breach__value">0%</span>
-        </div>
-        <div className="breach__track" aria-hidden>
-          {Array.from({ length: BREACH_SEGMENTS }, (_, i) => (
-            <span key={i} className="breach__cell" />
-          ))}
-        </div>
+      <Slot name="breach-meter">
+        <BreachMeter />
       </Slot>
 
-      <Slot name="argus-terminal" className="terminal fx-raster">
-        <ol className="terminal__lines">
-          {level.argus.intro.map((line) => (
-            <li key={line}>
-              <span className="terminal__prompt">&gt; ARGUS:</span> {line}
-            </li>
-          ))}
-          <li className="fx-cursor" aria-hidden />
-        </ol>
+      <Slot name="argus-terminal">
+        <Terminal />
       </Slot>
     </aside>
   );

@@ -1,0 +1,169 @@
+/* ENGAGE slot after the click: ARGUS's progress, then the verdict banner (under the rack, so it
+   is in view on phones too). */
+
+.engage[data-ready]:hover {
+  background-color: color-mix(in srgb, var(--human-primary) 12%, var(--human-surface-2));
+}
+
+.engage-status {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--argus-primary);
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 3px,
+      color-mix(in srgb, var(--argus-primary) 6%, transparent) 3px 4px
+    ),
+    var(--argus-bg);
+  font-family: var(--font-terminal);
+  color: var(--argus-text);
+}
+
+.engage-status__tag {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--argus-primary);
+}
+
+.engage-status__dot {
+  width: 10px;
+  height: 10px;
+  background: var(--argus-primary);
+  box-shadow: 0 0 10px var(--argus-primary);
+  animation: fx-blink 0.6s steps(1) infinite;
+}
+
+.engage-status__line {
+  min-height: 1.3em;
+  font-size: 1.3rem;
+  line-height: 1.2;
+}
+
+/* --- Verdict banner ------------------------------------------------------ */
+
+.verdict {
+  --tone: var(--argus-primary);
+  position: relative;
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5) var(--space-4) calc(var(--space-5) + 14px);
+  border: 2px solid var(--tone);
+  background:
+    repeating-linear-gradient(-45deg, var(--tone) 0 8px, var(--human-bg) 8px 16px) left / 14px 100%
+      no-repeat,
+    color-mix(in srgb, var(--tone) 10%, var(--human-bg));
+  box-shadow: 0 0 34px color-mix(in srgb, var(--tone) 28%, transparent);
+  animation: verdict-in 0.35s ease-out;
+}
+
+.verdict[data-kind="lab_breach"] {
+  --tone: var(--argus-secondary);
+  border-style: dashed;
+  background:
+    repeating-linear-gradient(-45deg, var(--tone) 0 8px, var(--argus-bg) 8px 16px) left / 14px 100%
+      no-repeat,
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 2px,
+      color-mix(in srgb, var(--tone) 7%, transparent) 2px 3px
+    ),
+    color-mix(in srgb, var(--tone) 8%, var(--argus-bg));
+}
+
+.verdict[data-kind="holds"] {
+  --tone: var(--human-primary);
+}
+
+/* Clip, not scale: the banner's box must be final at once so it can be scrolled into view. */
+@keyframes verdict-in {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+  40% {
+    opacity: 1;
+    background-color: var(--tone);
+  }
+}
+
+.verdict__tag {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--tone);
+}
+
+.verdict__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 0.95;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tone);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--tone) 55%, transparent);
+}
+
+.verdict__body {
+  max-width: 68ch;
+  font-size: var(--text-md);
+  line-height: 1.55;
+  color: var(--human-text);
+}
+
+.verdict__hint {
+  max-width: 68ch;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--human-muted);
+}
+
+.verdict__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.verdict__breach {
+  font-family: var(--font-terminal);
+  font-size: 1.35rem;
+  text-transform: uppercase;
+  color: var(--argus-primary);
+}
+
+.verdict__breach b {
+  margin-left: var(--space-2);
+  font-weight: 400;
+  color: var(--argus-text);
+}
+
+.verdict__action {
+  margin-left: auto;
+  padding: var(--space-3) var(--space-5);
+  border: 2px solid var(--human-primary);
+  background: var(--human-surface-2);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--human-primary);
+  cursor: pointer;
+}
+
+.verdict__action:hover {
+  background: color-mix(in srgb, var(--human-primary) 16%, var(--human-surface-2));
+}
