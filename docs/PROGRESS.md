@@ -9,8 +9,8 @@ along the way, and a log of each work session.
 - **Milestone:** M3 — Content and depth
 - **Next task:** M3-T1 Campaign
 - **Blockers:** none
-- **Deployed URL:** https://maahumada.github.io/lawbreakers/ (pending the first deploy: push `main`
-  with `.github/workflows/deploy.yml`, then check Mission 01 in a fresh Chrome and Firefox)
+- **Deployed URL:** https://maahumada.github.io/lawbreakers/ (live since 2026-10-28, auto-deploys on
+  push to `main`; verified in Chromium, Firefox still unchecked)
 
 ## Decisions log
 
@@ -61,6 +61,13 @@ Decisions that deviate from or refine the docs. Newest first.
 
 Newest first. One entry per completed task: what was done, files touched, anything surprising,
 follow-ups.
+
+### 2026-10-28 — First live deploy
+- Commit `7c74ef0` pushed; workflow run `40672270358` green in 1m42s.
+- `node scripts/coi-smoke.mjs https://maahumada.github.io/lawbreakers/` passes against the live site:
+  one reload on first visit, `crossOriginIsolated` true, Z3 verdicts in the worker, Mission 01
+  `A + B = 6` → holds, app still starts without service workers.
+- Follow-up: check Firefox by hand (not available to Playwright here).
 
 ### 2026-10-28 — M2-T6 Deploy
 - `.github/workflows/deploy.yml`: push to `main` + `workflow_dispatch`; `build` job (checkout@v7,
