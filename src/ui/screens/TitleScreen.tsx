@@ -3,6 +3,8 @@ import type { Level } from "../../engine/level.ts";
 import { nextMission, useCampaign } from "../../game/campaign.ts";
 import { introSeen } from "../../game/introSeen.ts";
 import { SoundToggle } from "../fx/SoundToggle.tsx";
+import { HelpLayer } from "../help/HelpLayer.tsx";
+import { HelpButton } from "../help/HowToPlay.tsx";
 import { navigate } from "../router.ts";
 import { IntroScreen } from "./IntroScreen.tsx";
 import { TrainingToggle } from "./TrainingToggle.tsx";
@@ -34,6 +36,7 @@ export function TitleScreen({ levels }: { levels: readonly Level[] }) {
           </button>
         )}
         <SoundToggle />
+        <HelpButton />
       </div>
       <main className="title__main">
         <h1 className="title__name" aria-label="Lawbreakers: 2050">
@@ -93,6 +96,7 @@ export function TitleScreen({ levels }: { levels: readonly Level[] }) {
           <span className="title__prompt">&gt; ARGUS:</span> ONLY YOUR RELAYS REMAIN, LAWSMITH.
         </p>
       </aside>
+      <HelpLayer />
     </div>
   );
 }

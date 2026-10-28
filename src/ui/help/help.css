@@ -1,0 +1,379 @@
+/* Help: the "?" button, the How to play panel and the tutorial's coach marks. COMMAND (the human
+   side) speaks here: amber and brass, sentence case, never ARGUS's red capitals. */
+
+.help-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  border: 1px solid var(--human-secondary);
+  border-radius: 50%;
+  background: transparent;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  color: var(--human-secondary);
+  cursor: pointer;
+}
+
+.help-btn:hover {
+  border-color: var(--human-primary);
+  color: var(--human-primary);
+}
+
+/* --- Tutorial (coach marks) --------------------------------------------- */
+
+.coach {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+
+/* The game stays playable under the spotlight: only the card takes clicks. */
+.coach__spot {
+  position: fixed;
+  border-radius: var(--radius-md);
+  box-shadow:
+    0 0 0 2px var(--human-primary),
+    0 0 18px 2px color-mix(in srgb, var(--human-primary) 45%, transparent),
+    0 0 0 200vmax color-mix(in srgb, var(--black) 58%, transparent);
+  transition:
+    top var(--dur-med) ease,
+    left var(--dur-med) ease,
+    width var(--dur-med) ease,
+    height var(--dur-med) ease;
+}
+
+.coach__card {
+  pointer-events: auto;
+  position: fixed;
+  left: var(--space-3);
+  right: var(--space-3);
+  bottom: var(--space-3);
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--human-secondary);
+  border-top: 3px solid var(--human-primary);
+  background: var(--human-surface);
+  box-shadow: 0 10px 40px color-mix(in srgb, var(--black) 70%, transparent);
+}
+
+@media (min-width: 640px) {
+  .coach__card {
+    left: auto;
+    width: 23rem;
+  }
+
+  .coach__card[data-placed] {
+    right: auto;
+    bottom: auto;
+  }
+}
+
+.coach__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--human-secondary);
+}
+
+.coach__lamp {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--human-primary);
+  box-shadow: 0 0 8px var(--human-primary);
+  animation: coach-lamp 1.6s steps(2, jump-none) infinite;
+}
+
+@keyframes coach-lamp {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.coach__count {
+  margin-left: auto;
+  font-family: var(--font-terminal);
+  font-size: var(--text-lg);
+  letter-spacing: 0.05em;
+  color: var(--human-nixie);
+  text-shadow: 0 0 6px color-mix(in srgb, var(--human-nixie) 60%, transparent);
+}
+
+.coach__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-xl);
+  line-height: 1.1;
+  color: var(--human-primary);
+}
+
+.coach__body {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--human-text);
+}
+
+.coach__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.coach__skip {
+  margin-right: auto;
+  padding: var(--space-1) 0;
+  border: 0;
+  background: none;
+  font-size: var(--text-xs);
+  color: var(--human-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.coach__skip:hover {
+  color: var(--human-text);
+}
+
+.coach__btn {
+  min-width: 4.5rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--human-line);
+  background: transparent;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--human-text);
+  cursor: pointer;
+}
+
+.coach__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.coach__btn--next {
+  border-color: var(--human-primary);
+  background: var(--human-primary);
+  color: var(--human-bg);
+}
+
+.coach__btn:not(:disabled):hover {
+  border-color: var(--human-primary);
+}
+
+.coach__btn--next:hover {
+  background: color-mix(in srgb, var(--human-primary) 85%, var(--human-text));
+}
+
+/* --- How to play ---------------------------------------------------------- */
+
+.howto-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  overflow-y: auto;
+  background: color-mix(in srgb, var(--human-bg) 84%, transparent);
+  backdrop-filter: blur(3px);
+}
+
+.howto {
+  width: min(100%, 36rem);
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--human-secondary);
+  border-top: 3px solid var(--human-primary);
+  background: var(--human-surface);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--human-text);
+}
+
+.howto b {
+  color: var(--human-primary);
+  font-weight: 700;
+}
+
+.howto__head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.howto__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-xl);
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--human-primary);
+}
+
+.howto__close {
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  border: 1px solid var(--human-line);
+  background: transparent;
+  font-size: var(--text-lg);
+  line-height: 1;
+  color: var(--human-text);
+  cursor: pointer;
+}
+
+.howto__close:hover {
+  border-color: var(--human-primary);
+}
+
+/* ARGUS runs the three checks in this order, so the numbers are real. */
+.howto__checks {
+  counter-reset: check;
+  display: grid;
+  gap: var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.howto__check {
+  counter-increment: check;
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  column-gap: var(--space-3);
+}
+
+.howto__check::before {
+  content: counter(check);
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  height: 2.4rem;
+  border-radius: var(--radius-tube);
+  background: var(--human-nixie-off);
+  font-family: var(--font-terminal);
+  font-size: var(--text-xl);
+  color: var(--human-nixie);
+  text-shadow: 0 0 6px color-mix(in srgb, var(--human-nixie) 60%, transparent);
+}
+
+.howto__check-name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-md);
+  color: var(--human-text);
+}
+
+.howto__check-fail {
+  color: var(--human-muted);
+}
+
+.howto__check-fail b {
+  color: var(--argus-primary);
+  text-transform: uppercase;
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.howto__win b {
+  text-transform: uppercase;
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+}
+
+.howto__breaches {
+  display: grid;
+  gap: var(--space-3);
+}
+
+@media (min-width: 520px) {
+  .howto__breaches {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.howto__breach {
+  padding: var(--space-3);
+  border: 1px solid var(--argus-primary);
+  border-left-width: 4px;
+  background: var(--argus-bg);
+  color: var(--argus-text);
+}
+
+.howto__breach--lab {
+  border-color: var(--argus-secondary);
+  border-style: dashed;
+  border-left-style: solid;
+}
+
+.howto__breach-name {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-md);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--argus-primary);
+}
+
+.howto__breach--lab .howto__breach-name {
+  color: var(--argus-secondary);
+}
+
+.howto__breach p {
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+
+.howto__keys {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--human-line);
+  font-size: var(--text-xs);
+  color: var(--human-muted);
+}
+
+.howto__foot {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.howto__replay {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--human-primary);
+  background: transparent;
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--human-primary);
+  cursor: pointer;
+}
+
+.howto__replay:hover {
+  background: color-mix(in srgb, var(--human-primary) 14%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coach__lamp {
+    animation: none;
+  }
+}

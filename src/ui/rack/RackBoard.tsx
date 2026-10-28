@@ -1,5 +1,6 @@
 import { useDraggable, useDroppable } from "@dnd-kit/core";
-import type { CSSProperties, SyntheticEvent } from "react";
+import type { CSSProperties, KeyboardEvent, SyntheticEvent } from "react";
+import { useLayoutEffect, useRef } from "react";
 import type { Level } from "../../engine/level.ts";
 import type { RackNode, SlotPath } from "../../game/rack.ts";
 import { moduleShape, pathKey } from "../../game/rack.ts";
@@ -16,6 +17,21 @@ import { Jacks, Plug } from "./Shapes.tsx";
 export type Accepts = (path: SlotPath) => boolean | undefined;
 
 const stop = (e: SyntheticEvent) => e.stopPropagation();
+
+/**
+ * Keyboard users keep their place: after a placement the new module takes focus, after an unplug
+ * the socket it leaves behind does (both are remounted, so focus would otherwise drop to <body>).
+ * Only when focus was actually lost: never steal it from wherever the player has moved on to.
+ */
+function focusSoon(testId: string) {
+  requestAnimationFrame(() => {
+    const active = document.activeElement;
+    if (active && active !== document.body && active.isConnected) return;
+    document
+      .querySelector<HTMLElement>(`[data-testid="${testId}"]`)
+      ?.focus({ preventScroll: true });
+  });
+}
 
 function EmptySocket({ cell, accepts }: { cell: SlotCell; accepts: Accepts }) {
   const key = pathKey(cell.path);
@@ -34,7 +50,9 @@ function EmptySocket({ cell, accepts }: { cell: SlotCell; accepts: Accepts }) {
       data-over={isOver || undefined}
       aria-disabled={ok !== true}
       aria-label={`Empty ${where}${ok === false ? ", does not fit" : ""}`}
-      onClick={() => ok && place(cell.path)}
+      onClick={() => {
+        if (ok && place(cell.path)) focusSoon(`module-${key}`);
+      }}
       data-testid={`slot-${key}`}
     >
       <span className={`socket__hole socket__hole--${cell.type}`} aria-hidden />
@@ -70,6 +88,16 @@ function PlacedModule({ node, path, level, sparking }: PlacedProps) {
   });
   const shape = moduleShape(node.mod);
   const { face, caption, name } = faceOf(node.mod, level);
+  const unplug = () => {
+    remove(path);
+    focusSoon(`slot-${key}`);
+  };
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key !== "Delete" && e.key !== "Backspace") return;
+    e.preventDefault();
+    e.stopPropagation();
+    unplug();
+  };
 
   return (
     <div
@@ -79,7 +107,9 @@ function PlacedModule({ node, path, level, sparking }: PlacedProps) {
       data-dragging={isDragging || undefined}
       data-testid={`module-${key}`}
       role="group"
-      aria-label={name}
+      tabIndex={0}
+      aria-label={`${name}, plugged in. Delete to unplug.`}
+      onKeyDown={onKey}
     >
       <Jacks types={shape.inputs} />
       {node.mod.kind === "const" ? (
@@ -93,7 +123,7 @@ function PlacedModule({ node, path, level, sparking }: PlacedProps) {
         className="placed__remove"
         onMouseDown={stop}
         onTouchStart={stop}
-        onClick={() => remove(path)}
+        onClick={unplug}
         aria-label={`Unplug ${name}`}
         data-testid={`remove-${key}`}
       >
@@ -135,8 +165,33 @@ export function RackBoard({ level, layout, metrics: m, live, accepts }: BoardPro
   const verdictState = useEngage((s) =>
     shieldState(s.phase, s.verdict ? s.verdict.kind === "holds" : null),
   );
+  const boardRef = useRef<HTMLDivElement>(null);
+  const seenIds = useRef<Set<number> | null>(null);
+
+  // A deep Law is wider than a phone: keep the work in view. After a placement, scroll so the new
+  // module and the sockets it opened are visible, as far right (towards the SHIELD) as that
+  // allows; once the circuit is closed or ARGUS has it, show the SHIELD.
+  useLayoutEffect(() => {
+    const board = boardRef.current;
+    const ids = new Set(layout.cells.flatMap((c) => (c.node ? [c.node.id] : [])));
+    const prev = seenIds.current;
+    seenIds.current = ids;
+    if (!board || board.scrollWidth <= board.clientWidth) return;
+    const max = board.scrollWidth - board.clientWidth;
+    if (live || verdictState) {
+      board.scrollLeft = max;
+      return;
+    }
+    const added = prev ? layout.cells.find((c) => c.node && !prev.has(c.node.id)) : undefined;
+    if (!added?.node) return;
+    const opensInputs = added.node.inputs.length > 0;
+    const left = added.x - (opensInputs ? m.cellW + m.gapX : 0) - m.pad;
+    board.scrollLeft = Math.min(max, Math.max(0, left));
+  }, [layout, live, verdictState, m]);
+
   return (
     <div
+      ref={boardRef}
       className="board"
       data-live={live || undefined}
       data-shield={verdictState}

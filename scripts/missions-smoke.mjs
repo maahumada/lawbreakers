@@ -154,6 +154,8 @@ try {
         reducedMotion: "reduce",
       });
       const page = await context.newPage();
+      // Mission 01 opens with the first-time tutorial (M4-T3); this smoke is about other things.
+      await context.addInitScript(() => localStorage.setItem("lawbreakers:tutorial-seen", "1"));
       const errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
       page.on("console", (msg) => msg.type() === "error" && errors.push(msg.text()));

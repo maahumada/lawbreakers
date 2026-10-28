@@ -41,15 +41,16 @@ lawbreakers/
 │   │   ├── protocol.ts      request/response message types
 │   │   └── client.ts        typed promise API for the UI: warmUp(), verifyLaw(levelId, law)
 │   ├── levels/              01-last-reactor.json … 06-final-breach.json
-│   ├── game/                missionStore.ts (machine state, telemetry, auto-run, replay display, breach/attempts/clock); rack.ts (pure partial-tree model); rackStore.ts (+ lock); engageStore.ts (ENGAGE phase, terminal lines, verdict, result); argusLines.ts (line pools); bestScores.ts (localStorage); campaign.ts (secured missions, unlock rule, training flag; localStorage)
+│   ├── game/                missionStore.ts (machine state, telemetry, auto-run, replay display, breach/attempts/clock); rack.ts (pure partial-tree model); rackStore.ts (+ lock); engageStore.ts (ENGAGE phase, terminal lines, verdict, result); argusLines.ts (line pools); bestScores.ts (localStorage); introSeen.ts / tutorialSeen.ts (seen flags); campaign.ts (secured missions, unlock rule, training flag; localStorage)
 │   ├── ui/
 │   │   ├── router.ts        query-string routes (`?` title, `?missions`, `?mission=NN`, `?dev`), pushState navigation, `?…` link interception
-│   │   ├── screens/         BootScreen (coi reload), Title, MissionSelect, TrainingToggle, Mission, ResultsOverlay, MissionFailedOverlay, IntroScreen (+ introScript), ThreatBoard (mission select radar)
+│   │   ├── screens/         BootScreen (coi reload), Title, MissionSelect, TrainingToggle, Mission, ResultsOverlay, MissionFailedOverlay, VerdictAnnouncer (screen-reader live region), IntroScreen (+ introScript), ThreatBoard (mission select radar)
 │   │   ├── rack/            RackEditor (dnd-kit context), Hand, RackBoard (sockets, modules, SVG wires, SHIELD), Dial, Readout, layout.ts (pure)
 │   │   ├── layout/          Slot (reserved areas for later features, `data-slot`)
 │   │   ├── machine/         MachineView, Briefing, Gauge, ControlCard, Telemetry, ReplayStrip (shown state + Law/meltdown probe), format.ts (guard/effect text), replay.css (verdict modes)
 │   │   ├── argus/           ArgusPanel, Terminal (typed lines), BreachMeter, EngageConsole + VerdictBanner (engage slot), engage.ts (the ENGAGE sequence), verdictText.ts
 │   │   ├── proof/           ShowTheProof
+│   │   ├── help/            HowToPlay + HelpButton ("?"), Tutorial (coach marks) + tutorialSteps.ts, helpStore.ts, HelpLayer (per screen)
 │   │   └── fx/              ImpactFx (breach shake + flash), SoundToggle (global mute switch)
 │   ├── audio/               sound.ts (AudioContext unlocked on first gesture, mute store), sfx.ts (synthesized sounds), bindings.ts (store subscriptions → sounds)
 │   └── styles/              tokens.css (palettes, type, space; self-hosted @fontsource fonts), effects.css (fx-* utilities), global.css
@@ -62,6 +63,7 @@ lawbreakers/
 │   ├── campaign-smoke.mjs   title → select → unlocks, persistence, Back, CONTINUE, off-campaign, training, reset (`npm run campaign-smoke`)
 │   ├── pages-preview.mjs    GitHub Pages emulation: `dist/` under `/lawbreakers/`, no COOP/COEP (`npm run pages-preview`)
 │   ├── juice-smoke.mjs      intro, mute, threat board, current/breach/holds effects; screenshots m4-t1-*, m3-t5-* (`npm run juice-smoke`)
+│   ├── a11y-smoke.mjs       keyboard-only win, reduced motion, no horizontal overflow at 3 viewports, tutorial/help, axe; screenshots m4-t3-*, m4-t5-* (`npm run a11y-smoke`)
 │   └── coi-smoke.mjs        first visit through coi-serviceworker: one reload, isolated, Z3 works (`npm run coi-smoke`)
 └── tests/                   engine tests, level conformance (+ a few component smoke tests)
 ```

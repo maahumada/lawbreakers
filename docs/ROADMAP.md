@@ -85,9 +85,9 @@ Goal: a stranger can open the URL, play Mission 01 start to finish and understan
 
 - [x] **M4-T1** Intro sequence (`YEAR 2050. GLOBAL NETWORK COMPROMISED…`), skippable.
 - [x] **M4-T2** Audio: synthesized SFX for plug, hum, scan, klaxon, success; mute toggle.
-- [ ] **M4-T3** Tutorial overlay on Mission 01 (first-time hints on telemetry, rack, engage).
+- [x] **M4-T3** Tutorial overlay on Mission 01 (first-time hints on telemetry, rack, engage).
 - [ ] **M4-T4** Playtest with 3–5 classmates; collect notes in `docs/PLAYTEST.md`; fix top issues.
-- [ ] **M4-T5** Mobile/tablet layout check, keyboard accessibility for the rack, reduced-motion mode.
+- [x] **M4-T5** Mobile/tablet layout check, keyboard accessibility for the rack, reduced-motion mode.
 - [ ] **M4-T6** README: pitch, screenshots/GIF, **How to play**, **Key design ideas** (from
   `DESIGN.md §10`), tech overview, how to run locally.
 - [ ] **M4-T7** Submit on the Social Contributions board: repo URL, page URL, how to play, design ideas.

@@ -24,6 +24,7 @@
     "dafny-check": "node scripts/dafny-check.mjs",
     "proof-smoke": "node scripts/proof-smoke.mjs",
     "juice-smoke": "node scripts/juice-smoke.mjs",
+    "a11y-smoke": "node scripts/a11y-smoke.mjs",
     "cost-search": "node scripts/cost-search.mjs"
   },
   "dependencies": {
@@ -38,6 +39,7 @@
     "zustand": "^5.0.16"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.6.5",
     "@types/react": "^18.3.31",

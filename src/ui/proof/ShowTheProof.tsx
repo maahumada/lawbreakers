@@ -68,7 +68,7 @@ export function ShowTheProof({ level, law, onClose }: Props) {
         aria-labelledby="proof-title"
         aria-describedby="proof-caption"
       >
-        <header className="proof__head">
+        <div className="proof__head">
           <p className="proof__kicker">Show the proof · Dafny</p>
           <h2 className="proof__title fx-glow" id="proof-title">
             You just wrote this.
@@ -76,7 +76,7 @@ export function ShowTheProof({ level, law, onClose }: Props) {
           <p className="proof__caption" id="proof-caption">
             Your Law is the loop invariant. ARGUS was the verifier.
           </p>
-        </header>
+        </div>
 
         <pre
           className="proof__code"

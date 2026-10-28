@@ -48,6 +48,8 @@ try {
     reducedMotion: "reduce",
   });
   const page = await context.newPage();
+  // Mission 01 opens with the first-time tutorial (M4-T3); this smoke is about other things.
+  await context.addInitScript(() => localStorage.setItem("lawbreakers:tutorial-seen", "1"));
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
@@ -182,6 +184,8 @@ try {
 
   // --- Phone: title and mission select fit ---------------------------------------------------
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  // Mission 01 opens with the first-time tutorial (M4-T3); this smoke is about other things.
+  await phone.addInitScript(() => localStorage.setItem("lawbreakers:tutorial-seen", "1"));
   await phone.goto(url);
   await phone.getByTestId("title-screen").waitFor();
   await phone.evaluate(() => document.fonts.ready);

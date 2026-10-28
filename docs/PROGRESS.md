@@ -7,7 +7,7 @@ along the way, and a log of each work session.
 ## Current state
 
 - **Milestone:** M4 — Polish, playtest, submit
-- **Next task:** M4-T3 Tutorial overlay
+- **Next task:** M4-T4 Playtest
 - **Blockers:** none
 - **Deployed URL:** https://maahumada.github.io/lawbreakers/ (live since 2026-10-28, auto-deploys on
   push to `main`; verified in Chromium, Firefox still unchecked)
@@ -18,6 +18,12 @@ Decisions that deviate from or refine the docs. Newest first.
 
 | Date | Decision | Why |
 |---|---|---|
+| 2026-10-28 | `@axe-core/playwright` devDependency, used only by `npm run a11y-smoke` (serious/critical violations fail it) | cheap automated a11y regression check; not part of `npm test` |
+| 2026-10-28 | Tutorial = 6 coach marks by COMMAND (human voice, sentence case, amber) over the live mission screen: facility & meltdown → controls/telemetry → hand & socket shapes → rack/SHIELD → ENGAGE → verdict. Non-blocking (only the card takes clicks; the game stays playable under the spotlight). Auto-starts on Mission 01 if `lawbreakers:tutorial-seen` is unset; finishing or skipping (button or a bare Esc) sets it; the results / mission failed dialogs end it. Replay from the "?" How to play panel on any mission | learn by doing, never trap the player; one flag, one place to replay |
+| 2026-10-28 | "?" How to play panel in the top bar of title, mission select and mission screens: the three checks in ARGUS's order with their verdict names, live vs lab breach, controls/keyboard line; "Replay tutorial" only on mission screens. Modal with focus trap, Esc closes, focus returns to "?" | the rules in one screen, reachable anywhere |
+| 2026-10-28 | Keyboard rack: placed modules are focusable (Delete/Backspace unplugs); after a placement the new module takes focus, after an unplug the empty socket does, but only if focus was lost (never stolen) | keyboard play without losing your place; no race with a player who already moved on |
+| 2026-10-28 | Phone rack: the board scrolls itself after each placement so the new module and the sockets it opened are in view (as far right as that allows), and to the SHIELD once the Law is complete or ARGUS has it | deep Laws no longer hide the work or the SHIELD offscreen; no layout change |
+| 2026-10-28 | Screen reader: an always-mounted `role=status` live region announces ARGUS's verdict (title, attack, body); control cards are named by their visible text with the plain-English rule as description; the ARGUS terminal is focusable (scrollable region) | axe serious/critical clean on title, help, mission select and a mission with a verdict |
 | 2026-10-28 | Intro plays inside the title route (no `?intro` URL) on the first START only; seen flag `lawbreakers:intro-seen`; "Replay intro" on the title once seen. Esc, Enter, a click anywhere or SKIP leave it (all go to mission select). It calls `warmUp()` on mount | the URL stays shareable; any obvious gesture gets the player out; Z3 boots during ~16 s of reading |
 | 2026-10-28 | Audio: one `AudioContext`, created/resumed on the first pointerdown/keydown (capture listener kept installed), master gain 0.32; mute in `lawbreakers:muted` (`"1"` = muted, default sound on). Sounds hook in by store subscriptions only (`audio/bindings.ts`): global (unlock, UI clicks) from `App`, mission sounds (rack, ENGAGE, scan, replay clacks, klaxon, success, typing ticks, hum) while `MissionScreen` is mounted | no game logic calls audio; the hum stops when the mission screen goes away |
 | 2026-10-28 | Juice timing hooks on existing phases: breach shake/flash on `replaying → verdict` with a failed verdict (the moment the meter fills); success relays on `data-shield="sealed"`, one column every 140 ms (`--relay-step`, same as `RELAY_STEP_S` in `sfx.ts`), all inside the 950 ms before the results open. Shake/flash use the Web Animations API (no remounts); reduced motion keeps a softer flash and no shake | no change to `engage.ts` timings or the smokes |
@@ -78,6 +84,34 @@ Decisions that deviate from or refine the docs. Newest first.
 
 Newest first. One entry per completed task: what was done, files touched, anything surprising,
 follow-ups.
+
+### 2026-10-28 — M4-T3 Tutorial, M4-T5 Mobile / keyboard / screen reader / reduced motion
+- Tutorial (`ui/help/Tutorial.tsx`, `tutorialSteps.ts`, `helpStore.ts`, `HelpLayer.tsx`,
+  `help.css`; `game/tutorialSeen.ts`): spotlight that follows its target every frame (clamped to
+  the viewport), card beside the target on desktop, bottom sheet under 640 px; Next/Back/Skip, Esc
+  skips unless a module is picked (then Esc only cancels the pick); step text in an
+  `aria-live` region.
+- How to play (`ui/help/HowToPlay.tsx`): "?" in the title, mission select and mission headers.
+- Rack (`RackBoard.tsx`, `rack.css`): focusable placed modules, Delete/Backspace unplug, focus
+  hand-off after place/unplug, phone auto-scroll. `VerdictAnnouncer.tsx` (live region),
+  `ControlCard` name/description, terminal `tabIndex`. Dialog heads `header` → `div` (axe
+  duplicate-banner). Phones hide the "Air-gapped" flavour so the header stays one row.
+- Tests: `tests/help.test.ts` (script length, no answer leaks incl. "ADD"/"sum"/"total", clamp,
+  seen flag + store, missing storage). 271 tests.
+- Browser: new `scripts/a11y-smoke.mjs` (`npm run a11y-smoke`, `@axe-core/playwright` added):
+  keyboard-only win of Mission 01 (normal + `reducedMotion: 'reduce'`, which also asserts no long
+  or endless animations are running), no horizontal overflow at 390×844 / 768×1024 / 1440×900 on
+  title, title help, intro, mission select, every tutorial step, mission help, idle, all five
+  verdicts (lab via Mission 02), results and proof; phone SHIELD/deep-Law visibility; axe scans.
+  The overflow check walks elements (body hides `overflow-x`, so `scrollWidth` alone misses
+  clipped content). The other smokes preset `lawbreakers:tutorial-seen` with an init script.
+  Screenshots `docs/screenshots/m4-t3-{tutorial-{1,3,4,6},help-title,help-mission}-{desktop,mobile}.png`,
+  `m4-t5-{rack-shield,rack-deep,lab}-mobile.png`.
+- Contrast: axe cannot judge most text here (CRT pseudo-elements / gradients make it
+  "incomplete"); a custom pass over small text (computed colour × opacity vs nearest solid
+  background) found nothing under 4.5:1 on title, mission select, mission and help.
+- **Follow-ups:** the tutorial was only seen by me; a real first-timer (M4-T4) should say whether
+  6 steps is right. Tabbing from a picked card to a socket walks the rest of the hand first.
 
 ### 2026-10-28 — M3-T5 Juice pass 1, M4-T1 Intro, M4-T2 Audio (+ mission select threat board)
 - Juice (`ui/rack/RackBoard.tsx`, `rack.css`): flowing current is brighter, the glow breathes, the

@@ -27,8 +27,11 @@ export function ControlCard({
       data-firing={firing || undefined}
       onClick={() => onFire(control.id)}
       data-testid={`control-${control.id}`}
-      aria-label={`${control.label}. ${describeControl(control)}${armed ? "" : " (locked)"}`}
+      aria-describedby={`control-desc-${control.id}`}
     >
+      <span className="visually-hidden" id={`control-desc-${control.id}`}>
+        {describeControl(control)}
+      </span>
       <span className="control-card__head">
         <span className="control-card__lamp" aria-hidden />
         <span className="control-card__label">{control.label}</span>

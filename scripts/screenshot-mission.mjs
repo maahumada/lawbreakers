@@ -23,6 +23,8 @@ const browser = await chromium.launch();
 try {
   for (const vp of viewports) {
     const page = await browser.newPage({ viewport: { width: vp.width, height: vp.height } });
+    // Mission 01 opens with the first-time tutorial (M4-T3); this smoke is about other things.
+    await page.addInitScript(() => localStorage.setItem("lawbreakers:tutorial-seen", "1"));
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
     await page.goto(missionUrl);

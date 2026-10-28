@@ -232,6 +232,7 @@
 
 .chip:focus-visible,
 .socket:focus-visible,
+.placed:focus-visible,
 .placed__remove:focus-visible,
 .dial__value:focus-visible {
   outline: 2px solid var(--human-primary);

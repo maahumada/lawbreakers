@@ -12,12 +12,16 @@ import { EngageConsole } from "../argus/EngageConsole.tsx";
 import { ImpactFx } from "../fx/ImpactFx.tsx";
 import { SoundToggle } from "../fx/SoundToggle.tsx";
 import { Slot } from "../layout/Slot.tsx";
+import { HelpLayer } from "../help/HelpLayer.tsx";
+import { useHelp } from "../help/helpStore.ts";
+import { HelpButton } from "../help/HowToPlay.tsx";
 import { MachineView } from "../machine/MachineView.tsx";
 import { prefersReducedMotion } from "../motion.ts";
 import { RackEditor } from "../rack/RackEditor.tsx";
 import { navigate } from "../router.ts";
 import { MissionFailedOverlay } from "./MissionFailedOverlay.tsx";
 import { ResultsOverlay } from "./ResultsOverlay.tsx";
+import { VerdictAnnouncer } from "./VerdictAnnouncer.tsx";
 import "./mission.css";
 import "./overlays.css";
 import "../argus/verdict.css";
@@ -68,6 +72,13 @@ export function MissionScreen({ level, index, levels }: Props) {
     [],
   );
 
+  // The results / mission failed dialogs take over: the tutorial has done its job by then.
+  useEffect(() => {
+    if ((phase === "results" || phase === "failed") && useHelp.getState().step !== null) {
+      useHelp.getState().endTutorial();
+    }
+  }, [phase]);
+
   const number = level.id.slice(0, 2);
 
   return (
@@ -100,6 +111,7 @@ export function MissionScreen({ level, index, levels }: Props) {
               <span className="lamp" aria-hidden /> Air-gapped
             </span>
             <SoundToggle />
+            <HelpButton />
           </span>
         </div>
         <h1 className="mission__title">
@@ -122,9 +134,11 @@ export function MissionScreen({ level, index, levels }: Props) {
         <ArgusPanel />
       </main>
 
+      <VerdictAnnouncer level={level} />
       <ImpactFx shakeSelector=".mission__grid" />
       {phase === "results" && <ResultsOverlay level={level} next={next} />}
       {phase === "failed" && <MissionFailedOverlay level={level} />}
+      <HelpLayer tutorial autoStart={index === 0} />
     </div>
   );
 }

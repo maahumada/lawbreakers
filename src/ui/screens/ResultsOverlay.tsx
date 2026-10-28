@@ -77,7 +77,7 @@ export function ResultsOverlay({ level, next }: Props) {
         aria-modal="true"
         aria-labelledby="results-title"
       >
-        <header className="results__head">
+        <div className="results__head">
           <p className="results__mission">
             Mission {level.id.slice(0, 2)}: {level.title}
           </p>
@@ -89,7 +89,7 @@ export function ResultsOverlay({ level, next }: Props) {
               Training run: the mission counts as secured, but no score is recorded.
             </p>
           )}
-        </header>
+        </div>
 
         {!training && (
           <>

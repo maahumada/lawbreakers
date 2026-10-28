@@ -65,6 +65,8 @@ async function open(
 ) {
   const context = await browser.newContext({ viewport, reducedMotion });
   const page = await context.newPage();
+  // Mission 01 opens with the first-time tutorial (M4-T3); this smoke is about other things.
+  await context.addInitScript(() => localStorage.setItem("lawbreakers:tutorial-seen", "1"));
   // context.route (not page.route) also sees the requests coi-serviceworker makes on Pages.
   if (blockZ3) await context.route("**/z3/z3-built.js", (r) => r.abort());
   const errors = [];

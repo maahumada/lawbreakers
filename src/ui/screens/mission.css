@@ -134,6 +134,11 @@
   .human {
     padding-inline: var(--space-4);
   }
+
+  /* Flavour only: on a phone the sound switch and "?" keep one row instead. */
+  .mission__link {
+    display: none;
+  }
 }
 
 /* --- Reserved slots ----------------------------------------------------- */

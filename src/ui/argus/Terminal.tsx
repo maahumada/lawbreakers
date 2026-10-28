@@ -37,7 +37,15 @@ export function Terminal() {
 
   return (
     <div className="terminal fx-raster" data-busy={busy || undefined}>
-      <ol className="terminal__lines" ref={listRef} aria-live="polite" data-testid="argus-terminal">
+      <ol
+        className="terminal__lines"
+        ref={listRef}
+        aria-live="polite"
+        aria-label="ARGUS terminal"
+        // Scrollable: keyboard users need to reach it to scroll back through the log.
+        tabIndex={0}
+        data-testid="argus-terminal"
+      >
         {lines.map((line) => (
           <TypedLine key={line.id} line={line} animate={line.id > firstId} />
         ))}

@@ -4,6 +4,8 @@ import { loadBest } from "../../game/bestScores.ts";
 import type { MissionStatus } from "../../game/campaign.ts";
 import { missionStatus, useCampaign } from "../../game/campaign.ts";
 import { SoundToggle } from "../fx/SoundToggle.tsx";
+import { HelpLayer } from "../help/HelpLayer.tsx";
+import { HelpButton } from "../help/HowToPlay.tsx";
 import { navigate } from "../router.ts";
 import { ThreatBoard } from "./ThreatBoard.tsx";
 import { TrainingToggle } from "./TrainingToggle.tsx";
@@ -42,6 +44,7 @@ export function MissionSelectScreen({ levels }: { levels: readonly Level[] }) {
               {secured.length} / {levels.length} secured
             </span>
             <SoundToggle />
+            <HelpButton />
           </span>
         </div>
         <h1 className="select__title">Facilities under the Lawbreakers protocol</h1>
@@ -75,6 +78,7 @@ export function MissionSelectScreen({ levels }: { levels: readonly Level[] }) {
         </main>
         <ThreatBoard levels={levels} statuses={statuses} />
       </div>
+      <HelpLayer />
     </div>
   );
 }
