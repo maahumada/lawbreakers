@@ -220,6 +220,7 @@ describe("rack: readout", () => {
     expect(rackText(rack)).toBe("? || ?");
     rack = placeAt(m06, rack, [1], { kind: "card", card: "and" });
     expect(rackText(rack)).toBe("? || ? && ?");
+    expect(rackText(rack, { bracketMixed: true })).toBe("? || (? && ?)");
     rack = placeAt(m06, removeAt(rack, [1]), [0], { kind: "card", card: "and" });
     expect(rackText(rack)).toBe("? && ? || ?");
   });

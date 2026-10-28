@@ -1,8 +1,10 @@
-// Missions 02–06 end to end in a real browser (real worker + Z3): for each mission, build the
+// Missions 02–09 end to end in a real browser (real worker + Z3): for each mission, build the
 // LEVELS.md known-wrong Laws and the reference Law by click-to-place, engage them and check the
 // verdicts, then the results screen. Also checks gauges (signed ℤ values, scale labels) and that
 // the page never scrolls sideways. Writes docs/screenshots/m3-t2-NN.png (desktop, after the first
-// wrong Law: the replay state) and m3-t2-NN-mobile.png. Not part of `npm test`.
+// wrong Law: the replay state) and m3-t2-NN-mobile.png; the bonus chapter (07–09) writes
+// stretch-NN.png, stretch-NN-mobile.png and stretch-NN-reference.png (the largest Law, built).
+// Not part of `npm test`.
 // Usage: start a server (`npx vite preview --port 4173`), then
 // `node scripts/missions-smoke.mjs [url] [outDir]`.
 
@@ -124,6 +126,101 @@ const MISSIONS = [
       ),
     },
   },
+  {
+    n: "07",
+    shot: "stretch-07",
+    wrong: [
+      { text: "F ≤ 6", steps: cmp("le", "F", 6), verdict: "lab_breach" },
+      {
+        text: "H + F = 3",
+        steps: law(
+          ["card-eq", "root"],
+          ["card-add", "0"],
+          ["sensor-H", "0-0"],
+          ["sensor-F", "0-1"],
+          ["const", "1", 3],
+        ),
+        verdict: "live_breach",
+      },
+    ],
+    ref: {
+      text: "2×H + F = 6",
+      steps: law(
+        ["card-eq", "root"],
+        ["card-add", "0"],
+        ["card-scale2", "0-0"],
+        ["sensor-H", "0-0-0"],
+        ["sensor-F", "0-1"],
+        ["const", "1", 6],
+      ),
+    },
+  },
+  {
+    n: "08",
+    shot: "stretch-08",
+    wrong: [
+      {
+        text: "L − R ≤ 2",
+        steps: law(
+          ["card-le", "root"],
+          ["card-sub", "0"],
+          ["sensor-L", "0-0"],
+          ["sensor-R", "0-1"],
+          ["const", "1", 2],
+        ),
+        verdict: "lab_breach",
+      },
+      {
+        text: "L ≤ R",
+        steps: law(["card-le", "root"], ["sensor-L", "0"], ["sensor-R", "1"]),
+        verdict: "live_breach",
+      },
+    ],
+    ref: {
+      text: "L − R ≤ 2 AND R − L ≤ 2",
+      steps: law(
+        ["card-and", "root"],
+        ["card-le", "0"],
+        ["card-sub", "0-0"],
+        ["sensor-L", "0-0-0"],
+        ["sensor-R", "0-0-1"],
+        ["const", "0-1", 2],
+        ["card-le", "1"],
+        ["card-sub", "1-0"],
+        ["sensor-R", "1-0-0"],
+        ["sensor-L", "1-0-1"],
+        ["const", "1-1", 2],
+      ),
+    },
+  },
+  {
+    n: "09",
+    shot: "stretch-09",
+    wrong: [
+      {
+        text: "p = 0 AND a = 4",
+        steps: law(["card-and", "root"], ...cmp("eq", "p", 0, "0"), ...cmp("eq", "a", 4, "1")),
+        verdict: "live_breach",
+      },
+      {
+        text: "p = 0 OR p = 1",
+        steps: law(["card-or", "root"], ...cmp("eq", "p", 0, "0"), ...cmp("eq", "p", 1, "1")),
+        verdict: "insufficient",
+      },
+    ],
+    ref: {
+      text: "(p = 0 AND a = 4) OR (p = 1 AND a = 0)",
+      steps: law(
+        ["card-or", "root"],
+        ["card-and", "0"],
+        ...cmp("eq", "p", 0, "0-0"),
+        ...cmp("eq", "a", 4, "0-1"),
+        ["card-and", "1"],
+        ...cmp("eq", "p", 1, "1-0"),
+        ...cmp("eq", "a", 0, "1-1"),
+      ),
+    },
+  },
 ];
 
 const readout = async (page) => (await page.getByTestId("rack-readout").textContent()).trim();
@@ -176,7 +273,7 @@ try {
         if (i === 0) {
           await page.waitForTimeout(400);
           await page.screenshot({
-            path: `${dir}/m3-t2-${m.n}${mobile ? "-mobile" : ""}.png`,
+            path: `${dir}/${m.shot ?? `m3-t2-${m.n}`}${mobile ? "-mobile" : ""}.png`,
             fullPage: true,
           });
         }
@@ -184,6 +281,15 @@ try {
         await page.getByTestId("rack-clear").click();
       }
       if (mobile) {
+        if (m.shot) {
+          // The largest Law on a phone: the rack must still build it and show it.
+          await build(page, m.ref.steps);
+          const built = await readout(page);
+          check(built === m.ref.text, `${tag}: built reference "${built}"`);
+          await page.getByTestId("rack").scrollIntoViewIfNeeded();
+          await page.waitForTimeout(300);
+          await page.screenshot({ path: `${dir}/${m.shot}-mobile-reference.png`, fullPage: true });
+        }
         check(errors.length === 0, `${tag}: no page errors ${errors.join("; ")}`);
         await context.close();
         continue;
@@ -198,6 +304,10 @@ try {
       await build(page, m.ref.steps);
       const text = await readout(page);
       check(text === m.ref.text, `${tag}: built reference "${text}"`);
+      if (m.shot) {
+        await page.waitForTimeout(300);
+        await page.screenshot({ path: `${dir}/${m.shot}-reference.png`, fullPage: true });
+      }
       const cost = (await page.getByTestId("rack-cost").textContent()).replace(/\s+/g, " ");
       const [, used, budget] = cost.match(/Cost (\d+) \/ Budget (\d+)/) ?? [];
       check(used !== undefined && used === budget, `${tag}: reference at budget (${cost.trim()})`);

@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { loadBundledLevels } from "../src/engine/level.ts";
-import { missionStatus, nextMission, useCampaign } from "../src/game/campaign.ts";
+import {
+  CHAPTERS,
+  chapterIndex,
+  chapterStartingAt,
+  missionStatus,
+  nextMission,
+  useCampaign,
+} from "../src/game/campaign.ts";
 import { useMission } from "../src/game/missionStore.ts";
 import { parseRoute, routeHref } from "../src/ui/router.ts";
 
@@ -13,7 +20,7 @@ const statuses = (secured: string[]) => ids.map((_, i) => missionStatus(ids, new
 
 describe("campaign unlocks", () => {
   it("fresh profile: only Mission 01 is available", () => {
-    expect(statuses([])).toEqual(["available", ...Array<string>(5).fill("locked")]);
+    expect(statuses([])).toEqual(["available", ...Array<string>(8).fill("locked")]);
     expect(nextMission(ids, new Set())).toBe(ids[0]);
   });
 
@@ -25,11 +32,38 @@ describe("campaign unlocks", () => {
 
   it("an off-campaign win stays secured and unlocks only its successor", () => {
     const s = statuses([ids[3] ?? ""]);
-    expect(s).toEqual(["available", "locked", "locked", "secured", "available", "locked"]);
+    expect(s).toEqual([
+      "available",
+      "locked",
+      "locked",
+      "secured",
+      "available",
+      ...Array<string>(4).fill("locked"),
+    ]);
+  });
+
+  it("the bonus chapter opens when FINAL BREACH is secured", () => {
+    const main = ids.slice(0, 6);
+    expect(statuses(main)[6]).toBe("available");
+    expect(statuses(main.slice(0, 5))[6]).toBe("locked");
+    expect(nextMission(ids, new Set(main))).toBe("07-the-splitter");
   });
 
   it("all secured: nothing left to continue", () => {
     expect(nextMission(ids, new Set(ids))).toBeNull();
+  });
+});
+
+describe("chapters", () => {
+  it("split the campaign after FINAL BREACH", () => {
+    expect(CHAPTERS.map((c) => c.first)).toEqual(["01", "07"]);
+    expect(ids.map(chapterIndex)).toEqual([0, 0, 0, 0, 0, 0, 1, 1, 1]);
+    expect(chapterStartingAt("07-the-splitter")?.title).toBe("ARGUS Strikes Back");
+    expect(chapterStartingAt("08")).toBeUndefined();
+  });
+
+  it("every chapter starts at a shipped mission", () => {
+    for (const ch of CHAPTERS) expect(ids.some((id) => id.startsWith(ch.first))).toBe(true);
   });
 });
 

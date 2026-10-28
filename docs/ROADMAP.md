@@ -100,4 +100,6 @@ Goal: a stranger can open the URL, play Mission 01 start to finish and understan
 - Daily challenge (one seeded mission per day).
 - Hint system (costs breach).
 - Team mode: KAIST vs POSTECH aggregated scores.
-- More missions.
+- [x] **More missions** — bonus chapter *ARGUS Strikes Back*: 07 THE SPLITTER (weighted
+  conservation), 08 TWIN JACKS (bounded difference), 09 THE AIRLOCK (disjunctive Laws); chapter
+  heading on mission select, "main campaign complete" line after 06.

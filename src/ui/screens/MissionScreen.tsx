@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Level } from "../../engine/level.ts";
-import { missionStatus, useCampaign } from "../../game/campaign.ts";
+import { CHAPTERS, chapterIndex, missionStatus, useCampaign } from "../../game/campaign.ts";
 import { useEngage } from "../../game/engageStore.ts";
 import { useMission } from "../../game/missionStore.ts";
 import { useRack } from "../../game/rackStore.ts";
@@ -52,7 +52,18 @@ export function MissionScreen({ level, index, levels }: Props) {
   const resetRack = useRack((r) => r.reset);
   const resetEngage = useEngage((s) => s.reset);
   const phase = useEngage((s) => s.phase);
-  const campaignDone = useCampaign((c) => levels.every((l) => c.secured.includes(l.id)));
+  const chapter = chapterIndex(level.id);
+  const endLine = useCampaign((c) => {
+    const done = (ls: readonly Level[]) => ls.every((l) => c.secured.includes(l.id));
+    if (!next) {
+      return done(levels)
+        ? (CHAPTERS.at(-1)?.doneLine ?? null)
+        : "Last mission cleared. Facilities still unsecured wait on mission select.";
+    }
+    const endsChapter = chapterIndex(next.id) !== chapter;
+    const chapterDone = done(levels.filter((l) => chapterIndex(l.id) === chapter));
+    return endsChapter && chapterDone ? (CHAPTERS[chapter]?.doneLine ?? null) : null;
+  });
 
   useEffect(() => {
     load(level, undefined, training);
@@ -149,9 +160,7 @@ export function MissionScreen({ level, index, levels }: Props) {
 
       <VerdictAnnouncer level={level} />
       <ImpactFx shakeSelector=".mission__grid" />
-      {phase === "results" && (
-        <ResultsOverlay level={level} next={next} campaignDone={campaignDone} />
-      )}
+      {phase === "results" && <ResultsOverlay level={level} next={next} endLine={endLine} />}
       {phase === "failed" && <MissionFailedOverlay level={level} />}
       <HelpLayer tutorial autoStart={index === 0} />
     </div>

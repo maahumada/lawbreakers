@@ -40,7 +40,7 @@ lawbreakers/
 │   │   ├── verify.worker.ts runs verify.ts off the main thread (loads Z3, see "Z3 in the browser")
 │   │   ├── protocol.ts      request/response message types
 │   │   └── client.ts        typed promise API for the UI: warmUp(), verifyLaw(levelId, law)
-│   ├── levels/              01-last-reactor.json … 06-final-breach.json
+│   ├── levels/              01-last-reactor.json … 09-the-airlock.json
 │   ├── game/                missionStore.ts (machine state, telemetry, auto-run, replay display, breach/attempts/clock); rack.ts (pure partial-tree model); rackStore.ts (+ lock); engageStore.ts (ENGAGE phase, terminal lines, verdict, result); argusLines.ts (line pools); bestScores.ts (localStorage); introSeen.ts / tutorialSeen.ts (seen flags); campaign.ts (secured missions, unlock rule, training flag; localStorage)
 │   ├── ui/
 │   │   ├── router.ts        query-string routes (`?` title, `?missions`, `?mission=NN`, `?dev`), pushState navigation, `?…` link interception
@@ -59,7 +59,7 @@ lawbreakers/
 │   ├── screenshot-mission.mjs  mission screen screenshots (1440×900, 390×844) + interaction checks (`npm run screenshots`)
 │   ├── rack-smoke.mjs       rack editor in Chromium: builds Missions 01 and 06, screenshots (`npm run rack-smoke`)
 │   ├── engage-smoke.mjs     ENGAGE end to end with real Z3: every verdict, breach, results, mission failed (`npm run engage-smoke`)
-│   ├── missions-smoke.mjs   Missions 02–06: wrong Laws + reference Law, results, screenshots m3-t2-* (`npm run missions-smoke`)
+│   ├── missions-smoke.mjs   Missions 02–09: wrong Laws + reference Law, results, screenshots m3-t2-*, stretch-* (`npm run missions-smoke`)
 │   ├── campaign-smoke.mjs   title → select → unlocks, persistence, Back, CONTINUE, off-campaign, training, reset (`npm run campaign-smoke`)
 │   ├── pages-preview.mjs    GitHub Pages emulation: `dist/` under `/lawbreakers/`, no COOP/COEP (`npm run pages-preview`)
 │   ├── juice-smoke.mjs      intro, mute, threat board, current/breach/holds effects; screenshots m4-t1-*, m3-t5-* (`npm run juice-smoke`)

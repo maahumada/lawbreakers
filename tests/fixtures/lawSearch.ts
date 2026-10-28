@@ -42,11 +42,25 @@ function merge(level: Level, extra: CardId, ...parts: Used[]): Used | null {
   return out;
 }
 
-/** Every buildable Law of cost ≤ `maxCost`, with dial values in `consts`. Commutative duplicates skipped. */
+interface BoolTerm extends Term<BoolExpr> {
+  /** `pretty(e)`, computed once (the pair loops compare it to skip commutative duplicates). */
+  key: string;
+  /** Bit i set when the Law is true on `samples[i].state`. */
+  mask: bigint;
+}
+
+/**
+ * Every buildable Law of cost ≤ `maxCost`, with dial values in `consts`. Commutative duplicates
+ * skipped. With `samples` (states the machine really reaches, `want: true`, and meltdown states,
+ * `want: false`), Laws that disagree with any sample are left out of the result: they cannot hold
+ * (sound pruning, it only drops Laws `verify` would refute). Terms too expensive to nest inside
+ * another Law are then never built unless they agree, which keeps big AND/OR hands (08–09) fast.
+ */
 export function buildableLaws(
   level: Level,
   maxCost: number,
   consts: readonly number[],
+  samples: readonly { state: State; want: boolean }[] = [],
 ): BoolExpr[] {
   const has = (card: CardId) => (level.hand.cards[card] ?? 0) > 0;
   const nums: Term<NumExpr>[][] = Array.from({ length: maxCost + 1 }, () => []);
@@ -102,9 +116,27 @@ export function buildableLaws(
     }
   }
 
-  const bools: Term<BoolExpr>[][] = Array.from({ length: maxCost + 1 }, () => []);
+  const bit = (i: number) => 1n << BigInt(i);
+  const all = bit(samples.length) - 1n;
+  const target = samples.reduce((m, x, i) => (x.want ? m | bit(i) : m), 0n);
+  const maskOf = (e: BoolExpr) =>
+    samples.reduce((m, x, i) => (evalBool(e, x.state) ? m | bit(i) : m), 0n);
+  // The cheapest wrapper a term can sit in: NOT (+2), or AND/OR (+3) with the cheapest comparison.
+  const cheapestCmp = Math.min(
+    ...CMP_OPS.filter((op) => has(CMP_CARD[op])).map(
+      (op) => cardCost(CMP_CARD[op]) + MODULE_COST.sensor + MODULE_COST.constant,
+    ),
+  );
+  const wrap = Math.min(
+    has("not") ? cardCost("not") : Infinity,
+    has("and") || has("or") ? MODULE_COST.logic + cheapestCmp : Infinity,
+  );
+  const rootOnly = (cost: number) => cost + wrap > maxCost;
+
+  const bools: BoolTerm[][] = Array.from({ length: maxCost + 1 }, () => []);
   for (let cost = 1; cost <= maxCost; cost++) {
     const bucket = bools[cost] ?? [];
+    const pruned = samples.length > 0 && rootOnly(cost);
     for (const op of CMP_OPS) {
       const card = CMP_CARD[op];
       if (!has(card)) continue;
@@ -116,15 +148,21 @@ export function buildableLaws(
             if ((op === "=" || op === "!=") && mirrored(l, r)) continue;
             const used = merge(level, card, l.used, r.used);
             if (!used) continue;
-            bucket.push({ e: { k: "cmp", op, l: l.e, r: r.e }, cost, used, live: true });
+            const e: BoolExpr = { k: "cmp", op, l: l.e, r: r.e };
+            const mask = maskOf(e);
+            if (pruned && mask !== target) continue;
+            bucket.push({ e, cost, used, live: true, key: pretty(e), mask });
           }
         }
       }
     }
     if (has("not")) {
       for (const t of bools[cost - cardCost("not")] ?? []) {
+        const mask = all & ~t.mask;
+        if (pruned && mask !== target) continue;
         const used = merge(level, "not", t.used);
-        if (used) bucket.push({ e: { k: "not", e: t.e }, cost, used, live: true });
+        const e: BoolExpr = { k: "not", e: t.e };
+        if (used) bucket.push({ e, cost, used, live: true, key: pretty(e), mask });
       }
     }
     for (const op of ["and", "or"] as const) {
@@ -133,16 +171,34 @@ export function buildableLaws(
       for (let lc = 1; lc < rest; lc++) {
         for (const l of bools[lc] ?? []) {
           for (const r of bools[rest - lc] ?? []) {
-            if (pretty(l.e) >= pretty(r.e)) continue;
+            const mask = op === "and" ? l.mask & r.mask : l.mask | r.mask;
+            if (pruned && mask !== target) continue;
+            if (l.key >= r.key) continue;
             const used = merge(level, op, l.used, r.used);
             if (!used) continue;
-            bucket.push({ e: { k: op, l: l.e, r: r.e }, cost, used, live: true });
+            const e: BoolExpr = { k: op, l: l.e, r: r.e };
+            bucket.push({ e, cost, used, live: true, key: pretty(e), mask });
           }
         }
       }
     }
   }
-  return bools.flat().map((t) => t.e);
+  return bools.flat().flatMap((t) => (t.mask === target ? [t.e] : []));
+}
+
+/** States the machine reaches from power-on (breadth first, at most `max`). */
+function reachable(level: Level, max: number): State[] {
+  const seen = new Map<string, State>();
+  const queue = [initialState(level)];
+  while (queue.length > 0 && seen.size < max) {
+    const s = queue.shift();
+    if (!s) break;
+    const key = JSON.stringify(s);
+    if (seen.has(key)) continue;
+    seen.set(key, s);
+    for (const ctl of enabled(level, s)) queue.push(applyUpdate(level, ctl, s));
+  }
+  return [...seen.values()];
 }
 
 /** States in a box around zero, inside the level's domains. */
@@ -174,7 +230,7 @@ function cheapRefute(level: Level, law: BoolExpr, box: readonly State[]): boolea
 }
 
 export interface SearchResult {
-  /** Laws enumerated. */
+  /** Laws left after sample pruning (true on reached states, false on sampled meltdowns). */
   searched: number;
   /** Laws that hold, cheapest first. */
   holding: { law: BoolExpr; cost: number }[];
@@ -186,8 +242,13 @@ export async function searchHolding(
   maxCost: number,
   consts: readonly number[],
 ): Promise<SearchResult> {
-  const laws = buildableLaws(level, maxCost, consts);
   const box = grid(level, level.vars.length > 1 ? 14 : 30);
+  const melting = box.filter((s) => evalBool(level.meltdown, s)).slice(0, 48);
+  const samples = [
+    ...reachable(level, 48).map((state) => ({ state, want: true })),
+    ...melting.map((state) => ({ state, want: false })),
+  ];
+  const laws = buildableLaws(level, maxCost, consts, samples);
   const holding: SearchResult["holding"] = [];
   for (const law of laws) {
     if (cheapRefute(level, law, box)) continue;

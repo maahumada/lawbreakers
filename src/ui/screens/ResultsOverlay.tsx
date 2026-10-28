@@ -23,15 +23,15 @@ interface Props {
   level: Level;
   /** The mission after this one, if any. */
   next: Level | undefined;
-  /** Every mission of the campaign is secured (this win included). */
-  campaignDone: boolean;
+  /** Closing line under the facts (chapter or campaign complete, …), if any. */
+  endLine: string | null;
 }
 
 /**
  * THE LAW HOLDS: score breakdown, the Law, retry / next mission. A training win records no score,
  * so its variant drops the tubes, the breakdown and the breach, and says why.
  */
-export function ResultsOverlay({ level, next, campaignDone }: Props) {
+export function ResultsOverlay({ level, next, endLine }: Props) {
   const training = useMission((m) => m.training);
   const result = useEngage((s) => s.result);
   const law = useEngage((s) => s.law);
@@ -156,11 +156,9 @@ export function ResultsOverlay({ level, next, campaignDone }: Props) {
           )}
         </dl>
 
-        {!next && (
+        {endLine && (
           <p className="results__end" data-testid="results-end">
-            {campaignDone
-              ? "Campaign complete. Every facility holds. ARGUS has nothing left to break."
-              : "Last mission cleared. Facilities still unsecured wait on mission select."}
+            {endLine}
           </p>
         )}
 

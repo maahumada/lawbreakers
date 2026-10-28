@@ -34,7 +34,8 @@ try {
     const secs = ((Date.now() - t0) / 1000).toFixed(1);
     console.log(
       `\n${level.id}  reference ${pretty(ref)} = ${refCost}, budget ${level.hand.budget}; ` +
-        `${searched} Laws ≤ ${refCost + slack} searched in ${secs} s, ${holding.length} hold`,
+        `${searched} candidate Laws ≤ ${refCost + slack} (survivors of sample pruning) checked in ${secs} s, ` +
+        `${holding.length} hold`,
     );
     const cheapest = holding[0]?.cost;
     console.log(`  cheapest holding cost: ${cheapest ?? "none"}`);

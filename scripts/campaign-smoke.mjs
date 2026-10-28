@@ -32,7 +32,8 @@ const search = (page) => page.evaluate(() => window.location.search);
 const status = async (page, n) => (await page.getByTestId(`status-${n}`).textContent()).trim();
 const statuses = async (page) => {
   const out = [];
-  for (const n of ["01", "02", "03", "04", "05", "06"]) out.push(await status(page, n));
+  for (const n of ["01", "02", "03", "04", "05", "06", "07", "08", "09"])
+    out.push(await status(page, n));
   return out.join(",");
 };
 const breach = async (page) =>
@@ -69,7 +70,7 @@ try {
   check((await search(page)) === "?missions", "START → intro → skip → ?missions");
   const fresh = await statuses(page);
   check(
-    fresh === "Ready,Locked,Locked,Locked,Locked,Locked",
+    fresh === "Ready,Locked,Locked,Locked,Locked,Locked,Locked,Locked,Locked",
     `fresh: only 01 available (${fresh})`,
   );
   check((await page.getByTestId("open-02").count()) === 0, "fresh: locked 02 is not a link");
@@ -173,11 +174,66 @@ try {
   await page.getByTestId("reset-progress").click();
   await page.getByTestId("reset-confirm").click();
   const reset = await statuses(page);
-  check(reset === "Ready,Locked,Locked,Locked,Locked,Locked", `reset progress (${reset})`);
+  check(
+    reset === "Ready,Locked,Locked,Locked,Locked,Locked,Locked,Locked,Locked",
+    `reset progress (${reset})`,
+  );
   check(
     (await page.evaluate(() => localStorage.getItem("lawbreakers:best:01-last-reactor"))) === null,
     "reset clears best scores",
   );
+
+  // --- End of the main campaign: FINAL BREACH opens the bonus chapter ------------------------
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "lawbreakers:progress",
+      JSON.stringify({
+        secured: [
+          "01-last-reactor",
+          "02-coolant-valve",
+          "03-mirror-pistons",
+          "04-parity-lock",
+          "05-false-defense",
+        ],
+      }),
+    ),
+  );
+  await page.goto(`${url}?missions`);
+  await page.getByTestId("mission-select").waitFor();
+  check(
+    ((await page.getByTestId("chapter-07").textContent()) ?? "").includes("ARGUS Strikes Back"),
+    "mission select: bonus chapter heading before 07",
+  );
+  check((await status(page, "07")) === "Locked", "07 locked until 06 is secured");
+  await page.getByTestId("open-06").click();
+  await page.getByTestId("rack").waitFor();
+  await put(page, "card-and", "root");
+  await put(page, "card-eq", "0");
+  await put(page, "card-add", "0-0");
+  await put(page, "sensor-A", "0-0-0");
+  await put(page, "sensor-B", "0-0-1");
+  await put(page, "const", "0-1", 6);
+  await put(page, "card-eq", "1");
+  await put(page, "card-mod2", "1-0");
+  await put(page, "sensor-A", "1-0-0");
+  await put(page, "const", "1-1", 0);
+  await page.getByTestId("engage").click();
+  await page.getByTestId("results").waitFor({ timeout: VERDICT_TIMEOUT });
+  const end06 = (await page.getByTestId("results-end").textContent()) ?? "";
+  check(end06.includes("Main campaign complete"), `06 results: chapter end line (${end06})`);
+  check(
+    (await page.getByTestId("next-mission").getAttribute("href")) === "?mission=07",
+    "06 results: Next mission → 07",
+  );
+  await page.screenshot({ path: `${dir}/stretch-06-results.png` });
+  await page.getByTestId("next-mission").click();
+  await page.getByTestId("rack").waitFor();
+  check((await page.getByTestId("off-campaign").count()) === 0, "07 unlocked: on campaign");
+  await page.goto(`${url}?missions`);
+  await page.getByTestId("mission-select").waitFor();
+  const bonus = await statuses(page);
+  check(bonus.endsWith("Secured,Ready,Locked,Locked"), `after 06: ${bonus}`);
+  await page.screenshot({ path: `${dir}/stretch-missions.png`, fullPage: true });
 
   check(errors.length === 0, `no page errors ${errors.join("; ")}`);
   await context.close();

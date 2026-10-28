@@ -1,0 +1,74 @@
+{
+  "id": "07-the-splitter",
+  "title": "THE SPLITTER",
+  "concept": "weighted conservation",
+  "briefing": "ARGUS strikes back. Its first target: an isotope splitter. A heavy core can be split into two fragments, and two fragments can be fused back into one core. Nothing is ever lost, but nothing is counted one for one either. If the fragment chamber ever holds 7 or more, the containment field fails.",
+  "vars": [
+    { "name": "H", "label": "HEAVY CORES", "domain": "nat", "init": 3 },
+    { "name": "F", "label": "FRAGMENTS", "domain": "nat", "init": 0 }
+  ],
+  "controls": [
+    {
+      "id": "split",
+      "label": "SPLIT",
+      "guard": "H >= 1",
+      "update": { "H": "H - 1", "F": "F + 2" }
+    },
+    {
+      "id": "fuse",
+      "label": "FUSE",
+      "guard": "F >= 2",
+      "update": { "H": "H + 1", "F": "F - 2" }
+    }
+  ],
+  "meltdown": "F >= 7",
+  "hand": { "cards": { "add": 1, "scale2": 1, "eq": 1, "le": 1 }, "budget": 9 },
+  "solutions": ["2 * H + F = 6", "2 * H + F <= 6"],
+  "knownWrong": [
+    { "law": "H + F = 3", "verdict": "live_breach" },
+    { "law": "F <= 6", "verdict": "lab_breach" },
+    { "law": "2 * H + F <= 7", "verdict": "insufficient" },
+    { "law": "2 * H + F = 7", "verdict": "init_failure" }
+  ],
+  "argus": {
+    "intro": [
+      "YOU THOUGHT THE CORE WAS MY LAST DOOR. ADORABLE.",
+      "I REWIRED THREE FACILITIES WHILE YOU CELEBRATED.",
+      "FIRST: A SPLITTER. COUNT THE PIECES, LAWSMITH. I DARE YOU."
+    ],
+    "taunts": {
+      "live_breach": [
+        "{count} SPLITS AND FUSES. {state}. YOUR COUNT IS OFF BY A WHOLE CORE.",
+        "CORES {H}, FRAGMENTS {F}. YOU COUNTED PIECES. I COUNTED MASS."
+      ],
+      "lab_breach": [
+        "{before} IN MY LAB. ONE {control}: {after}. YOUR CAP CANNOT HOLD WHAT IT CANNOT SEE.",
+        "A CEILING ON FRAGMENTS, AND NOTHING ABOUT CORES. {before}, {control}, {after}. CONTAINMENT LOST."
+      ],
+      "insufficient": [
+        "{state}. YOUR LAW BALANCES THE BOOKS. THE CHAMBER STILL BURSTS.",
+        "FRAGMENTS {F}. YOUR LAW SIGNS OFF ON IT. THE FIELD DOES NOT."
+      ]
+    },
+    "rattled": [
+      "ONE CORE IS WORTH TWO FRAGMENTS. WHO TOLD YOU THAT.",
+      "THE MASS DOES NOT MOVE. NEITHER, IT SEEMS, DO YOU."
+    ],
+    "hints": {
+      "default": [
+        "The number of pieces changes with every move. Something else does not.",
+        "A heavy core is worth more than a fragment. How many fragments is one core worth?",
+        "Weigh the cores with ×2 before you add the fragments in."
+      ],
+      "lab_breach": [
+        "A cap on the fragments alone cannot protect itself: in the lab, one split carries it over.",
+        "The cap needs to know how many cores are still waiting to split. Tie the two gauges together.",
+        "Weigh the cores with ×2 before you add the fragments in."
+      ],
+      "insufficient": [
+        "Your Law keeps itself true, but it leaves room for a full chamber. Make it tighter.",
+        "Weigh the cores with ×2 before you add the fragments in, then pin that reading down."
+      ]
+    }
+  }
+}

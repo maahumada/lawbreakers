@@ -300,6 +300,46 @@
   box-shadow: 0 0 10px color-mix(in srgb, var(--human-primary) 55%, transparent);
 }
 
+/* A chapter heading sits in the padding above its first station's plate; the stub and the end of
+   the lit bus move down with the plate so the wire still meets it in the middle. */
+.station[data-chapter] {
+  --head: 3.25rem;
+  padding-top: calc(var(--space-2) + var(--head));
+}
+
+.station[data-chapter]::after {
+  top: calc(50% + var(--head) / 2);
+}
+
+.station[data-chapter][data-feed]:last-child::before,
+.station[data-chapter][data-feed]:has(+ .station:not([data-feed]))::before {
+  bottom: calc(50% - var(--head) / 2);
+}
+
+.station__chapter {
+  position: absolute;
+  top: var(--space-4);
+  left: calc(var(--bus-x) * 2);
+  right: 0;
+  margin: 0;
+  padding-bottom: var(--space-1);
+  border-bottom: 1px dashed var(--argus-primary);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-md);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--argus-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.station__chapter-tag {
+  font-weight: 300;
+  color: var(--human-muted);
+}
+
 .station__plate {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;

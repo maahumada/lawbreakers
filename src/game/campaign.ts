@@ -11,6 +11,43 @@ export const TRAINING_KEY = "lawbreakers:training";
 
 export type MissionStatus = "locked" | "available" | "secured";
 
+export interface Chapter {
+  /** Number of the chapter's first mission ("01"); it runs until the next chapter starts. */
+  first: string;
+  title: string;
+  /** Results line when the chapter's last mission is won and all of the chapter is secured. */
+  doneLine: string;
+}
+
+/**
+ * The main campaign ends at FINAL BREACH (06); ARGUS STRIKES BACK (07–09) is a bonus chapter.
+ * Unlocking stays one linear chain: 07 opens when 06 is secured.
+ */
+export const CHAPTERS: readonly Chapter[] = [
+  {
+    first: "01",
+    title: "The Lawbreakers Protocol",
+    doneLine:
+      "Main campaign complete. The Core holds. ARGUS is not finished: bonus chapter ARGUS Strikes Back is open.",
+  },
+  {
+    first: "07",
+    title: "ARGUS Strikes Back",
+    doneLine: "Campaign complete. Every facility holds. ARGUS has nothing left to break.",
+  },
+];
+
+/** Index in `CHAPTERS` of the chapter a mission (by id or number) belongs to. */
+export function chapterIndex(idOrNumber: string): number {
+  const n = idOrNumber.slice(0, 2);
+  return CHAPTERS.reduce((found, ch, i) => (n >= ch.first ? i : found), 0);
+}
+
+/** The chapter that opens with this mission, if any. */
+export function chapterStartingAt(idOrNumber: string): Chapter | undefined {
+  return CHAPTERS.find((ch) => ch.first === idOrNumber.slice(0, 2));
+}
+
 /**
  * Mission 01 is always available; mission N+1 unlocks when mission N is secured. A mission that is
  * secured stays secured (e.g. won off-campaign through a deep link) whatever comes before it.

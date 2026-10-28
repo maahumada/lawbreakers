@@ -4,7 +4,8 @@
 
 import { afterAll, describe, expect, it } from "vitest";
 import { pretty } from "../src/engine/expr.ts";
-import { lawCost, loadBundledLevels } from "../src/engine/level.ts";
+import { evalBool } from "../src/engine/expr.ts";
+import { initialState, lawCost, loadBundledLevels } from "../src/engine/level.ts";
 import { shutdownZ3 } from "../src/engine/smt.ts";
 import { buildableLaws, searchHolding } from "./fixtures/lawSearch.ts";
 
@@ -35,5 +36,22 @@ describe("cost balance", () => {
     expect(laws).toContain("A >= 0");
     expect(laws.some((l) => (l.match(/\+/g) ?? []).length > 1)).toBe(false);
     expect(laws.every((l) => l.includes("A") || l.includes("B"))).toBe(true);
+  });
+
+  it("sample pruning drops exactly the Laws that disagree with a sample (Mission 06)", () => {
+    const m06 = loadBundledLevels()[5];
+    if (!m06) throw new Error("Mission 06 missing");
+    const samples = [
+      { state: initialState(m06), want: true },
+      { state: { A: 4, B: 2 }, want: true },
+      { state: { A: 3, B: 3 }, want: false },
+      { state: { A: 0, B: 0 }, want: false },
+    ];
+    const agrees = (law: Parameters<typeof evalBool>[0]) =>
+      samples.every((x) => evalBool(law, x.state) === x.want);
+    const all = buildableLaws(m06, 17, [0, 6]);
+    const pruned = buildableLaws(m06, 17, [0, 6], samples);
+    expect(pruned.map(pretty).sort()).toEqual(all.filter(agrees).map(pretty).sort());
+    expect(pruned.map(pretty)).toContain("A + B = 6 && A mod 2 = 0");
   });
 });

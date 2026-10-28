@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Level } from "../../engine/level.ts";
 import { loadBest } from "../../game/bestScores.ts";
 import type { MissionStatus } from "../../game/campaign.ts";
-import { missionStatus, useCampaign } from "../../game/campaign.ts";
+import { chapterStartingAt, missionStatus, useCampaign } from "../../game/campaign.ts";
 import { SoundToggle } from "../fx/SoundToggle.tsx";
 import { HelpLayer } from "../help/HelpLayer.tsx";
 import { HelpButton } from "../help/HowToPlay.tsx";
@@ -57,14 +57,22 @@ export function MissionSelectScreen({ levels }: { levels: readonly Level[] }) {
               const status = statuses[i] ?? "locked";
               const number = level.id.slice(0, 2);
               const prev = ids[i - 1];
+              // Later chapters get a heading inside their first station, so the bus stays one list.
+              const chapter = i > 0 ? chapterStartingAt(number) : undefined;
               return (
                 <li
                   key={level.id}
                   className="station"
                   data-status={status}
                   data-feed={i === 0 || (prev !== undefined && securedSet.has(prev)) || undefined}
+                  data-chapter={chapter ? "" : undefined}
                   data-testid={`station-${number}`}
                 >
+                  {chapter && (
+                    <h2 className="station__chapter" data-testid={`chapter-${number}`}>
+                      <span className="station__chapter-tag">Bonus chapter</span> {chapter.title}
+                    </h2>
+                  )}
                   <MissionEntry level={level} number={number} status={status} prev={prev} />
                 </li>
               );

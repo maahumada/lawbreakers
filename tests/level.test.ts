@@ -26,7 +26,7 @@ const catchLevelError = (raw: unknown): LevelError => {
 describe("bundled levels", () => {
   const levels = loadBundledLevels();
 
-  it("loads all six missions in order", () => {
+  it("loads all nine missions in order", () => {
     expect(levels.map((l) => l.id)).toEqual([
       "01-last-reactor",
       "02-coolant-valve",
@@ -34,6 +34,9 @@ describe("bundled levels", () => {
       "04-parity-lock",
       "05-false-defense",
       "06-final-breach",
+      "07-the-splitter",
+      "08-twin-jacks",
+      "09-the-airlock",
     ]);
   });
 

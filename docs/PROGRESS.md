@@ -7,6 +7,8 @@ along the way, and a log of each work session.
 ## Current state
 
 - **Milestone:** M4 — Polish, playtest, submit
+- **Content:** nine missions; 01–06 main campaign, 07–09 bonus chapter *ARGUS Strikes Back*
+  (Stretch "More missions", done)
 - **Next task:** M4-T7 Submit (draft in `docs/SUBMISSION.md`). M4-T4 was an agent playtest; a
   human playtest with classmates is still pending (`docs/REVIEW.md`)
 - **Blockers:** none
@@ -19,6 +21,9 @@ Decisions that deviate from or refine the docs. Newest first.
 
 | Date | Decision | Why |
 |---|---|---|
+| 2026-10-28 | Missions 07–09 are a bonus chapter (*ARGUS Strikes Back*) after FINAL BREACH, which stays the main finale. Chapters live in `CHAPTERS` (`game/campaign.ts`); unlocking stays one linear chain (07 needs 06). Mission select shows the chapter heading inside 07's station (one bus); 06's results say "Main campaign complete…" with Next mission → 07; "Campaign complete" moves to 09 | keeps the original arc intact and the select screen one wire; no schema change in the level JSON |
+| 2026-10-28 | The rack readout brackets an AND under an OR (`rackText(…, { bracketMixed: true })`); `rackText` without options still equals `pretty` | Mission 09 is the first OR answer; the live formula should read like the typeset ones |
+| 2026-10-28 | Cost search prunes soundly before verifying: Laws false on a reached state (BFS, ≤ 48) or true on a sampled meltdown state (≤ 48 from the grid) are dropped, and terms too expensive to nest are only built if they agree with the samples | the 08/09 hands (17/25 budget, AND/OR) made the old enumeration take minutes (and 4 GB); now ~8 s and ~5 s; same holding lists for 01–09 |
 | 2026-10-28 | Typeset expressions (`formatExpr`) always bracket an AND inside an OR and vice versa; `pretty` (engine) unchanged | players should not need precedence rules to read `(A = 0 AND B = 0) OR A = 3` |
 | 2026-10-28 | Tutorial steps may list `avoid` selectors; the card takes the first placement (below, above, right, left, right screen edge) that covers neither the target nor those | cards no longer hide the gauges/hand their text points at |
 | 2026-10-28 | Time bonus clock restarts when the tutorial closes, if nothing has been engaged yet | reading the tutorial is not solving time |
@@ -89,6 +94,32 @@ Decisions that deviate from or refine the docs. Newest first.
 
 Newest first. One entry per completed task: what was done, files touched, anything surprising,
 follow-ups.
+
+### 2026-10-28 — Stretch: More missions (07–09, bonus chapter ARGUS Strikes Back)
+- New missions: `src/levels/07-the-splitter.json` (weighted conservation, `2·H + F = 6`, budget 9),
+  `08-twin-jacks.json` (bounded difference with a swap control, `L − R ≤ 2 ∧ R − L ≤ 2`, budget
+  17), `09-the-airlock.json` (disjunctive Law over a phase variable, budget 25). 13 known-wrong
+  Laws covering every verdict kind; ARGUS intro/taunts/rattled/hint ladders. Registered in
+  `engine/level.ts`; `docs/LEVELS.md` sections with verdict tables. No new card ids needed.
+- Campaign: `CHAPTERS`/`chapterIndex`/`chapterStartingAt` in `game/campaign.ts`; chapter heading on
+  mission select (`MissionSelectScreen.tsx`, `campaign.css`); `MissionScreen` computes the results
+  end line (chapter or campaign complete), `ResultsOverlay` takes `endLine`; ThreatBoard has nine
+  blip positions. Rack readout brackets AND under OR (`game/rack.ts`, `rack/Readout.tsx`).
+- Cost search: `tests/fixtures/lawSearch.ts` sample pruning (see decisions); new test that pruning
+  drops exactly the Laws disagreeing with the samples. `scripts/cost-search.mjs` wording.
+- Tests: level/campaign/rack/costBalance updated (318 tests). Smokes: `missions-smoke` plays 07–09
+  (two wrong Laws + reference each, desktop + phone) and writes `docs/screenshots/stretch-0N*.png`
+  (+ `-reference` with the full Law built); `campaign-smoke` wins 06 from a seeded profile, checks
+  the chapter line, Next mission → 07, chapter heading and unlocks (`stretch-06-results.png`,
+  `stretch-missions.png`).
+- Checks: conformance (all solutions hold, all known-wrong verdicts match), cost search (no
+  cheaper holding Law in 07–09; 07 2, 08 16, 09 4 holding Laws, all at the reference cost),
+  `npm run dafny-check` 11 verified / 33 rejected / 0 wrong, all smokes against `vite preview`
+  (a11y flaked once on the known results-button contrast scan, then passed twice).
+- **Surprises:** the first cost-balance run timed out (08: 35 s, 09: ~4 min and OOM-prone), hence
+  the pruning. The rack readout did not bracket mixed AND/OR (only the typeset texts did).
+- **Follow-ups:** human playtest of 07–09 (difficulty, briefing hints such as "4 units of air"),
+  README/media screenshots still show six facilities; see `docs/REVIEW.md`.
 
 ### 2026-10-28 — M4-T4 Playtest (agent) + fixes
 - Played the production build end to end in Playwright Chromium as a newcomer and as a

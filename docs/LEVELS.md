@@ -13,7 +13,13 @@ Notation: `x ∈ ℕ` means the variable has domain `nat` (the solver assumes `x
 `NOT` 2; `MOD k`, `AND`, `OR` 3. Budget = the cost of the reference Law. A bounded search over every
 Law each hand can build (dial values −2…12; `tests/costBalance.test.ts`, `npm run cost-search`)
 finds no holding Law cheaper than the reference in any mission; the cheapest holding Laws are listed
-per mission below.
+per mission below. (The search prunes, soundly, every Law that is false on a reachable state or
+true on a sampled meltdown state before it calls the verifier; that keeps the big AND/OR hands of
+08–09 within seconds.)
+
+**Chapters:** 01–06 are the main campaign (*The Lawbreakers Protocol*), ending at FINAL BREACH;
+07–09 are the bonus chapter *ARGUS Strikes Back* (`CHAPTERS` in `src/game/campaign.ts`). Unlocking
+stays one chain: 07 opens when 06 is secured.
 
 Every verdict below is confirmed by the real engine (`tests/conformance.test.ts`, M1-T7): each
 table row is a `solutions` or `knownWrong` entry in the mission's JSON. The states in the *Why*
@@ -165,6 +171,105 @@ the defense that looks right because it is literally the safety condition.
 | `A + B = 6` | INSUFFICIENT | allows `(3, 3)` |
 | `A mod 2 = 0` | INSUFFICIENT | allows `(0, 0)` |
 | `A + B = 6 ∨ A mod 2 = 0` | INSUFFICIENT | weaker than either |
+
+---
+
+# Bonus chapter: ARGUS STRIKES BACK
+
+## 07 — THE SPLITTER
+
+*Concept: weighted conservation. The conserved quantity is not a plain count.*
+
+> ARGUS strikes back. Its first target: an isotope splitter. A heavy core can be split into two
+> fragments, and two fragments can be fused back into one core. Nothing is ever lost, but nothing
+> is counted one for one either. If the fragment chamber ever holds 7 or more, the containment
+> field fails.
+
+- State: `H ∈ ℕ` (heavy cores), `F ∈ ℕ` (fragments). Init: `H = 3, F = 0`.
+- Controls:
+  - `SPLIT`: `H ≥ 1 → H := H − 1, F := F + 2`
+  - `FUSE`: `F ≥ 2 → H := H + 1, F := F − 2`
+- Meltdown: `F ≥ 7`.
+- Cards: `ADD`, `×2`, `=`, `≤`. Budget: 9. Cheapest holding Laws (cost 9): `2·H + F = 6`,
+  `2·H + F ≤ 6`, the only two.
+
+| Law | Verdict | Why |
+|---|---|---|
+| `2·H + F = 6` | **HOLDS** | reference (`F ≤ 6` because `H ≥ 0`) |
+| `2·H + F ≤ 6` | **HOLDS** | also valid, same cost |
+| `H + F = 3` | LIVE BREACH | one `SPLIT` gives `(2, 2)`: the Mission 01 reflex counts pieces, not mass |
+| `F ≤ 6` | LAB BREACH | from `(1, 5)`, `SPLIT` gives `(0, 7)`. The Safe property is the trap again |
+| `2·H + F ≤ 7` | INSUFFICIENT | inductive, but allows `(0, 7)` |
+| `2·H + F = 7` | INIT FAILURE | `2·3 + 0 = 6` |
+
+Teaching beat: telemetry shows `H + F` wandering (3, 4, 5, 6), so the plain sum from Mission 01 is
+visibly wrong; the player has to find the weights. The fix for the lab trap is a relation, not a
+tighter bound.
+
+---
+
+## 08 — TWIN JACKS
+
+*Concept: bounded difference. Two gauges stay within a band of each other; the band needs both
+sides because a control swaps them.*
+
+> A lift bridge rides on two hydraulic jacks. Interlocks stop a jack from climbing while it is
+> already ahead, but a cross-feed valve can swap the two pressures at any moment. The river side is
+> unbraced: if the left jack ever stands 3 or more notches above the right one, the deck tips into
+> the water.
+
+- State: `L ∈ ℕ`, `R ∈ ℕ`. Init: `L = 0, R = 0`.
+- Controls:
+  - `RAISE L`: `L − R ≤ 1 → L := L + 1`
+  - `RAISE R`: `R − L ≤ 1 → R := R + 1`
+  - `CROSS-FEED`: `true → L := R, R := L`
+- Meltdown: `L − R ≥ 3`.
+- Cards: `SUB ×2`, `≤ ×2`, `AND`. Budget: 17. Cheapest holding Laws (cost 17): 16 spellings of
+  the same band (`L − R ≤ 2 ∧ R − L ≤ 2`, `−2 ≤ L − R ∧ L − 2 ≤ R`, …), nothing else.
+
+| Law | Verdict | Why |
+|---|---|---|
+| `L − R ≤ 2 ∧ R − L ≤ 2` | **HOLDS** | reference |
+| `L ≤ R` | LIVE BREACH | one `RAISE L` gives `(1, 0)` |
+| `L − R ≤ 2` | LAB BREACH | from `(0, 3)`, `CROSS-FEED` gives `(3, 0)`. This is Safe itself: the guarded side is safe only if the other side is too |
+| `R − L ≤ 2` | LAB BREACH | the mirror image: from `(3, 0)`, `CROSS-FEED` gives `(0, 3)` |
+| `L − R ≤ 3 ∧ R − L ≤ 3` | INSUFFICIENT | inductive (the swap and the interlocks keep it), but allows `(3, 0)` |
+
+Teaching beat: one meltdown, one side, yet the Law needs both sides. Unlike Mission 05 the helper
+fact is not about another gauge but about the same gap read the other way; `SUB` is new.
+
+---
+
+## 09 — THE AIRLOCK
+
+*Concept: disjunctive Laws. The machine has two phases with different facts in each; the first
+mission where OR is the answer.*
+
+> ARGUS's last stand is an orbital airlock. In phase 0 the inner door is open and the chamber must
+> be fully pressurised (4 units of air); in phase 1 the outer door is open to space and the chamber
+> must be empty. Venting dumps the air and swings the doors; repressurising does the reverse. Any
+> other combination of door and air is a meltdown.
+
+- State: `p ∈ ℕ` (door phase), `a ∈ ℕ` (chamber air). Init: `p = 0, a = 4`.
+- Controls:
+  - `VENT`: `p = 0 ∧ a ≥ 4 → p := 1, a := a − 4`
+  - `REPRESSURIZE`: `p = 1 → p := 0, a := a + 4`
+- Meltdown: `(p = 0 ∧ a < 4) ∨ (p = 1 ∧ a > 0)`.
+- Cards: `= ×4`, `≥`, `AND ×2`, `OR`. Budget: 25. Cheapest holding Laws (cost 25): the reference
+  and three spellings of it (`0 ≥ a` for `a = 0`, `p ≥ 1` for `p = 1`).
+
+| Law | Verdict | Why |
+|---|---|---|
+| `(p = 0 ∧ a = 4) ∨ (p = 1 ∧ a = 0)` | **HOLDS** | reference |
+| `p = 0 ∧ a = 4` | LIVE BREACH | one `VENT` gives `(1, 0)`: the AND reflex describes one phase only |
+| `(p = 0 ∧ a ≥ 4) ∨ (p = 1 ∧ a = 0)` | LAB BREACH | from `(0, 5)`, `VENT` gives `(1, 1)`. This is (nearly) Safe itself; a bound is not enough, the air must be pinned |
+| `a = 4 ∨ a = 0` | LAB BREACH | from `(1, 4)`, `REPRESSURIZE` gives `(0, 8)`: air without the phase |
+| `p = 0 ∨ p = 1` | INSUFFICIENT | inductive, but allows `(1, 4)` |
+| `(p = 0 ∧ a = 0) ∨ (p = 1 ∧ a = 4)` | INIT FAILURE | phases swapped; power-on is `(0, 4)` |
+
+Teaching beat: no arithmetic cards at all, so no linear relation can describe the machine; the
+player has to say "this, or that". The reference is the most expensive Law in the game (25), which
+also shows the rack at its largest.
 
 ---
 

@@ -97,7 +97,7 @@ Everything works with the keyboard (Tab, Enter, Esc, arrow keys on the dial, Del
     <td><img src="docs/media/show-the-proof.png" alt="Show the Proof: the Dafny program generated from the facility, with the player's Law as the loop invariant"><br><sub>Show the Proof: the Dafny program you just wrote.</sub></td>
   </tr>
   <tr>
-    <td><img src="docs/media/mission-select.png" alt="Mission select with six facilities and ARGUS's threat board"><br><sub>Six facilities, unlocked one at a time.</sub></td>
+    <td><img src="docs/media/mission-select.png" alt="Mission select with the facilities and ARGUS's threat board"><br><sub>The facilities, unlocked one at a time.</sub></td>
     <td><img src="docs/media/law-holds.png" alt="Results: THE LAW HOLDS with nixie-tube score and breakdown"><br><sub>THE LAW HOLDS, and the score breakdown.</sub></td>
   </tr>
 </table>
@@ -175,8 +175,13 @@ Everything works with the keyboard (Tab, Enter, Esc, arrow keys on the dial, Del
 | 04 | Parity Lock | modular invariants |
 | 05 | The False Defense | strengthening: the safety rule alone is not enough |
 | 06 | Final Breach | compound Laws |
+| | ***Bonus chapter: ARGUS Strikes Back*** | |
+| 07 | The Splitter | weighted conservation: not every unit counts the same |
+| 08 | Twin Jacks | bounded difference: two gauges kept within a band |
+| 09 | The Airlock | disjunctive Laws: a machine with two phases, and the first OR answer |
 
-Mission 01 is always open; each win unlocks the next. Any mission can be opened directly with
+Mission 01 is always open; each win unlocks the next. The main campaign ends at Mission 06; winning
+it opens the bonus chapter. Any mission can be opened directly with
 `?mission=NN` (it is then flagged OFF-CAMPAIGN).
 
 ---
@@ -206,14 +211,14 @@ verdict.
 
 **How we know the verdicts are right**
 
-- **271 automated tests** (`npm test`, Vitest, Z3 running in Node), including a **conformance
-  suite**: every mission ships with its reference Laws and **20 known-wrong Laws with the exact
+- **318 automated tests** (`npm test`, Vitest, Z3 running in Node), including a **conformance
+  suite**: every mission ships with its reference Laws and **33 known-wrong Laws with the exact
   verdict each must get**, all checked against the real pipeline.
 - **Bounded cost search** (`tests/costBalance.test.ts`, `npm run cost-search`): enumerates every
   Law each mission's hand can build up to the budget and verifies the survivors, so no mission has
   a cheaper solution than intended.
 - **Cross-checked with real Dafny** (`npm run dafny-check`): the exported program for every
-  reference Law verifies with Dafny 4.11, and all 20 known-wrong Laws fail, with the error matching
+  reference Law verifies with Dafny 4.11, and all 33 known-wrong Laws fail, with the error matching
   the game's verdict (entry → init failure, maintenance → breach, assertion → insufficient).
 - **Browser smoke tests** (Playwright): every verdict end to end with real Z3, the full campaign,
   the GitHub Pages service-worker boot, keyboard-only play, reduced motion, no horizontal scroll at
@@ -254,7 +259,7 @@ are listed in `package.json` and described in [ARCHITECTURE.md](docs/ARCHITECTUR
 ## Project docs
 
 - [Game design](docs/DESIGN.md): premise, core loop, verdicts, scoring, visual direction.
-- [Missions](docs/LEVELS.md): the six facilities and their expected verdicts. **Contains the
+- [Missions](docs/LEVELS.md): the nine facilities and their expected verdicts. **Contains the
   answers.**
 - [Architecture](docs/ARCHITECTURE.md): stack, verification pipeline, Z3 in the browser, deploy.
 - [Roadmap](docs/ROADMAP.md) and [progress log](docs/PROGRESS.md).

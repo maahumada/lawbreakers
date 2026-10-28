@@ -17,6 +17,24 @@ Things decided autonomously while the owner was away, or that need a human. Newe
 
 ## Decisions worth a second look
 
+- **Bonus chapter 07–09 (Stretch "More missions").** Content is mine; please play them once.
+  - *Arc:* FINAL BREACH stays the main finale; 07–09 are "ARGUS Strikes Back", unlocked by 06.
+    06's results now say "Main campaign complete… bonus chapter … is open" and offer Next mission
+    instead of the old "Campaign complete" line, which moved to 09.
+  - *08 TWIN JACKS uses a swap control* (`CROSS-FEED: L := R, R := L`, always enabled). It is what
+    makes the one-sided Safe `L − R ≤ 2` a lab breach; it is a slightly abstract machine part.
+  - *09 THE AIRLOCK has no arithmetic cards* (only `=`, `≥`, AND ×2, OR), which hints at the shape;
+    with arithmetic, `a + 4·p = 4`-style linear Laws would compete. Its briefing names the air
+    values per phase (4 / 0), so the puzzle is "how to say it" more than "what is true". Budget 25
+    is the largest Law in the game; on phones the rack scrolls sideways to reach OR and the SHIELD
+    (`docs/screenshots/stretch-09-mobile-reference.png`).
+  - *07 THE SPLITTER* accepts both `2·H + F = 6` and `2·H + F ≤ 6` (same cost).
+  - *Rack readout* now brackets an AND under an OR, e.g. `(p = 0 AND a = 4) OR (p = 1 AND a = 0)`.
+  - *Cost search pruning* (`tests/fixtures/lawSearch.ts`) is new test infrastructure; it reproduces
+    the old holding lists for 01–06 and has a test, but it is the reason the balance test is fast.
+  - README hero/media (mission select screenshot) still show six facilities; captions were made
+    count-neutral rather than re-shooting `docs/media/`.
+
 - **Agent playtest (M4-T4), design questions it raised** (details in `docs/PLAYTEST.md`; none of
   these were changed because they touch rules or mission content):
   - *Hint ladder can repeat itself.* For a lab/insufficient verdict without its own list the

@@ -8,7 +8,7 @@ export function Readout({ level }: { level: Level }) {
   const rack = useRack((s) => s.rack);
   const cost = useRack((s) => s.cost);
   const complete = useRack((s) => s.law !== null);
-  const text = typeset(rackText(rack));
+  const text = typeset(rackText(rack, { bracketMixed: true }));
   const over = cost > level.hand.budget;
 
   return (

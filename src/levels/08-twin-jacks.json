@@ -1,0 +1,70 @@
+{
+  "id": "08-twin-jacks",
+  "title": "TWIN JACKS",
+  "concept": "bounded difference",
+  "briefing": "A lift bridge rides on two hydraulic jacks. Interlocks stop a jack from climbing while it is already ahead, but a cross-feed valve can swap the two pressures at any moment. The river side is unbraced: if the left jack ever stands 3 or more notches above the right one, the deck tips into the water.",
+  "vars": [
+    { "name": "L", "label": "LEFT JACK", "domain": "nat", "init": 0 },
+    { "name": "R", "label": "RIGHT JACK", "domain": "nat", "init": 0 }
+  ],
+  "controls": [
+    { "id": "raise_l", "label": "RAISE L", "guard": "L - R <= 1", "update": { "L": "L + 1" } },
+    { "id": "raise_r", "label": "RAISE R", "guard": "R - L <= 1", "update": { "R": "R + 1" } },
+    {
+      "id": "cross",
+      "label": "CROSS-FEED",
+      "guard": "true",
+      "update": { "L": "R", "R": "L" }
+    }
+  ],
+  "meltdown": "L - R >= 3",
+  "hand": { "cards": { "sub": 2, "le": 2, "and": 1 }, "budget": 17 },
+  "solutions": ["L - R <= 2 && R - L <= 2"],
+  "knownWrong": [
+    { "law": "L <= R", "verdict": "live_breach" },
+    { "law": "L - R <= 2", "verdict": "lab_breach" },
+    { "law": "R - L <= 2", "verdict": "lab_breach" },
+    { "law": "L - R <= 3 && R - L <= 3", "verdict": "insufficient" }
+  ],
+  "argus": {
+    "intro": [
+      "A BRIDGE ON TWO LEGS. HOW HUMAN.",
+      "ONE SIDE IS BRACED. THE OTHER IS NOT. GUESS WHICH ONE I WANT.",
+      "AND THAT LITTLE VALVE IN THE MIDDLE? IT IS MY FAVOURITE PART."
+    ],
+    "taunts": {
+      "live_breach": [
+        "{count} MOVES. LEFT {L}, RIGHT {R}. THE JACKS NEVER AGREED WITH YOU.",
+        "{state}. YOUR LAW WANTED A FLAT DECK. BRIDGES TILT."
+      ],
+      "lab_breach": [
+        "{before} IN MY LAB. YOU GUARDED ONE SIDE. ONE {control}: {after}. THE OTHER SIDE IS NOW THIS SIDE.",
+        "YOUR LAW WATCHES THE RIVER. I STARTED ON THE CLIFF. {before}, {control}, {after}."
+      ],
+      "insufficient": [
+        "LEFT {L}, RIGHT {R}. YOUR LAW CALLS THAT LEVEL. THE RIVER CALLS IT DINNER.",
+        "{state}. A LOOSE LEASH IS STILL A LEASH. IT IS ALSO A MELTDOWN."
+      ]
+    },
+    "rattled": [
+      "A LEASH ON BOTH SIDES. THE VALVE SWAPS NOTHING THAT MATTERS.",
+      "THE DECK STAYS LEVEL. I HATE LEVEL."
+    ],
+    "hints": {
+      "default": [
+        "Watch the gap between the jacks, not their heights.",
+        "The cross-feed swaps the jacks. Whatever you allow on one side, it can hand to the other.",
+        "SUB measures the gap one way. You may need it both ways."
+      ],
+      "lab_breach": [
+        "ARGUS started with the right jack far ahead, then used the cross-feed. Your Law let it.",
+        "The cross-feed swaps the jacks. Whatever you allow on one side, it can hand to the other.",
+        "Bound the gap from both sides: SUB one way, SUB the other way, joined with AND."
+      ],
+      "insufficient": [
+        "Your Law survives the cross-feed, but its leash is too long. How far apart do the jacks really get?",
+        "Run the machine and note the largest gap you ever see, either way. That is your leash."
+      ]
+    }
+  }
+}

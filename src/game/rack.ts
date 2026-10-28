@@ -364,12 +364,19 @@ function precOf(n: RackNode | null): number {
 
 /**
  * Infix text of the rack in `pretty` syntax, with `?` for every empty socket. For a complete
- * rack it equals `pretty(rackToLaw(rack))`.
+ * rack it equals `pretty(rackToLaw(rack))`. With `bracketMixed`, an AND under an OR is bracketed
+ * too, as the typeset formulas elsewhere do (`formatExpr`): `(p = 0 && a = 4) || ?`.
  */
-export function rackText(rack: Rack): string {
+export function rackText(rack: Rack, opts: { bracketMixed?: boolean } = {}): string {
   const at = (n: RackNode | null, min: number): string => {
-    const text = rackText(n);
-    return precOf(n) >= min ? text : `(${text})`;
+    const text = rackText(n, opts);
+    const mixed =
+      opts.bracketMixed === true &&
+      rack?.mod.kind === "card" &&
+      rack.mod.card === "or" &&
+      n?.mod.kind === "card" &&
+      n.mod.card === "and";
+    return precOf(n) >= min && !mixed ? text : `(${text})`;
   };
   if (!rack) return "?";
   const m = rack.mod;

@@ -15,6 +15,9 @@ import level03 from "../levels/03-mirror-pistons.json";
 import level04 from "../levels/04-parity-lock.json";
 import level05 from "../levels/05-false-defense.json";
 import level06 from "../levels/06-final-breach.json";
+import level07 from "../levels/07-the-splitter.json";
+import level08 from "../levels/08-twin-jacks.json";
+import level09 from "../levels/09-the-airlock.json";
 
 // ---------------------------------------------------------------------------
 // Cards
@@ -343,7 +346,17 @@ export function loadLevel(raw: unknown): Level {
   };
 }
 
-const BUNDLED: readonly unknown[] = [level01, level02, level03, level04, level05, level06];
+const BUNDLED: readonly unknown[] = [
+  level01,
+  level02,
+  level03,
+  level04,
+  level05,
+  level06,
+  level07,
+  level08,
+  level09,
+];
 
 /** All shipped missions, in campaign order. Throws `LevelError` if any file is invalid. */
 export function loadBundledLevels(): Level[] {

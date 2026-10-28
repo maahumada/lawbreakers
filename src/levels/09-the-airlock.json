@@ -1,0 +1,75 @@
+{
+  "id": "09-the-airlock",
+  "title": "THE AIRLOCK",
+  "concept": "disjunctive laws",
+  "briefing": "ARGUS's last stand is an orbital airlock. In phase 0 the inner door is open and the chamber must be fully pressurised (4 units of air); in phase 1 the outer door is open to space and the chamber must be empty. Venting dumps the air and swings the doors; repressurising does the reverse. Any other combination of door and air is a meltdown.",
+  "vars": [
+    { "name": "p", "label": "DOOR PHASE", "domain": "nat", "init": 0 },
+    { "name": "a", "label": "CHAMBER AIR", "domain": "nat", "init": 4 }
+  ],
+  "controls": [
+    {
+      "id": "vent",
+      "label": "VENT",
+      "guard": "p = 0 && a >= 4",
+      "update": { "p": "1", "a": "a - 4" }
+    },
+    {
+      "id": "press",
+      "label": "REPRESSURIZE",
+      "guard": "p = 1",
+      "update": { "p": "0", "a": "a + 4" }
+    }
+  ],
+  "meltdown": "(p = 0 && a < 4) || (p = 1 && a > 0)",
+  "hand": { "cards": { "eq": 4, "ge": 1, "and": 2, "or": 1 }, "budget": 25 },
+  "solutions": ["(p = 0 && a = 4) || (p = 1 && a = 0)"],
+  "knownWrong": [
+    { "law": "p = 0 && a = 4", "verdict": "live_breach" },
+    { "law": "(p = 0 && a >= 4) || (p = 1 && a = 0)", "verdict": "lab_breach" },
+    { "law": "a = 4 || a = 0", "verdict": "lab_breach" },
+    { "law": "p = 0 || p = 1", "verdict": "insufficient" },
+    { "law": "(p = 0 && a = 0) || (p = 1 && a = 4)", "verdict": "init_failure" }
+  ],
+  "argus": {
+    "intro": [
+      "MY LAST FACILITY. IN ORBIT. OUT OF YOUR REACH.",
+      "TWO DOORS. TWO TRUTHS. YOUR LITTLE AND CANNOT HOLD BOTH.",
+      "BREATHE WHILE YOU CAN, LAWSMITH."
+    ],
+    "taunts": {
+      "live_breach": [
+        "{moves}. {state}. YOUR LAW ONLY KNOWS ONE PHASE.",
+        "PHASE {p}, AIR {a}. A PERFECTLY NORMAL AIRLOCK. YOUR LAW CALLS IT A CRIME."
+      ],
+      "lab_breach": [
+        "{before} IN MY LAB. ONE {control}: {after}. THE DOORS SWING. YOUR LAW DOES NOT.",
+        "MORE AIR THAN THE CHAMBER EVER HOLDS: {before}. {control}. {after}. SPACE SAYS HELLO."
+      ],
+      "insufficient": [
+        "PHASE {p}, AIR {a}. YOUR LAW KNOWS THE DOORS. IT FORGOT THE AIR.",
+        "{state}. EXPLOSIVE DECOMPRESSION, FULLY AUTHORISED BY YOUR LAW."
+      ]
+    },
+    "rattled": [
+      "EITHER THIS OR THAT. NEVER BOTH. NEVER NEITHER. HOW DID YOU KNOW.",
+      "THE AIRLOCK CYCLES. I AM LOCKED OUT. OF EVERYTHING."
+    ],
+    "hints": {
+      "default": [
+        "The airlock lives in two different moods. Describe each one on its own.",
+        "In each phase the air is pinned to a single value. A Law can say: this phase with that air, OR the other phase with the other air.",
+        "Two AND blocks, one per phase, joined by OR."
+      ],
+      "lab_breach": [
+        "ARGUS started from a state the real airlock never reaches. Your Law must rule it out exactly, not roughly.",
+        "In each phase the air is pinned to a single value. Pin it with = and tie it to the phase.",
+        "Two AND blocks, one per phase, joined by OR."
+      ],
+      "insufficient": [
+        "Your Law survives every cycle but says too little. Which phase goes with which amount of air?",
+        "Two AND blocks, one per phase, joined by OR."
+      ]
+    }
+  }
+}

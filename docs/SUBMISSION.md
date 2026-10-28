@@ -45,8 +45,9 @@ is a proof checked by the real Z3 solver, compiled to WebAssembly and running in
    Proof* turns the facility into a Dafny loop with your Law as its `invariant`: *"You just wrote
    this."*
 
-Six missions: conservation, bounds, linear relations, modular invariants, strengthening, and
-compound Laws. Works on phones and with the keyboard.
+Nine missions: conservation, bounds, linear relations, modular invariants, strengthening and
+compound Laws in the main campaign, then a bonus chapter (*ARGUS Strikes Back*) with weighted
+conservation, bounded differences and disjunctive Laws. Works on phones and with the keyboard.
 
 ## Key design ideas and considerations
 
@@ -84,8 +85,8 @@ rattled when it loses. Hints escalate from a nudge to something specific and nev
 The whole thing is played as a melodramatic command-center alarm for what is really a small
 arithmetic puzzle; that contrast is the tone.
 
-**Trustworthy.** 271 automated tests, including a conformance suite where every mission's
-reference Laws and 20 known-wrong Laws must get their exact verdict from the real pipeline; the
+**Trustworthy.** 318 automated tests, including a conformance suite where every mission's
+reference Laws and 33 known-wrong Laws must get their exact verdict from the real pipeline; the
 exported Dafny programs are cross-checked with real Dafny (reference Laws verify, wrong ones fail
 for the matching reason); browser smoke tests cover every verdict, the campaign, keyboard play,
 reduced motion and phone layouts.
@@ -106,7 +107,7 @@ keeps that "look at the data" step (the telemetry log) and changes the rest:
 - **Instant, real verification.** Each candidate is verified by Z3 in the browser, typically in well under a second once the solver has loaded,
   with no server.
 - **The reveal.** Each win ends with the Dafny program the player just verified.
-- **Campaign and score.** Six missions that each introduce one invariant idea, a breach meter,
+- **Campaign and score.** Nine missions (six plus a bonus chapter) that each introduce one invariant idea, a breach meter,
   cost-based scoring and best scores, plus a no-pressure training mode.
 
 ## Built with AI
