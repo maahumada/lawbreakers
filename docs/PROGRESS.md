@@ -6,10 +6,11 @@ along the way, and a log of each work session.
 
 ## Current state
 
-- **Milestone:** M2 — Vertical slice: Mission 01 playable
-- **Next task:** M2-T6 Deploy
+- **Milestone:** M3 — Content and depth
+- **Next task:** M3-T1 Campaign
 - **Blockers:** none
-- **Deployed URL:** not yet
+- **Deployed URL:** https://maahumada.github.io/lawbreakers/ (pending the first deploy: push `main`
+  with `.github/workflows/deploy.yml`, then check Mission 01 in a fresh Chrome and Firefox)
 
 ## Decisions log
 
@@ -17,6 +18,9 @@ Decisions that deviate from or refine the docs. Newest first.
 
 | Date | Decision | Why |
 |---|---|---|
+| 2026-10-28 | Vite `base` comes from `LAWBREAKERS_BASE` (default `/`); the Pages workflow sets `/lawbreakers/` (`npm run build:pages` locally) | dev/preview unchanged; one switch for every asset path |
+| 2026-10-28 | Cross-origin isolation on Pages via `coi-serviceworker@0.1.7` (npm devDependency, MIT) emitted to `<base>coi-serviceworker.js` by a build-only Vite plugin, with `coepCredentialless: false` (`require-corp`) | Pages cannot send COOP/COEP; all assets are same-origin so `require-corp` works in Chrome and Firefox |
+| 2026-10-28 | First-visit reload guarded by an inline boot script: `<html data-coi="pending">` → BOOTING LAW ENGINE screen; at most 2 reloads per session (`sessionStorage`), mount anyway after 3 s without a registration or 15 s overall | no reload loop when service workers are blocked or isolation fails; the verifier then reports its own fault |
 | 2026-10-28 | Score: over budget gives a negative efficiency term (`50 × (budget − cost)`), total clamped at 0; failed attempts = this mission's non-holds engagements; clock starts at mission load / retry; time bonus decays linearly over 5 min (DESIGN §6 updated) | never block an idea, but make padding and overspending cost; no negative scores on the results screen |
 | 2026-10-28 | Breach is added when the replay ends (not when the verifier answers); MISSION FAILED at ≥ 100% restarts breach, attempts, clock, rack and machine | the meter moves at the dramatic moment; retry = "from the briefing" |
 | 2026-10-28 | Verdict replays go through `missionStore.show` / `replayFire` (engine `step`); a live replay restarts the telemetry log from power-on, a lab replay never touches it | the log only ever contains real runs; hypothetical lab states stay out of it |
@@ -57,6 +61,31 @@ Decisions that deviate from or refine the docs. Newest first.
 
 Newest first. One entry per completed task: what was done, files touched, anything surprising,
 follow-ups.
+
+### 2026-10-28 — M2-T6 Deploy
+- `.github/workflows/deploy.yml`: push to `main` + `workflow_dispatch`; `build` job (checkout@v7,
+  setup-node@v7 with `.nvmrc` = 24 and npm cache, `npm ci`, lint, typecheck, test, build with
+  `LAWBREAKERS_BASE=/lawbreakers/`, configure-pages@v6, upload-pages-artifact@v5 of `dist`) and
+  `deploy` job (deploy-pages@v5, `github-pages` environment). Permissions `contents: read`,
+  `pages: write`, `id-token: write`; concurrency group `pages`, no cancel-in-progress.
+- `vite.config.ts`: `base` from `LAWBREAKERS_BASE` (validated absolute); `lawbreakers:coi-serviceworker`
+  build plugin emits `coi-serviceworker.js` + its LICENSE and injects the `COI_BOOT` config script and
+  the worker script into `<head>`. `src/main.tsx` shows `ui/screens/BootScreen.tsx` (+ `boot.css`)
+  while `data-coi="pending"`. `package.json`: `coi-serviceworker` devDependency, `engines.node >=24`,
+  scripts `build:pages`, `pages-preview`, `coi-smoke`. `.nvmrc`.
+- `scripts/pages-preview.mjs`: static server for `dist/` under `/lawbreakers/` with no COOP/COEP.
+  `scripts/coi-smoke.mjs`: fresh-context first visit (one reload, isolated, SW controls the page,
+  Z3 verdicts, Mission 01 holds), second visit without reload, and a context with service workers
+  blocked (app mounts, no loop, not isolated).
+- Results on the Pages emulation: `coi-smoke` OK (`crossOriginIsolated` true after exactly one reload,
+  holds / live_breach), `smoke` OK (isolated, Z3 init ~0.3 s), `rack-smoke` OK, `engage-smoke` OK
+  (53 checks). Against `vite preview` (base `/`): `smoke`, `rack-smoke`, `engage-smoke` OK.
+- **Surprises:** `page.route` does not see requests that go through a service worker, so
+  `engage-smoke`'s "Z3 cannot load" case failed on Pages; it now uses `context.route`. Locally the
+  reload usually wins the race against the app module, so the boot screen is rarely painted.
+  With service workers blocked the app waits the 3 s registration check before mounting.
+- **Follow-ups:** after the first push, check the live URL plays Mission 01 in a fresh Chrome and
+  Firefox (ROADMAP M2-T6 acceptance). Firefox still not smoke-tested locally.
 
 ### 2026-10-28 — M2-T4 Engage + verdict, M2-T5 Breach meter + results
 - Engine: `src/engine/score.ts` (`BREACH_DELTA`, `addBreach`, `BREACH_MAX`, `timeBonus`,

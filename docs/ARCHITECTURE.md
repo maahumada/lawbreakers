@@ -43,7 +43,7 @@ lawbreakers/
 │   ├── levels/              01-last-reactor.json … 06-final-breach.json
 │   ├── game/                missionStore.ts (machine state, telemetry, auto-run, replay display, breach/attempts/clock); rack.ts (pure partial-tree model); rackStore.ts (+ lock); engageStore.ts (ENGAGE phase, terminal lines, verdict, result); argusLines.ts (line pools); bestScores.ts (localStorage); later campaign
 │   ├── ui/
-│   │   ├── screens/         Mission, ResultsOverlay, MissionFailedOverlay (later Title, Intro, MissionSelect)
+│   │   ├── screens/         BootScreen (coi reload), Mission, ResultsOverlay, MissionFailedOverlay (later Title, Intro, MissionSelect)
 │   │   ├── rack/            RackEditor (dnd-kit context), Hand, RackBoard (sockets, modules, SVG wires, SHIELD), Dial, Readout, layout.ts (pure)
 │   │   ├── layout/          Slot (reserved areas for later features, `data-slot`)
 │   │   ├── machine/         MachineView, Briefing, Gauge, ControlCard, Telemetry, ReplayStrip (shown state + Law/meltdown probe), format.ts (guard/effect text), replay.css (verdict modes)
@@ -55,7 +55,9 @@ lawbreakers/
 │   ├── smoke-worker.mjs     headless Chromium check of the worker on the `?dev` page (not in npm test)
 │   ├── screenshot-mission.mjs  mission screen screenshots (1440×900, 390×844) + interaction checks (`npm run screenshots`)
 │   ├── rack-smoke.mjs       rack editor in Chromium: builds Missions 01 and 06, screenshots (`npm run rack-smoke`)
-│   └── engage-smoke.mjs     ENGAGE end to end with real Z3: every verdict, breach, results, mission failed (`npm run engage-smoke`)
+│   ├── engage-smoke.mjs     ENGAGE end to end with real Z3: every verdict, breach, results, mission failed (`npm run engage-smoke`)
+│   ├── pages-preview.mjs    GitHub Pages emulation: `dist/` under `/lawbreakers/`, no COOP/COEP (`npm run pages-preview`)
+│   └── coi-smoke.mjs        first visit through coi-serviceworker: one reload, isolated, Z3 works (`npm run coi-smoke`)
 └── tests/                   engine tests, level conformance (+ a few component smoke tests)
 ```
 
@@ -200,7 +202,7 @@ its own pthread Web Workers by re-loading `z3-built.js`. How LAWBREAKERS wires i
   nested pthread workers load). `<base>` is `import.meta.env.BASE_URL` resolved against the origin,
   so `base` must be absolute (`/` or `/<repo>/`), which GitHub Pages needs anyway.
 - **Isolation.** `SharedArrayBuffer` needs a cross-origin-isolated page *and* workers: COOP/COEP in
-  `vite dev`/`vite preview`, `coi-serviceworker` on Pages (M2-T6). All Z3 files are same-origin.
+  `vite dev`/`vite preview`, `coi-serviceworker` on Pages (see "Deploy"). All Z3 files are same-origin.
 - **Protocol.** Requests carry an `id`; the worker answers `{ id, ok: true, result }` or
   `{ id, ok: false, error }`, and `client.ts` settles the matching promise. A worker crash rejects
   every pending request and the next call starts a fresh worker. A failed Z3 init can be retried.
@@ -234,5 +236,29 @@ reference solution must be checked once with a real Dafny install (see ROADMAP M
 
 ## Deploy
 
-GitHub Actions on push to `main`: `npm ci → npm run lint → npm test → npm run build →
-actions/deploy-pages`. Vite `base` set to `/<repo-name>/`.
+Live at https://maahumada.github.io/lawbreakers/ once `main` is pushed.
+
+- **Workflow.** `.github/workflows/deploy.yml`, on push to `main` and `workflow_dispatch`: `npm ci →
+  lint → typecheck → test → build` (Node from `.nvmrc`, `LAWBREAKERS_BASE=/lawbreakers/`), then
+  `configure-pages → upload-pages-artifact (dist) → deploy-pages`. Playwright is a devDependency but
+  downloads no browsers on install; the smoke scripts are not part of CI.
+- **Base.** `vite.config.ts` reads `LAWBREAKERS_BASE` (default `/`; must start and end with `/`).
+  Fonts, CSS, the verify worker, `z3/` and `coi-serviceworker.js` all resolve under it.
+  `npm run build:pages` builds with `/lawbreakers/` locally.
+- **Isolation on Pages.** Pages cannot send COOP/COEP, so the build-only `lawbreakers:coi-serviceworker`
+  plugin emits `coi-serviceworker.js` (npm `coi-serviceworker`, MIT; license shipped next to it) at
+  `<base>`, so its scope covers the page, the verify worker, Z3's pthread workers and `z3/*`. It
+  re-serves every same-origin response with `COOP: same-origin`, `COEP: require-corp`, `CORP:
+  cross-origin`. Two classic scripts in `<head>` run before the app module: `COI_BOOT` (configures
+  `window.coi` and sets `<html data-coi>`), then `coi-serviceworker.js` (registers the worker and
+  reloads once it is active). First visit: `data-coi="pending"` → `main.tsx` renders the BOOTING
+  LAW ENGINE screen → one reload → isolated, controlled page. Later visits are controlled from the
+  start (no reload). Loop guards: at most 2 reloads per tab session (`sessionStorage`, cleared once
+  isolated); no service worker / insecure context / already controlled → `data-coi="unavailable"`
+  and the app mounts (Z3 then reports a verifier fault); `main.tsx` also mounts if no registration
+  exists after 3 s or the reload has not happened after 15 s. Under `vite dev`/`preview` the page is
+  already isolated and the script does nothing.
+- **Local emulation.** `npm run build:pages && npm run pages-preview` serves `dist/` at
+  `http://localhost:4174/lawbreakers/` with no COOP/COEP (like Pages). `npm run coi-smoke` checks the
+  first visit (one reload, isolated, Z3 verdicts, Mission 01), the second visit and a browser with
+  service workers blocked. `smoke`, `rack-smoke` and `engage-smoke` take the same URL as argument.

@@ -1,0 +1,14 @@
+.boot-screen {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: var(--space-4);
+  background: var(--argus-bg);
+  color: var(--argus-secondary);
+  font-family: var(--font-terminal);
+}
+
+.boot-screen__line {
+  font-size: var(--text-xl);
+  letter-spacing: 0.08em;
+}

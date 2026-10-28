@@ -65,7 +65,8 @@ async function open(
 ) {
   const context = await browser.newContext({ viewport, reducedMotion });
   const page = await context.newPage();
-  if (blockZ3) await page.route("**/z3/z3-built.js", (r) => r.abort());
+  // context.route (not page.route) also sees the requests coi-serviceworker makes on Pages.
+  if (blockZ3) await context.route("**/z3/z3-built.js", (r) => r.abort());
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => m.type() === "error" && errors.push(m.text()));

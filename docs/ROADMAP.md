@@ -63,8 +63,10 @@ Goal: a stranger can open the URL, play Mission 01 start to finish and understan
   Law allows. Init failure: highlight power-on state.
 - [x] **M2-T5 Breach meter + results.** Meter with the deltas from `DESIGN.md §6`, mission failure at
   100%, score computation (`score.ts`), results screen.
-- [ ] **M2-T6 Deploy.** GitHub Actions workflow to Pages, `coi-serviceworker`, Vite `base`.
+- [x] **M2-T6 Deploy.** GitHub Actions workflow to Pages, `coi-serviceworker`, Vite `base`.
   *Accept:* the public URL plays Mission 01 in a fresh Chrome and Firefox.
+  *Note:* verified on a local Pages emulation (`npm run pages-preview` + `coi-smoke`); the live-URL
+  check in Chrome and Firefox happens after the first push to `main`.
 
 ## M3 — Content and depth (Nov 12 → Nov 19)
 
