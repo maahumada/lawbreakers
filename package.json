@@ -17,8 +17,12 @@
     "screenshots": "node scripts/screenshot-mission.mjs",
     "rack-smoke": "node scripts/rack-smoke.mjs",
     "engage-smoke": "node scripts/engage-smoke.mjs",
+    "missions-smoke": "node scripts/missions-smoke.mjs",
+    "campaign-smoke": "node scripts/campaign-smoke.mjs",
     "pages-preview": "node scripts/pages-preview.mjs",
-    "coi-smoke": "node scripts/coi-smoke.mjs"
+    "coi-smoke": "node scripts/coi-smoke.mjs",
+    "dafny-check": "node scripts/dafny-check.mjs",
+    "proof-smoke": "node scripts/proof-smoke.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

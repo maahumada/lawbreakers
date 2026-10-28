@@ -79,7 +79,7 @@ try {
 
   // 2. Second visit (same context): no boot screen, no reload.
   navigations = 0;
-  await page.goto(url);
+  await page.goto(`${url}?mission=01`);
   await page.getByTestId("rack").waitFor();
   await page.waitForTimeout(1000);
   check(navigations === 1, `second visit does not reload (navigations: ${navigations})`);
@@ -112,7 +112,7 @@ try {
   let nav2 = 0;
   page2.on("framenavigated", (f) => f === page2.mainFrame() && nav2++);
   const t1 = Date.now();
-  await page2.goto(url);
+  await page2.goto(`${url}?mission=01`);
   await page2.getByTestId("rack").waitFor({ timeout: 30_000 });
   console.log(`without service workers: app mounted after ${Date.now() - t1} ms`);
   await page2.waitForTimeout(1000);

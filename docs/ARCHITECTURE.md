@@ -41,9 +41,10 @@ lawbreakers/
 │   │   ├── protocol.ts      request/response message types
 │   │   └── client.ts        typed promise API for the UI: warmUp(), verifyLaw(levelId, law)
 │   ├── levels/              01-last-reactor.json … 06-final-breach.json
-│   ├── game/                missionStore.ts (machine state, telemetry, auto-run, replay display, breach/attempts/clock); rack.ts (pure partial-tree model); rackStore.ts (+ lock); engageStore.ts (ENGAGE phase, terminal lines, verdict, result); argusLines.ts (line pools); bestScores.ts (localStorage); later campaign
+│   ├── game/                missionStore.ts (machine state, telemetry, auto-run, replay display, breach/attempts/clock); rack.ts (pure partial-tree model); rackStore.ts (+ lock); engageStore.ts (ENGAGE phase, terminal lines, verdict, result); argusLines.ts (line pools); bestScores.ts (localStorage); campaign.ts (secured missions, unlock rule, training flag; localStorage)
 │   ├── ui/
-│   │   ├── screens/         BootScreen (coi reload), Mission, ResultsOverlay, MissionFailedOverlay (later Title, Intro, MissionSelect)
+│   │   ├── router.ts        query-string routes (`?` title, `?missions`, `?mission=NN`, `?dev`), pushState navigation, `?…` link interception
+│   │   ├── screens/         BootScreen (coi reload), Title, MissionSelect, TrainingToggle, Mission, ResultsOverlay, MissionFailedOverlay (later Intro)
 │   │   ├── rack/            RackEditor (dnd-kit context), Hand, RackBoard (sockets, modules, SVG wires, SHIELD), Dial, Readout, layout.ts (pure)
 │   │   ├── layout/          Slot (reserved areas for later features, `data-slot`)
 │   │   ├── machine/         MachineView, Briefing, Gauge, ControlCard, Telemetry, ReplayStrip (shown state + Law/meltdown probe), format.ts (guard/effect text), replay.css (verdict modes)
@@ -56,6 +57,8 @@ lawbreakers/
 │   ├── screenshot-mission.mjs  mission screen screenshots (1440×900, 390×844) + interaction checks (`npm run screenshots`)
 │   ├── rack-smoke.mjs       rack editor in Chromium: builds Missions 01 and 06, screenshots (`npm run rack-smoke`)
 │   ├── engage-smoke.mjs     ENGAGE end to end with real Z3: every verdict, breach, results, mission failed (`npm run engage-smoke`)
+│   ├── missions-smoke.mjs   Missions 02–06: wrong Laws + reference Law, results, screenshots m3-t2-* (`npm run missions-smoke`)
+│   ├── campaign-smoke.mjs   title → select → unlocks, persistence, Back, CONTINUE, off-campaign, training, reset (`npm run campaign-smoke`)
 │   ├── pages-preview.mjs    GitHub Pages emulation: `dist/` under `/lawbreakers/`, no COOP/COEP (`npm run pages-preview`)
 │   └── coi-smoke.mjs        first visit through coi-serviceworker: one reload, isolated, Z3 works (`npm run coi-smoke`)
 └── tests/                   engine tests, level conformance (+ a few component smoke tests)
@@ -229,10 +232,32 @@ its own pthread Web Workers by re-loading `z3-built.js`. How LAWBREAKERS wires i
 
 ## Dafny export (`dafny.ts`)
 
-Generates a method that models the facility: variables initialized, a loop that nondeterministically
-fires an enabled control, the Law as `invariant`, and Safe as an `assert` inside the loop. Uses
-Dafny's nondeterministic `if *` / `while *` (verification-only). The output for every mission's
-reference solution must be checked once with a real Dafny install (see ROADMAP M3-T6).
+`toDafny(level, law)` returns one method per facility (`method TheLastReactor() decreases *`), shown
+by `ui/proof/ShowTheProof.tsx` after a win (button on the results screen):
+
+- Header comment mapping game terms to verification terms (Law = loop invariant, meltdown =
+  assertion, ARGUS = verifier).
+- Variables: `var A: nat := 2;` / `var x: int := 0;`. The `nat` domain is Dafny's `nat` type, so
+  every update is checked against it and no extra invariant is needed: **the player's Law is the only
+  `invariant`**.
+- `while true invariant <Law> decreases *` (the facility runs forever). Body: `assert !(<meltdown>);`
+  then an alternative `if` with one `case <guard> =>` per control and a simultaneous assignment
+  (`A, B := A - 1, B + 1;`). Dafny requires an alternative `if` to be total, so unless some control is
+  unconditional a final `case !(g1 || g2 || …) =>` idles.
+- `dafnyExpr` prints Dafny syntax: `==`, `%` (Euclidean on `int` in Dafny, same as the engine's
+  `mod`, checked with real Dafny), `&&`/`||` never mixed without parentheses (Dafny rejects
+  `a && b || c`), `!(…)` always (Dafny's `!` binds tighter than comparisons and `!!` is an operator),
+  negatives parenthesized after an operator (`x - (-3)`). Keywords / leading `_` are renamed by
+  `dafnyName`.
+- Highlighting: `ui/proof/highlight.ts` is a line tokenizer for exactly this output (no dependency).
+
+**Check:** `npm run dafny-check` (needs Dafny; `DAFNY=` to override, `-- --keep` keeps the `.dfy`
+files) exports every level's `solutions` (must verify) and `knownWrong` (must fail verification, not
+parsing) and runs `dafny verify --boogie /infer:t`. The flag matters: Boogie's default interval
+analysis infers loop invariants of its own (`0 <= x <= 10` in Mission 02), which made `x != 11`,
+`x <= 11` (02) and `x >= 0`, `y >= 0` (05) verify. With inference off only the Law carries the proof.
+Plain `dafny verify` still verifies every correct Law, which is all the panel ever shows.
+`npm run proof-smoke` drives the panel in Chromium (Mission 01 win → proof → copy → Escape).
 
 ## Deploy
 

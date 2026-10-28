@@ -19,6 +19,9 @@
 }
 
 .mission__protocol {
+  /* Above the title's tall line box, which overlaps this row (keeps the links clickable). */
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
   gap: var(--space-4);
@@ -28,6 +31,42 @@
   letter-spacing: var(--track-wide);
   text-transform: uppercase;
   color: var(--human-secondary);
+}
+
+.mission__back {
+  color: var(--human-secondary);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.mission__back::before {
+  content: "◂ ";
+}
+
+.mission__back:hover {
+  color: var(--human-primary);
+  border-bottom-color: currentColor;
+}
+
+.mission__flags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.mission__flag {
+  padding: 0 var(--space-2);
+  border: 1px solid var(--human-secondary);
+  color: var(--human-secondary);
+}
+
+/* Training: a cyan practice tag, the same hologram colour as lab simulations (nothing is real). */
+.mission__flag--training {
+  border-style: dashed;
+  border-color: var(--argus-secondary);
+  color: var(--argus-secondary);
 }
 
 .mission__link {
@@ -136,4 +175,22 @@
   opacity: 1;
   text-shadow: 0 0 12px color-mix(in srgb, var(--human-primary) 60%, transparent);
   box-shadow: 0 0 24px color-mix(in srgb, var(--human-primary) 25%, transparent);
+}
+
+/* --- Training mode -------------------------------------------------------- */
+
+/* The results dialog stays (Next mission, Retry), but a training win records no score: hide the
+   score and its breakdown and say so instead. */
+.mission[data-training] .results__score,
+.mission[data-training] .results__table {
+  display: none;
+}
+
+.mission[data-training] .results__head::after {
+  content: "Training run: the mission counts as secured, but no score is recorded.";
+  display: block;
+  margin-top: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--argus-secondary);
 }

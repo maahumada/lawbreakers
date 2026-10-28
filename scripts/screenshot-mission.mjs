@@ -6,6 +6,7 @@
 import { chromium } from "playwright";
 
 const url = process.argv[2] ?? "http://localhost:5173/";
+const missionUrl = `${url}?mission=01`;
 const out = process.argv[3] ?? "docs/screenshots/m2-t2";
 const viewports = [
   { name: "desktop", width: 1440, height: 900 },
@@ -24,7 +25,7 @@ try {
     const page = await browser.newPage({ viewport: { width: vp.width, height: vp.height } });
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    await page.goto(url);
+    await page.goto(missionUrl);
     await page.getByTestId("gauge-A").waitFor();
     await page.evaluate(() => document.fonts.ready);
     check(

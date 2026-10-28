@@ -1,0 +1,447 @@
+/* Title and mission select. Same two worlds as the mission screen: the amber console on the left,
+   ARGUS's red hex panel on the right; mission select is one powered bus through six stations. */
+
+/* --- Title ---------------------------------------------------------------- */
+
+.title {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 24rem);
+  background:
+    radial-gradient(
+      ellipse 70% 60% at 25% 35%,
+      color-mix(in srgb, var(--human-secondary) 14%, transparent),
+      transparent 70%
+    ),
+    var(--human-bg);
+}
+
+.title__main {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: var(--space-5);
+  padding: var(--space-7) clamp(var(--space-4), 6vw, 6rem);
+}
+
+.title__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-5);
+  font-family: var(--font-display);
+  line-height: 0.9;
+}
+
+.title__word {
+  font-weight: 700;
+  font-size: clamp(3rem, 11vw, 8.5rem);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--human-primary);
+}
+
+.title__year {
+  display: inline-flex;
+  gap: var(--space-1);
+}
+
+.title__year .tube {
+  width: clamp(2.6rem, 6vw, 4rem);
+  height: clamp(3.8rem, 8.6vw, 5.8rem);
+  font-size: clamp(2.6rem, 6.2vw, 4.2rem);
+}
+
+.title__sub {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-xl);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--human-text);
+}
+
+.title__tagline {
+  max-width: 44ch;
+  padding-left: var(--space-4);
+  border-left: 3px solid var(--human-secondary);
+  font-size: var(--text-md);
+  line-height: 1.6;
+  color: var(--human-muted);
+}
+
+.title__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+/* START reuses the ENGAGE interlock's hazard-striped look: it is the same kind of commitment. */
+.title__start {
+  min-width: 15rem;
+  padding: var(--space-4) var(--space-7);
+  border: 2px solid var(--human-primary);
+  background:
+    repeating-linear-gradient(-45deg, var(--human-primary) 0 10px, var(--human-bg) 10px 20px) left /
+      18px 100% no-repeat,
+    repeating-linear-gradient(-45deg, var(--human-primary) 0 10px, var(--human-bg) 10px 20px)
+      right / 18px 100% no-repeat,
+    var(--human-surface-2);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-xl);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--human-primary);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--human-primary) 60%, transparent);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--human-primary) 25%, transparent);
+  cursor: pointer;
+}
+
+.title__continue,
+.select__reset {
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--human-secondary);
+  background: transparent;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-md);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--human-secondary);
+  cursor: pointer;
+}
+
+.title__continue:hover,
+.select__reset:hover {
+  color: var(--human-primary);
+  border-color: var(--human-primary);
+}
+
+.title__argus {
+  display: grid;
+  align-content: end;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-5);
+  border-left: 6px solid transparent;
+  border-image: repeating-linear-gradient(
+      -45deg,
+      var(--argus-primary) 0 8px,
+      var(--argus-bg) 8px 16px
+    )
+    6;
+  background: var(--argus-bg);
+}
+
+.title__argus-line {
+  font-family: var(--font-terminal);
+  font-size: var(--text-lg);
+  line-height: 1.3;
+  color: var(--argus-text);
+}
+
+.title__prompt {
+  color: var(--argus-primary);
+}
+
+@media (max-width: 860px) {
+  .title {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .title__main {
+    padding-block: var(--space-6);
+  }
+
+  .title__sub {
+    font-size: var(--text-lg);
+    letter-spacing: 0.18em;
+  }
+
+  .title__argus {
+    border-left: 0;
+    border-top: 6px solid transparent;
+  }
+}
+
+/* --- Training toggle ------------------------------------------------------ */
+
+.training-toggle {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.training-toggle[data-on] .toggle {
+  color: var(--argus-secondary);
+}
+
+.training-toggle__help {
+  font-size: var(--text-xs);
+  color: var(--human-muted);
+}
+
+/* --- Mission select ------------------------------------------------------- */
+
+.select {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      ellipse 80% 50% at 20% 0%,
+      color-mix(in srgb, var(--human-secondary) 10%, transparent),
+      transparent 70%
+    ),
+    var(--human-bg);
+}
+
+.select__title {
+  margin-top: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 4.5vw, 3rem);
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: var(--human-text);
+}
+
+.select__main {
+  display: grid;
+  gap: var(--space-6);
+  max-width: 60rem;
+  padding: var(--space-6) var(--space-5) var(--space-7);
+}
+
+.select__list {
+  list-style: none;
+  padding: 0;
+}
+
+/* Each station hangs off a vertical bus on the left. The segment above a station carries current
+   when the station before it is secured (`data-feed`), so progress reads as power reaching down. */
+.station {
+  --bus-x: 1.6rem;
+  --bus: linear-gradient(var(--human-line), var(--human-line)) no-repeat;
+  position: relative;
+  padding: var(--space-2) 0 var(--space-2) calc(var(--bus-x) * 2);
+  background: var(--bus) calc(var(--bus-x) - 2px) 0 / 4px 100%;
+}
+
+.station:first-child {
+  background: var(--bus) calc(var(--bus-x) - 2px) 100% / 4px 50%;
+}
+
+.station:last-child {
+  background: var(--bus) calc(var(--bus-x) - 2px) 0 / 4px 50%;
+}
+
+/* Horizontal stub from the bus to the plate. */
+.station::after {
+  content: "";
+  position: absolute;
+  left: var(--bus-x);
+  top: 50%;
+  width: var(--bus-x);
+  height: 4px;
+  margin-top: -2px;
+  background: var(--human-line);
+}
+
+/* Current: the bus segment into a station is lit when power reaches it (`data-feed`: it is the
+   first station or the one before it is secured), and runs on down while the next one is fed. */
+.station[data-feed]::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--bus-x) - 2px);
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+
+.station[data-feed]:first-child::before {
+  top: 50%;
+}
+
+.station[data-feed]:last-child::before,
+.station[data-feed]:has(+ .station:not([data-feed]))::before {
+  bottom: 50%;
+}
+
+.station[data-feed]::before,
+.station[data-feed]::after {
+  background: var(--human-primary);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--human-primary) 55%, transparent);
+}
+
+.station__plate {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--human-line);
+  border-left: 4px solid var(--human-secondary);
+  background: linear-gradient(to bottom, var(--human-surface-2), var(--human-surface));
+  color: inherit;
+  text-decoration: none;
+}
+
+a.station__plate:hover,
+a.station__plate:focus-visible {
+  border-color: var(--human-primary);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--human-primary) 20%, transparent);
+}
+
+.station__number {
+  min-width: 2.6ch;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 2.6rem;
+  line-height: 1;
+  color: var(--human-nixie);
+  text-shadow:
+    0 0 3px var(--human-nixie),
+    0 0 14px color-mix(in srgb, var(--human-nixie) 60%, transparent);
+}
+
+.station__text {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.station__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-lg);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--human-text);
+}
+
+.station__concept {
+  font-size: var(--text-sm);
+  color: var(--human-muted);
+}
+
+.station__status {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-items: end;
+  gap: var(--space-1) var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--human-secondary);
+}
+
+.station__best,
+.station__need {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--human-muted);
+}
+
+.station__best {
+  color: var(--human-text);
+}
+
+.station__lamp {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--human-secondary);
+  background: var(--human-bg);
+}
+
+.station[data-status="available"] .station__lamp {
+  background: var(--human-primary);
+  box-shadow: 0 0 10px var(--human-primary);
+  animation: station-ready 1.4s steps(2) infinite;
+}
+
+.station[data-status="available"] .station__status {
+  color: var(--human-primary);
+}
+
+.station[data-status="secured"] .station__lamp {
+  background: var(--human-primary);
+  box-shadow: 0 0 10px var(--human-primary);
+}
+
+.station[data-status="secured"] .station__plate {
+  border-left-color: var(--human-primary);
+}
+
+.station[data-status="locked"] .station__plate {
+  border-left-color: var(--human-line);
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      transparent 0 12px,
+      color-mix(in srgb, var(--human-line) 45%, transparent) 12px 14px
+    ),
+    var(--human-surface);
+  cursor: not-allowed;
+}
+
+.station[data-status="locked"] .station__number,
+.station[data-status="locked"] .station__name {
+  color: var(--human-muted);
+  text-shadow: none;
+  opacity: 0.6;
+}
+
+@keyframes station-ready {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.select__foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: start;
+  gap: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 3px double var(--human-line);
+}
+
+.select__confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.select__reset--danger {
+  border-color: var(--meltdown);
+  color: var(--meltdown);
+}
+
+@media (max-width: 520px) {
+  .select__main {
+    padding-inline: var(--space-4);
+  }
+
+  .station {
+    --bus-x: 0.7rem;
+  }
+
+  .station__plate {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .station__status {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+  }
+}

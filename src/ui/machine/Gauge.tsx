@@ -40,6 +40,11 @@ export function Gauge({ decl, value, scale }: GaugeProps) {
       <div className={`gauge__bar ${signed ? "gauge__bar--signed" : ""}`} aria-hidden>
         <span className="gauge__fill" style={fill} />
       </div>
+      <div className="gauge__scale" aria-hidden data-testid={`gauge-scale-${decl.name}`}>
+        <span>{signed ? `−${scale}` : "0"}</span>
+        {signed && <span>0</span>}
+        <span>{scale}</span>
+      </div>
     </figure>
   );
 }

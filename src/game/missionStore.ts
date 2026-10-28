@@ -51,9 +51,14 @@ interface MissionStore {
   failures: number;
   /** `Date.now()` when the mission (or the last retry) started. */
   startedAt: number;
+  /** Training mode: verdicts never add breach (so the mission cannot fail). Set on `load`. */
+  training: boolean;
 
-  /** Load a mission at its power-on state with a fresh session. `seed` fixes the auto-run choices. */
-  load: (level: Level, seed?: number) => void;
+  /**
+   * Load a mission at its power-on state with a fresh session. `seed` fixes the auto-run choices;
+   * `training` turns the breach meter off for this session.
+   */
+  load: (level: Level, seed?: number, training?: boolean) => void;
   /** Fire a control by hand. Ignored if it is disabled or the machine is locked. */
   fire: (controlId: string) => void;
   /** Back to the power-on state; clears the log and stops auto-run. */
@@ -70,7 +75,7 @@ interface MissionStore {
   replayFire: (controlId: string) => void;
   /** Back to power-on with the player in control (REBUILD). Keeps the session. */
   release: () => void;
-  /** Count an engagement and add its breach. */
+  /** Count an engagement and add its breach (none in training). */
   recordVerdict: (kind: VerdictKind) => void;
   /** Full restart: power-on, empty session, clock restarted. */
   restart: () => void;
@@ -109,7 +114,8 @@ export const useMission = create<MissionStore>()((set, get) => {
     locked: false,
     display: null,
     ...freshSession(),
-    load: (level, seed = Date.now()) => {
+    training: false,
+    load: (level, seed = Date.now(), training = false) => {
       const s = initialState(level);
       set({
         level,
@@ -119,6 +125,7 @@ export const useMission = create<MissionStore>()((set, get) => {
         rand: prng(seed),
         locked: false,
         display: null,
+        training,
         ...freshSession(),
       });
     },
@@ -171,9 +178,9 @@ export const useMission = create<MissionStore>()((set, get) => {
       if (next) set(next);
     },
     recordVerdict: (kind) => {
-      const { breach, attempts, failures } = get();
+      const { breach, attempts, failures, training } = get();
       set({
-        breach: addBreach(breach, kind),
+        breach: training ? breach : addBreach(breach, kind),
         attempts: attempts + 1,
         failures: failures + (kind === "holds" ? 0 : 1),
       });

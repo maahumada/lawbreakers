@@ -8,7 +8,8 @@ import { initialState } from "../../engine/level.ts";
 import { BREACH_MAX, scoreMission } from "../../engine/score.ts";
 import type { Verdict } from "../../engine/types.ts";
 import { ARGUS_LINES, pickLine } from "../../game/argusLines.ts";
-import { saveBest } from "../../game/bestScores.ts";
+import { loadBest, saveBest } from "../../game/bestScores.ts";
+import { useCampaign } from "../../game/campaign.ts";
 import type { LineTone } from "../../game/engageStore.ts";
 import { useEngage } from "../../game/engageStore.ts";
 import { useMission } from "../../game/missionStore.ts";
@@ -112,7 +113,11 @@ async function play(level: Level): Promise<void> {
       elapsedMs,
     });
     if (!score) return;
-    const { best, newBest } = saveBest(level.id, score.total);
+    // Training wins unlock the next mission but never record a score.
+    useCampaign.getState().secure(level.id);
+    const { best, newBest } = after.training
+      ? { best: loadBest(level.id) ?? 0, newBest: false }
+      : saveBest(level.id, score.total);
     useEngage.getState().setResult({
       score,
       best,

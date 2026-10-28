@@ -59,3 +59,18 @@ export function formatEffect(ctl: Control): string {
 export function describeControl(ctl: Control): string {
   return `${formatGuard(ctl.guard)}: ${formatEffect(ctl)}`;
 }
+
+/**
+ * Full scale of the gauge bars: the smallest of 10, 20, 50, 100, 200, 500, … that covers
+ * `maxAbs`. Rounded steps keep the bars from rescaling on every cycle when a ℤ gauge runs away
+ * (Mission 05's momentum grows quadratically).
+ */
+export function gaugeScale(maxAbs: number): number {
+  let scale = 10;
+  for (;;) {
+    for (const k of [1, 2, 5]) {
+      if (maxAbs <= scale * k) return scale * k;
+    }
+    scale *= 10;
+  }
+}

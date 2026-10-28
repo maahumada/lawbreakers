@@ -70,13 +70,13 @@ Goal: a stranger can open the URL, play Mission 01 start to finish and understan
 
 ## M3 — Content and depth (Nov 12 → Nov 19)
 
-- [ ] **M3-T1** Campaign: mission select, unlock progression, progress in `localStorage`.
-- [ ] **M3-T2** Missions 02–06 playable; per-mission briefing art / gauge layout as needed.
+- [x] **M3-T1** Campaign: mission select, unlock progression, progress in `localStorage`.
+- [x] **M3-T2** Missions 02–06 playable; per-mission briefing art / gauge layout as needed.
 - [ ] **M3-T3** ARGUS personality: line pools per verdict and per mission, typing effect.
-- [ ] **M3-T4** Training mode toggle (no breach, no score).
+- [x] **M3-T4** Training mode toggle (no breach, no score).
 - [ ] **M3-T5** Juice pass 1: wire current animation, breach screen shake + sparks, success relay
   sequence, nixie score count-up.
-- [ ] **M3-T6** Show the Proof: `dafny.ts`, panel with syntax highlighting and copy button.
+- [x] **M3-T6** Show the Proof: `dafny.ts`, panel with syntax highlighting and copy button.
   *Accept:* the six reference programs verify with real Dafny (run once by hand, paste output in PR).
 - [ ] **M3-T7** Cost rebalancing: per-module costs and budgets tuned so the reference Law is the
   optimum or close to it.

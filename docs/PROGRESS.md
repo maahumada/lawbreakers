@@ -7,7 +7,7 @@ along the way, and a log of each work session.
 ## Current state
 
 - **Milestone:** M3 — Content and depth
-- **Next task:** M3-T1 Campaign
+- **Next task:** M3-T3 ARGUS personality
 - **Blockers:** none
 - **Deployed URL:** https://maahumada.github.io/lawbreakers/ (live since 2026-10-28, auto-deploys on
   push to `main`; verified in Chromium, Firefox still unchecked)
@@ -18,6 +18,14 @@ Decisions that deviate from or refine the docs. Newest first.
 
 | Date | Decision | Why |
 |---|---|---|
+| 2026-10-28 | Routing by query string: no query = title, `?missions` = mission select, `?mission=NN` = mission, `?dev` kept. In-app moves use `history.pushState` + a custom event (`ui/router.ts`, `useSyncExternalStore`), Back/Forward via `popstate`; a document click handler turns same-page `<a href="?…">` links (e.g. the results' "Next mission") into in-app navigations. Unknown `?mission=` numbers show mission select | no router dependency, static-hosting friendly, deep links work on Pages |
+| 2026-10-28 | Deep links to a locked mission are allowed and flagged OFF-CAMPAIGN in the header; winning it secures it (and unlocks its successor) without touching the missions before it | the jury may open any mission directly; no redirect surprises |
+| 2026-10-28 | Progress = list of secured mission ids in `localStorage` `lawbreakers:progress` (`{"secured": [...]}`); mission N+1 is available when N is secured, 01 always. Training flag in `lawbreakers:training`. "Reset progress" (with a confirm step) clears secured missions and best scores, keeps the training setting | small, robust to storage failures (every access in try/catch) |
+| 2026-10-28 | START → mission select (M4-T1 intro hooks in `TitleScreen.start`); CONTINUE (only with progress) → first available, unsecured mission | returning players get back in with one click |
+| 2026-10-28 | Training mode (DESIGN §6 updated): breach never moves (no MISSION FAILED), attempts still counted, a win secures the mission (unlocks the next) but saves no best score; the results dialog hides score and breakdown via CSS and says why. Read once when the mission opens; toggled on title / mission select only | practice must still let a player progress; scores stay comparable |
+| 2026-10-28 | Gauge full scale rounds up to 10, 20, 50, 100, … (`gaugeScale`) and is printed under each bar (`−S 0 S` for ℤ, `0 S` for ℕ) | runaway ℤ gauges (Mission 05) do not rescale every cycle and the bar stays readable |
+| 2026-10-28 | Dafny export: `nat` gauges use Dafny's `nat` type; the Law is the only loop `invariant`; meltdown is `assert !(…)` at the loop head; controls are an alternative `if` with an explicit idle case (Dafny requires totality) | the player's Law alone must make the proof work; no hidden domain invariants |
+| 2026-10-28 | `npm run dafny-check` runs `dafny verify --boogie /infer:t` | Boogie's default interval inference proved 4 known-wrong Laws (02, 05) on its own |
 | 2026-10-28 | Vite `base` comes from `LAWBREAKERS_BASE` (default `/`); the Pages workflow sets `/lawbreakers/` (`npm run build:pages` locally) | dev/preview unchanged; one switch for every asset path |
 | 2026-10-28 | Cross-origin isolation on Pages via `coi-serviceworker@0.1.7` (npm devDependency, MIT) emitted to `<base>coi-serviceworker.js` by a build-only Vite plugin, with `coepCredentialless: false` (`require-corp`) | Pages cannot send COOP/COEP; all assets are same-origin so `require-corp` works in Chrome and Firefox |
 | 2026-10-28 | First-visit reload guarded by an inline boot script: `<html data-coi="pending">` → BOOTING LAW ENGINE screen; at most 2 reloads per session (`sessionStorage`), mount anyway after 3 s without a registration or 15 s overall | no reload loop when service workers are blocked or isolation fails; the verifier then reports its own fault |
@@ -61,6 +69,69 @@ Decisions that deviate from or refine the docs. Newest first.
 
 Newest first. One entry per completed task: what was done, files touched, anything surprising,
 follow-ups.
+
+### 2026-10-28 — M3-T1 Campaign, M3-T2 Missions 02–06, M3-T4 Training mode
+- Game: `src/game/campaign.ts` (`missionStatus`, `nextMission`, `loadSecured`, Zustand `useCampaign`:
+  `secured`, `training`, `secure`, `setTraining`, `resetProgress`); `bestScores.clearBest`;
+  `missionStore` gains `training` (set by `load(level, seed, training)`, kept by `restart`;
+  `recordVerdict` adds no breach in training). `ui/argus/engage.ts`: a win calls `secure`; in
+  training it does not call `saveBest`.
+- UI: `ui/router.ts` (routes, `navigate`, `useSearch`, `interceptLinks`); `App.tsx` routes title /
+  missions / mission / dev. New `screens/TitleScreen.tsx` (LAWBREAKERS + nixie 2050, START,
+  CONTINUE, training toggle, ARGUS panel), `MissionSelectScreen.tsx` (six stations on a power bus
+  lit through secured missions; status Ready / Secured + best / Locked + "Secure NN first"; reset
+  with confirm), `TrainingToggle.tsx`, `campaign.css`. `MissionScreen` takes `index`/`levels`,
+  header gets "Mission select" link, TRAINING and OFF-CAMPAIGN flags, `data-training` (CSS hides
+  the results score in training). `BreachMeter` shows "(training: off)" and dims. Gauges: rounded
+  shared scale + scale labels (`format.gaugeScale`).
+- M3-T2 findings: all five missions play end to end with their reference Law and LEVELS.md
+  wrong Laws (02 `x ≠ 11` lab, `x ≤ 11` insufficient; 03 `x = y` live, `y ≠ 7` lab; 04 `n ≥ 1`
+  lab, `n = 1` live; 05 `x ≥ 0` lab, `y ≥ 0` insufficient; 06 `A + B = 6`, `A mod 2 = 0`
+  insufficient); references cost = budget; no horizontal scroll at 1440 / 390 px. Signed nixies,
+  Mission 05's single control and Mission 06's rack/hand already rendered fine; the only
+  mission-specific fix was the gauge scale (Mission 02 lab at `x = 12`, Mission 05 runaway
+  momentum). No level JSON changes.
+- Fix: the mission title's tall line box covered the header row, so the header links were not
+  clickable; `.mission__protocol` now sits above it.
+- Tests: `tests/campaign.test.ts` (unlock rule, off-campaign win, continue target, store without
+  storage, training session, route parsing), `gaugeScale` in `tests/format.test.ts`. 231 tests.
+- Browser: `scripts/missions-smoke.mjs` (`npm run missions-smoke`) and `scripts/campaign-smoke.mjs`
+  (`npm run campaign-smoke`: fresh profile → title → select (only 01) → win 01 → Next mission
+  in-app → Back → 02 unlocked → reload keeps progress → CONTINUE → off-campaign deep link →
+  training: failed engage leaves breach at 0, win unlocks 03 with no best saved → reset). Both
+  pass on `vite preview`, as do `smoke`, `rack-smoke`, `engage-smoke`, `screenshots` (entry URLs
+  now `?mission=01`; `coi-smoke` updated the same way, not re-run). Screenshots:
+  `docs/screenshots/m3-t1-{title,title-mobile,missions,missions-mobile}.png`,
+  `m3-t2-{02..06}{,-mobile}.png`, `m3-t4-training{,-results}.png`.
+- **Follow-ups:** `ResultsOverlay` should render a proper training variant (no tubes/table, a
+  line explaining it) instead of the CSS hiding keyed on `.results__score` / `.results__table` /
+  `.results__head` in `mission.css` (left untouched here: M3-T6 owned the file). Intro sequence
+  (M4-T1) plugs into `TitleScreen.start`. `coi-smoke` not re-run against the Pages emulation.
+
+### 2026-10-28 — M3-T6 Show the Proof
+- `src/engine/dafny.ts`: `toDafny(level, law)` (header mapping game ↔ verification terms, `nat`/`int`
+  vars, `while true` + `decreases *`, Law as the only `invariant`, `assert !(meltdown)`, alternative
+  `if` per control with simultaneous assignment and an idle case), `dafnyExpr`, `dafnyName`.
+- `src/ui/proof/ShowTheProof.tsx` + `highlight.ts` + `proof.css`: panel over the results (caption
+  "You just wrote this." / "Your Law is the loop invariant. ARGUS was the verifier."), hand-rolled
+  highlighting, the Law line marked, copy (Clipboard API, `execCommand` fallback), close / Escape
+  (capture listener so the results stay open), focus returns to the button. Code block scrolls
+  horizontally on phones. Minimal change in `ResultsOverlay.tsx` (SHOW THE PROOF button) and
+  `overlays.css` (`.results__btn--proof`).
+- Tests: `tests/dafny.test.ts` (Mission 01 key lines, mod/scale/negatives/and-or precedence, `!`,
+  renaming), `tests/proofHighlight.test.ts`. Scripts: `scripts/dafny-check.mjs` (`npm run
+  dafny-check`, loads the engine through Vite SSR), `scripts/proof-smoke.mjs` (`npm run proof-smoke`).
+- Screenshots: `docs/screenshots/m3-t6-proof.png`, `m3-t6-proof-mobile.png`.
+- **Dafny results** (Dafny 4.11.0, `dafny verify --boogie /infer:t`): 7/7 solutions verified,
+  20/20 known-wrong Laws rejected. init_failure → "loop invariant could not be proved on entry";
+  live/lab breaches → "invariant could not be proved to be maintained by the loop"; insufficient →
+  "assertion might not hold". ~21 s for 27 programs.
+- **Surprise:** without `/infer:t`, 4 known-wrong Laws verified (02 `x != 11`, `x <= 11`; 05
+  `x >= 0`, `y >= 0`) because Boogie's interval analysis infers `0 <= x <= 10` / `x, y >= 0` itself.
+  Also: Dafny rejects a non-exhaustive alternative `if` ("alternative cases may not cover all
+  possibilities"), hence the idle case.
+- Follow-ups: none required. Prettier currently flags `src/ui/App.tsx`, `tests/campaign.test.ts`,
+  `tests/format.test.ts` (parallel M3-T1/T2/T4 work in progress, not touched here).
 
 ### 2026-10-28 — First live deploy
 - Commit `7c74ef0` pushed; workflow run `40672270358` green in 1m42s.

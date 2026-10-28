@@ -3,14 +3,13 @@ import type { Level } from "../../engine/level.ts";
 import { useMission } from "../../game/missionStore.ts";
 import { Briefing } from "./Briefing.tsx";
 import { ControlCard } from "./ControlCard.tsx";
+import { gaugeScale } from "./format.ts";
 import { Gauge } from "./Gauge.tsx";
 import { ReplayStrip } from "./ReplayStrip.tsx";
 import { Telemetry } from "./Telemetry.tsx";
 import { useAutoRun } from "./useAutoRun.ts";
 import "./machine.css";
 import "./replay.css";
-
-const MIN_SCALE = 10;
 
 export function MachineView({ level }: { level: Level }) {
   const state = useMission((m) => m.state);
@@ -22,10 +21,12 @@ export function MachineView({ level }: { level: Level }) {
   useAutoRun();
 
   const armed = new Set(enabled(level, state).map((c) => c.id));
-  const scale = Math.max(
-    MIN_SCALE,
-    ...[...log.map((e) => e.state), state].flatMap((s) =>
-      level.vars.map((x) => Math.abs(s[x.name] ?? 0)),
+  const scale = gaugeScale(
+    Math.max(
+      0,
+      ...[...log.map((e) => e.state), state].flatMap((s) =>
+        level.vars.map((x) => Math.abs(s[x.name] ?? 0)),
+      ),
     ),
   );
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { loadBundledLevels } from "../src/engine/level.ts";
 import { parseBool } from "../src/engine/parse.ts";
-import { describeControl, formatEffect, formatExpr } from "../src/ui/machine/format.ts";
+import { describeControl, formatEffect, formatExpr, gaugeScale } from "../src/ui/machine/format.ts";
 
 const levels = loadBundledLevels();
 const control = (levelIdx: number, id: string) => {
@@ -27,5 +27,13 @@ describe("machine view text", () => {
     expect(formatExpr(parseBool("!(x != -1) || 2 * x - 3 <= x mod 2"))).toBe(
       "NOT (x ≠ −1) OR 2×x − 3 ≤ x MOD 2",
     );
+  });
+});
+
+describe("gaugeScale", () => {
+  it("rounds up to 10, 20, 50, 100, … and never below 10", () => {
+    expect([0, 3, 10, 11, 20, 21, 50, 51, 190, 201, 999, 1001].map(gaugeScale)).toEqual([
+      10, 10, 10, 20, 20, 50, 50, 100, 200, 500, 1000, 2000,
+    ]);
   });
 });

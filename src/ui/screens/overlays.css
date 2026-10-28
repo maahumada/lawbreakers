@@ -187,6 +187,12 @@
   color: var(--human-bg);
 }
 
+.results__btn--proof {
+  border-style: dashed;
+  border-color: var(--human-primary);
+  color: var(--human-primary);
+}
+
 .results__btn--quiet {
   margin-left: auto;
   border-color: transparent;

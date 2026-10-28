@@ -197,3 +197,12 @@
 .terminal[data-busy] {
   border-color: var(--argus-primary);
 }
+
+/* Training: the meter is disconnected (never moves). */
+.breach[data-training] .breach__track {
+  opacity: 0.3;
+}
+
+.breach__off {
+  color: var(--argus-secondary);
+}

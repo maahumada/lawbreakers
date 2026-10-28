@@ -24,3 +24,11 @@ export function saveBest(levelId: string, score: number): { best: number; newBes
   }
   return { best: score, newBest: true };
 }
+
+export function clearBest(levelId: string): void {
+  try {
+    window.localStorage.removeItem(key(levelId));
+  } catch {
+    // Nothing stored that we can reach.
+  }
+}

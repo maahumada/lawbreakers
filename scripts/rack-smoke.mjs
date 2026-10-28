@@ -43,7 +43,7 @@ async function drag(page, from, to) {
   await page.mouse.up();
 }
 
-async function open(browser, viewport, query = "") {
+async function open(browser, viewport, query = "?mission=01") {
   const page = await browser.newPage({ viewport });
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));

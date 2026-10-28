@@ -195,7 +195,17 @@ Represents enemy infiltration of the facility, **not** "how correct" the Law is.
 At 100% the facility falls: *MISSION FAILED*, retry from the briefing. Values are a starting point
 for playtesting.
 
-**Training mode** (toggle in the menu): no breach meter, unlimited attempts, no leaderboard.
+**Training mode** (toggle on the title screen and mission select; a TRAINING badge shows in the
+mission): the breach meter never moves, so there is no MISSION FAILED and attempts are unlimited;
+a win still counts as securing the mission (it unlocks the next one) but records no score and no
+best score. The mode is read when a mission opens.
+
+### Campaign
+
+Title screen (START, CONTINUE when there is progress) → mission select → missions. Mission 01 is
+always available; mission N+1 unlocks when mission N is secured (won once, in either mode).
+Progress and best scores live in `localStorage`; mission select can reset them. A direct link to a
+locked mission still opens it, flagged OFF-CAMPAIGN.
 
 ### Score (only on THE LAW HOLDS)
 

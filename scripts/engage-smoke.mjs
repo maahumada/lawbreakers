@@ -61,7 +61,7 @@ async function engageAndWait(page) {
 
 async function open(
   browser,
-  { viewport, query = "", reducedMotion = "no-preference", blockZ3 = false },
+  { viewport, query = "?mission=01", reducedMotion = "no-preference", blockZ3 = false },
 ) {
   const context = await browser.newContext({ viewport, reducedMotion });
   const page = await context.newPage();

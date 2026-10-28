@@ -1,0 +1,139 @@
+/* Show the Proof: the Dafny program behind the win, on a phosphor terminal. */
+
+.overlay--proof {
+  z-index: 60;
+}
+
+.proof {
+  width: min(100%, 48rem);
+  min-width: 0;
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border-color: var(--human-primary);
+}
+
+.proof__head {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.proof__kicker {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--human-secondary);
+}
+
+.proof__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2rem, 6vw, 3rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: var(--human-primary);
+}
+
+.proof__caption {
+  font-size: var(--text-md);
+  color: var(--human-text);
+}
+
+.proof__code {
+  min-width: 0;
+  max-height: min(60vh, 34rem);
+  margin: 0;
+  padding: var(--space-4);
+  overflow: auto;
+  border: 1px solid var(--human-line);
+  border-left: 3px solid var(--human-secondary);
+  background: var(--human-bg);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--human-text);
+  tab-size: 2;
+  white-space: pre;
+}
+
+.proof__code:focus-visible {
+  outline: 2px solid var(--human-primary);
+  outline-offset: 2px;
+}
+
+.proof__line {
+  display: block;
+  /* Full-width rows inside the scrolling block so the Law highlight spans the longest line. */
+  min-width: max-content;
+}
+
+.proof__line[data-law] {
+  margin: 0 calc(-1 * var(--space-4));
+  padding: 0 var(--space-4);
+  background: color-mix(in srgb, var(--human-primary) 14%, transparent);
+  box-shadow: inset 3px 0 0 var(--human-primary);
+}
+
+.tok--comment {
+  color: var(--human-muted);
+  font-style: italic;
+}
+
+.tok--keyword {
+  color: var(--human-primary);
+  font-weight: 700;
+}
+
+.tok--type {
+  color: var(--human-secondary);
+}
+
+.tok--number {
+  color: var(--human-nixie);
+}
+
+.tok--op {
+  color: var(--human-secondary);
+}
+
+.proof__line[data-law] .tok--comment {
+  color: var(--human-primary);
+  font-style: normal;
+  font-weight: 700;
+}
+
+.proof__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.proof__hint {
+  margin-left: auto;
+  font-size: var(--text-sm);
+  color: var(--human-muted);
+}
+
+.proof__hint code {
+  font-family: var(--font-mono);
+  color: var(--human-text);
+}
+
+@media (max-width: 520px) {
+  .proof {
+    padding: var(--space-5) var(--space-4);
+  }
+  .proof__code {
+    font-size: var(--text-xs);
+    padding: var(--space-3);
+  }
+  .proof__line[data-law] {
+    margin: 0 calc(-1 * var(--space-3));
+    padding: 0 var(--space-3);
+  }
+  .proof__hint {
+    margin-left: 0;
+  }
+}

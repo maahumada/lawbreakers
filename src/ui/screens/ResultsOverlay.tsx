@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Level } from "../../engine/level.ts";
 import {
   SCORE_PER_FAILED_ATTEMPT,
@@ -9,6 +9,7 @@ import { useEngage } from "../../game/engageStore.ts";
 import { retry } from "../argus/engage.ts";
 import { useCountUp } from "../argus/useCountUp.ts";
 import { formatExpr } from "../machine/format.ts";
+import { ShowTheProof } from "../proof/ShowTheProof.tsx";
 
 const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : "0");
 
@@ -30,6 +31,8 @@ export function ResultsOverlay({ level, next }: Props) {
   const setPhase = useEngage((s) => s.setPhase);
   const firstRef = useRef<HTMLAnchorElement & HTMLButtonElement>(null);
   const total = useCountUp(result?.score.total ?? 0);
+  const [proofOpen, setProofOpen] = useState(false);
+  const closeProof = useCallback(() => setProofOpen(false), []);
 
   useEffect(() => {
     firstRef.current?.focus();
@@ -149,6 +152,14 @@ export function ResultsOverlay({ level, next }: Props) {
             <p className="results__end">Last mission cleared.</p>
           )}
           <button
+            type="button"
+            className="results__btn results__btn--proof"
+            onClick={() => setProofOpen(true)}
+            data-testid="show-proof"
+          >
+            Show the proof
+          </button>
+          <button
             ref={next ? undefined : firstRef}
             type="button"
             className="results__btn"
@@ -166,6 +177,7 @@ export function ResultsOverlay({ level, next }: Props) {
           </button>
         </div>
       </section>
+      {proofOpen && <ShowTheProof level={level} law={law} onClose={closeProof} />}
     </div>
   );
 }
