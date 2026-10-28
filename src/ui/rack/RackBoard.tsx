@@ -1,5 +1,5 @@
 import { useDraggable, useDroppable } from "@dnd-kit/core";
-import type { SyntheticEvent } from "react";
+import type { CSSProperties, SyntheticEvent } from "react";
 import type { Level } from "../../engine/level.ts";
 import type { RackNode, SlotPath } from "../../game/rack.ts";
 import { moduleShape, pathKey } from "../../game/rack.ts";
@@ -43,7 +43,25 @@ function EmptySocket({ cell, accepts }: { cell: SlotCell; accepts: Accepts }) {
   );
 }
 
-function PlacedModule({ node, path, level }: { node: RackNode; path: SlotPath; level: Level }) {
+function Sparks() {
+  return (
+    <span className="sparks" aria-hidden>
+      {Array.from({ length: 6 }, (_, i) => (
+        <span key={i} className="spark" />
+      ))}
+    </span>
+  );
+}
+
+interface PlacedProps {
+  node: RackNode;
+  path: SlotPath;
+  level: Level;
+  /** The module that feeds the SHIELD sparks when the Law is breached. */
+  sparking: boolean;
+}
+
+function PlacedModule({ node, path, level, sparking }: PlacedProps) {
   const key = pathKey(path);
   const { remove, setConst } = useRack.getState();
   const { setNodeRef, listeners, isDragging } = useDraggable({
@@ -82,6 +100,7 @@ function PlacedModule({ node, path, level }: { node: RackNode; path: SlotPath; l
         ×
       </button>
       <Plug type={shape.out} />
+      {sparking && <Sparks />}
     </div>
   );
 }
@@ -110,6 +129,9 @@ function shieldState(phase: EngagePhase, holds: boolean | null): ShieldState | u
 
 export function RackBoard({ level, layout, metrics: m, live, accepts }: BoardProps) {
   const { shield } = layout;
+  // Columns, deepest first: the success relays close one column after another into the SHIELD.
+  const colOf = (x: number) => Math.round((x - m.pad) / (m.cellW + m.gapX));
+  const cols = colOf(shield.x);
   const verdictState = useEngage((s) =>
     shieldState(s.phase, s.verdict ? s.verdict.kind === "holds" : null),
   );
@@ -119,6 +141,7 @@ export function RackBoard({ level, layout, metrics: m, live, accepts }: BoardPro
       data-live={live || undefined}
       data-shield={verdictState}
       data-testid="rack-board"
+      style={{ "--cols": cols } as CSSProperties}
     >
       <div className="board__canvas" style={{ width: layout.width, height: layout.height }}>
         <svg
@@ -136,7 +159,18 @@ export function RackBoard({ level, layout, metrics: m, live, accepts }: BoardPro
             >
               <path className="wire__glow" d={wirePath(w.from, w.to)} />
               <path className="wire__core" d={wirePath(w.from, w.to)} />
-              {live && <path className="wire__current" d={wirePath(w.from, w.to)} />}
+              {live && (
+                <>
+                  <path className="wire__current" d={wirePath(w.from, w.to)} />
+                  {/* One-shot surge when the circuit closes, deepest wires first. */}
+                  <path
+                    className="wire__surge"
+                    d={wirePath(w.from, w.to)}
+                    pathLength={1}
+                    style={{ "--seq": colOf(w.from.x - m.cellW) } as CSSProperties}
+                  />
+                </>
+              )}
             </g>
           ))}
         </svg>
@@ -145,10 +179,23 @@ export function RackBoard({ level, layout, metrics: m, live, accepts }: BoardPro
           <div
             key={cell.node ? `n${cell.node.id}` : `s${pathKey(cell.path)}`}
             className="board__cell"
-            style={{ left: cell.x, top: cell.y, width: m.cellW, height: m.cellH }}
+            style={
+              {
+                left: cell.x,
+                top: cell.y,
+                width: m.cellW,
+                height: m.cellH,
+                "--seq": colOf(cell.x),
+              } as CSSProperties
+            }
           >
             {cell.node ? (
-              <PlacedModule node={cell.node} path={cell.path} level={level} />
+              <PlacedModule
+                node={cell.node}
+                path={cell.path}
+                level={level}
+                sparking={cell.path.length === 0 && verdictState === "breached"}
+              />
             ) : (
               <EmptySocket cell={cell} accepts={accepts} />
             )}
@@ -166,13 +213,9 @@ export function RackBoard({ level, layout, metrics: m, live, accepts }: BoardPro
           <span className="shield__state" data-testid="shield-state">
             {verdictState ? SHIELD_TEXT[verdictState] : live ? "Closed" : "Open"}
           </span>
-          {verdictState === "breached" && (
-            <span className="shield__sparks" aria-hidden>
-              {Array.from({ length: 6 }, (_, i) => (
-                <span key={i} className="spark" />
-              ))}
-            </span>
-          )}
+          {verdictState === "breached" && <Sparks />}
+          <span className="shield__bolt shield__bolt--top" aria-hidden />
+          <span className="shield__bolt shield__bolt--bottom" aria-hidden />
         </div>
       </div>
     </div>

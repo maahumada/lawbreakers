@@ -5,6 +5,7 @@ import { z } from "zod";
 import type { BoolExpr, Expr, NumExpr, State } from "./expr.ts";
 import { freeVars } from "./expr.ts";
 import { ParseError, parseBool, parseNum } from "./parse.ts";
+import type { BreachKind } from "./score.ts";
 import type { VerdictKind } from "./types.ts";
 import { VERDICT_KINDS } from "./types.ts";
 
@@ -72,10 +73,81 @@ export function cardOf(e: Expr): CardId | null | "unavailable" {
 }
 
 // ---------------------------------------------------------------------------
+// Costs (DESIGN.md §4/§6). Cheap readings, pricier structure: a Law pays for every idea in it.
+
+/** Cost of one module, by family. Sensors and constant dials are the cheap leaves. */
+export const MODULE_COST = {
+  sensor: 1,
+  constant: 1,
+  arithmetic: 2,
+  scale: 2,
+  comparator: 2,
+  not: 2,
+  modulo: 3,
+  logic: 3,
+} as const;
+
+/** Cost of an operator card (`add` 2, `mod2` 3, `and` 3, …). */
+export function cardCost(card: CardId): number {
+  if (card === "add" || card === "sub") return MODULE_COST.arithmetic;
+  if (card === "and" || card === "or") return MODULE_COST.logic;
+  if (card === "not") return MODULE_COST.not;
+  if (card.startsWith("scale")) return MODULE_COST.scale;
+  if (card.startsWith("mod")) return MODULE_COST.modulo;
+  return MODULE_COST.comparator;
+}
+
+/** Cost of the module at the root of `e` alone (an unbuildable `×5` is priced like `×2`). */
+function nodeCost(e: Expr): number {
+  switch (e.k) {
+    case "var":
+      return MODULE_COST.sensor;
+    case "const":
+    case "bool":
+      return MODULE_COST.constant;
+    case "scale":
+      return MODULE_COST.scale;
+    case "mod":
+      return MODULE_COST.modulo;
+    default: {
+      const card = cardOf(e);
+      return card === null || card === "unavailable" ? MODULE_COST.constant : cardCost(card);
+    }
+  }
+}
+
+/** Total cost of a Law: the sum of its modules' costs. `A + B = 6` → 1 + 1 + 2 + 1 + 2 = 7. */
+export function lawCost(e: Expr): number {
+  switch (e.k) {
+    case "var":
+    case "const":
+    case "bool":
+      return nodeCost(e);
+    case "add":
+    case "sub":
+    case "cmp":
+    case "and":
+    case "or":
+      return nodeCost(e) + lawCost(e.l) + lawCost(e.r);
+    case "scale":
+    case "mod":
+    case "not":
+      return nodeCost(e) + lawCost(e.e);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Raw schema (the JSON on disk)
 
 const identifier = z.string().regex(/^[A-Za-z_][A-Za-z0-9_]*$/, "must be an identifier");
 const nonEmpty = z.string().min(1);
+const lines = z.array(nonEmpty).min(1);
+const BREACH_KINDS = [
+  "init_failure",
+  "live_breach",
+  "lab_breach",
+  "insufficient",
+] as const satisfies readonly BreachKind[];
 
 const rawVar = z.strictObject({
   name: identifier,
@@ -105,7 +177,21 @@ export const rawLevelSchema = z.strictObject({
   }),
   solutions: z.array(nonEmpty).min(1),
   knownWrong: z.array(z.strictObject({ law: nonEmpty, verdict: z.enum(VERDICT_KINDS) })),
-  argus: z.strictObject({ intro: z.array(nonEmpty).min(1) }),
+  argus: z.strictObject({
+    intro: z.array(nonEmpty).min(1),
+    /** Extra closing lines per failed verdict, mixed into ARGUS's global pools. */
+    taunts: z.partialRecord(z.enum(BREACH_KINDS), lines).optional(),
+    /** Extra closing lines when the Law holds. */
+    rattled: lines.optional(),
+    /** Banner hints after failures, least to most specific; per-kind lists replace `default`. */
+    hints: z.strictObject({
+      default: lines,
+      init_failure: lines.optional(),
+      live_breach: lines.optional(),
+      lab_breach: lines.optional(),
+      insufficient: lines.optional(),
+    }),
+  }),
 });
 
 export type RawLevel = z.infer<typeof rawLevelSchema>;
@@ -143,8 +229,11 @@ export interface Level {
   solutions: BoolExpr[];
   /** Test-only: wrong Laws with the verdict the engine must return. */
   knownWrong: { law: BoolExpr; verdict: VerdictKind }[];
-  argus: { intro: string[] };
+  argus: MissionArgus;
 }
+
+/** Mission-specific ARGUS text (see `game/argusLines.ts` for placeholders). */
+export type MissionArgus = RawLevel["argus"];
 
 export class LevelError extends Error {
   constructor(

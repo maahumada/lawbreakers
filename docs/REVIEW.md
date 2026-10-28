@@ -11,6 +11,36 @@ Things decided autonomously while the owner was away, or that need a human. Newe
 
 ## Decisions worth a second look
 
+- **Sound mix is unheard.** All SFX are synthesized and only unit-tested with a mocked
+  AudioContext; volumes (master 0.32, hum 0.05, klaxon 0.1) are guesses. Please listen once:
+  especially the hum while a Law is complete and the klaxon on MISSION FAILED (it plays twice:
+  breach, then failed).
+- **Intro skip is aggressive.** Per the brief, Enter, Esc or a click anywhere leaves the intro
+  entirely (no "fast-forward this line" step). START → intro only on the first visit; "Replay intro"
+  sits top-left on the title.
+- **Threat board copy** on mission select ("99.98% networked processors under ARGUS", progress
+  taunts) is invented flavour; desktop only (≥ 1180 px).
+- **Module costs and the score weight (M3-T7).** Sensor/constant 1; ADD/SUB/×k/comparators/NOT 2;
+  MOD/AND/OR 3; budgets = reference cost (01 7, 02 4, 03 6, 04 7, 05 11, 06 17). The efficiency
+  term dropped from 50 per module to 25 per cost point so a redundant conjunct still costs about
+  what it did. The bounded search found no cheaper holding Law anywhere, so no hand was changed;
+  the flip side is that the efficiency term is 0 for every optimal win (as before) and can only go
+  negative. If you want "spare budget" to be a reward, give budgets some slack.
+- **Hints are free and automatic.** The banner hint climbs a per-mission ladder with each failure;
+  DESIGN's "Hint used +10% breach" row is kept for a possible on-demand hint and is not wired.
+  The third rung is fairly specific (e.g. M01 "Feed both cells into ADD and watch its reading",
+  M04 "Feed the count into MOD 2 and watch its reading") — it names the module but never the
+  comparator or the constant. Tune in the level JSON (`argus.hints`).
+- **ARGUS taunt texts** in the level JSON (`argus.taunts`, `argus.rattled`) are mine; worth a read
+  for tone. Placeholders quote the real counterexample (e.g. M02 lab: "NO REAL VALVE REACHES x = 12.
+  MINE DOES. ONE CLOSE: x = 11. PIPES BURST.").
+- **Formatting touch on parallel files.** During M3-T3 I ran `prettier --write src` once; if the
+  juice/audio agent's files were mid-edit and unformatted, they got reformatted (formatting only,
+  no content change). `npm run lint` passes.
+- **`engage.ts` edited outside my area (M3-T3):** `present` now takes the Law and uses mission
+  line pools; a repeat line and the aftermath lines were added. Small, but it is the file the juice
+  pass hooks into — check for merge overlap.
+
 - **Dafny export and Dafny's own loop inference.** With plain `dafny verify`, a few wrong Laws
   (M02 `x != 11`, `x <= 11`; M05 `x >= 0`, `y >= 0`) verify anyway, because Dafny infers loop bounds by
   itself. `npm run dafny-check` disables that (`/infer:t`) to show the game's verdicts match Dafny's.

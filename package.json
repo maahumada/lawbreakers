@@ -22,7 +22,9 @@
     "pages-preview": "node scripts/pages-preview.mjs",
     "coi-smoke": "node scripts/coi-smoke.mjs",
     "dafny-check": "node scripts/dafny-check.mjs",
-    "proof-smoke": "node scripts/proof-smoke.mjs"
+    "proof-smoke": "node scripts/proof-smoke.mjs",
+    "juice-smoke": "node scripts/juice-smoke.mjs",
+    "cost-search": "node scripts/cost-search.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

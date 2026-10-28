@@ -4,12 +4,16 @@ import { missionStatus, useCampaign } from "../../game/campaign.ts";
 import { useEngage } from "../../game/engageStore.ts";
 import { useMission } from "../../game/missionStore.ts";
 import { useRack } from "../../game/rackStore.ts";
+import { installMissionSfx } from "../../audio/bindings.ts";
 import { warmUp } from "../../worker/client.ts";
 import { ArgusPanel } from "../argus/ArgusPanel.tsx";
-import { cancelEngage } from "../argus/engage.ts";
+import { cancelEngage, TYPE_MS_PER_CHAR } from "../argus/engage.ts";
 import { EngageConsole } from "../argus/EngageConsole.tsx";
+import { ImpactFx } from "../fx/ImpactFx.tsx";
+import { SoundToggle } from "../fx/SoundToggle.tsx";
 import { Slot } from "../layout/Slot.tsx";
 import { MachineView } from "../machine/MachineView.tsx";
+import { prefersReducedMotion } from "../motion.ts";
 import { RackEditor } from "../rack/RackEditor.tsx";
 import { navigate } from "../router.ts";
 import { MissionFailedOverlay } from "./MissionFailedOverlay.tsx";
@@ -57,6 +61,13 @@ export function MissionScreen({ level, index, levels }: Props) {
     warmUp().catch(() => undefined); // a failure resurfaces (and is reported) on ENGAGE
   }, []);
 
+  // Sound follows the stores while this screen is up (the hum must stop when it goes away).
+  useEffect(
+    () =>
+      installMissionSfx({ typeMsPerChar: () => (prefersReducedMotion() ? 0 : TYPE_MS_PER_CHAR) }),
+    [],
+  );
+
   const number = level.id.slice(0, 2);
 
   return (
@@ -88,6 +99,7 @@ export function MissionScreen({ level, index, levels }: Props) {
             <span className="mission__link">
               <span className="lamp" aria-hidden /> Air-gapped
             </span>
+            <SoundToggle />
           </span>
         </div>
         <h1 className="mission__title">
@@ -110,6 +122,7 @@ export function MissionScreen({ level, index, levels }: Props) {
         <ArgusPanel />
       </main>
 
+      <ImpactFx shakeSelector=".mission__grid" />
       {phase === "results" && <ResultsOverlay level={level} next={next} />}
       {phase === "failed" && <MissionFailedOverlay level={level} />}
     </div>

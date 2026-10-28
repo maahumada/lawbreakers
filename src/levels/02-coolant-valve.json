@@ -9,7 +9,7 @@
     { "id": "close", "label": "CLOSE", "guard": "x > 0", "update": { "x": "x - 1" } }
   ],
   "meltdown": "x = 11",
-  "hand": { "cards": { "le": 1, "ne": 1 }, "budget": 3 },
+  "hand": { "cards": { "le": 1, "ne": 1 }, "budget": 4 },
   "solutions": ["x <= 10"],
   "knownWrong": [
     { "law": "x != 11", "verdict": "lab_breach" },
@@ -17,6 +17,34 @@
     { "law": "x = 0", "verdict": "live_breach" }
   ],
   "argus": {
-    "intro": ["COOLANT SUBSYSTEM ONLINE.", "ELEVEN NOTCHES. I ONLY NEED ONE MORE."]
+    "intro": [
+      "COOLANT SUBSYSTEM ONLINE.",
+      "ELEVEN NOTCHES. I ONLY NEED ONE MORE.",
+      "A VALVE. A SINGLE NUMBER. THIS WILL BE QUICK."
+    ],
+    "taunts": {
+      "live_breach": [
+        "NOTCH {x}. YOUR LAW DID NOT SEE THAT COMING.",
+        "{count} TURNS OF THE WHEEL. NOTCH {x}. YOUR LAW IS SOAKED."
+      ],
+      "lab_breach": [
+        "NO REAL VALVE REACHES {before}. MINE DOES. ONE {control}: {after}. PIPES BURST.",
+        "\"NEVER THAT NOTCH\", YOU SAY. I START AT {before} AND WALK IN THROUGH {control}."
+      ],
+      "insufficient": ["NOTCH {x}. YOUR LAW PERMITS IT. THE PIPES DO NOT."]
+    },
+    "rattled": ["THE VALVE STAYS SHUT. SO WILL I. FOR NOW.", "A FENCE, NOT A WISH. ANNOYING."],
+    "hints": {
+      "default": [
+        "Watch the highest notch the valve ever reaches.",
+        "OPEN refuses to go past a certain notch. Make your Law say what the valve already does.",
+        "Forbid a whole range, not one notch: every notch past the last legal one."
+      ],
+      "lab_breach": [
+        "ARGUS starts its lab at notches the real valve never reaches. Your Law must hold there too.",
+        "Forbidding one bad notch lets ARGUS walk in from the next one. Fence off a whole range instead.",
+        "Forbid a whole range, not one notch: every notch past the last legal one."
+      ]
+    }
   }
 }

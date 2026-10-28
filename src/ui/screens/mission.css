@@ -175,22 +175,58 @@
   opacity: 1;
   text-shadow: 0 0 12px color-mix(in srgb, var(--human-primary) 60%, transparent);
   box-shadow: 0 0 24px color-mix(in srgb, var(--human-primary) 25%, transparent);
+  animation: engage-armed 2.2s ease-in-out 0.8s infinite;
 }
 
-/* --- Training mode -------------------------------------------------------- */
-
-/* The results dialog stays (Next mission, Retry), but a training win records no score: hide the
-   score and its breakdown and say so instead. */
-.mission[data-training] .results__score,
-.mission[data-training] .results__table {
-  display: none;
+/* Charge-up: when the Law completes, a charge bar fills the interlock once, then it idles armed. */
+.engage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition: transform var(--dur-fast);
 }
 
-.mission[data-training] .results__head::after {
-  content: "Training run: the mission counts as secured, but no score is recorded.";
-  display: block;
-  margin-top: var(--space-3);
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  color: var(--argus-secondary);
+.engage::before {
+  content: "";
+  position: absolute;
+  inset: 0 18px;
+  z-index: -1;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--human-primary) 30%, transparent) 85%,
+    color-mix(in srgb, var(--human-text) 50%, transparent)
+  );
+  transform: scaleX(0);
+  transform-origin: left;
+  opacity: 0;
+}
+
+.engage[data-ready]::before {
+  animation: engage-charge 0.8s cubic-bezier(0.4, 0, 0.9, 0.6) both;
+}
+
+.engage[data-ready]:active {
+  transform: translateY(2px);
+}
+
+@keyframes engage-charge {
+  0% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+  85% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes engage-armed {
+  50% {
+    box-shadow: 0 0 34px color-mix(in srgb, var(--human-primary) 42%, transparent);
+  }
 }

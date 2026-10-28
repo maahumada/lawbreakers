@@ -8,9 +8,12 @@ Notation: `x ∈ ℕ` means the variable has domain `nat` (the solver assumes `x
 `x ∈ ℤ` means domain `int`. Transitions are `guard → simultaneous updates`.
 
 **Hand rules:** sensors (one per gauge) and constants are always available in unlimited supply;
-`Cards` lists the operator modules the mission deals, with multiplicity. For the MVP every module
-(sensors and constants included) costs 1, so Budget = the module count of the reference Law. Costs
-get rebalanced in M3.
+`Cards` lists the operator modules the mission deals, with multiplicity. Module costs (M3-T7,
+`MODULE_COST` in `src/engine/level.ts`): sensor and constant 1; `ADD`, `SUB`, `×k`, comparators and
+`NOT` 2; `MOD k`, `AND`, `OR` 3. Budget = the cost of the reference Law. A bounded search over every
+Law each hand can build (dial values −2…12; `tests/costBalance.test.ts`, `npm run cost-search`)
+finds no holding Law cheaper than the reference in any mission; the cheapest holding Laws are listed
+per mission below.
 
 Every verdict below is confirmed by the real engine (`tests/conformance.test.ts`, M1-T7): each
 table row is a `solutions` or `knownWrong` entry in the mission's JSON. The states in the *Why*
@@ -31,7 +34,7 @@ row here, add it to the JSON too.
   - `TRANSFER A→B`: `A ≥ 1 → A := A − 1, B := B + 1`
   - `TRANSFER B→A`: `B ≥ 1 → B := B − 1, A := A + 1`
 - Meltdown: `A = 0 ∧ B = 0` (Safe: `¬(A = 0 ∧ B = 0)`).
-- Cards: `ADD`, `=`, `≥`. Budget: 5.
+- Cards: `ADD`, `=`, `≥`. Budget: 7. Cheapest holding Laws (cost 7): `A + B = 6` and `A + B ≥ c` for every `c` in 1…6.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -40,7 +43,7 @@ row here, add it to the JSON too.
 | `A ≥ 0` | INSUFFICIENT | allows `(0, 0)` |
 | `A = 2` | LIVE BREACH | one transfer |
 | `A + B = 7` | INIT FAILURE | `2 + 4 ≠ 7` |
-| `A + B ≥ 1` | **HOLDS** | also valid (alternative solution, same cost) |
+| `A + B ≥ 1` | **HOLDS** | also valid (alternative solution, same cost: 7) |
 
 ---
 
@@ -56,7 +59,7 @@ row here, add it to the JSON too.
   - `OPEN`: `x < 10 → x := x + 1`
   - `CLOSE`: `x > 0 → x := x − 1`
 - Meltdown: `x = 11`.
-- Cards: `≤`, `≠`. Budget: 3.
+- Cards: `≤`, `≠`. Budget: 4. Cheapest holding Law (cost 4): `x ≤ 10`, the only one.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -82,7 +85,7 @@ state. The player learns a Law must protect itself.
   - `PUSH`: `true → x := x + 1, y := y + 2`
   - `PULL`: `x > 0 → x := x − 1, y := y − 2`
 - Meltdown: `y = 7`.
-- Cards: `×2`, `=`, `≠`. Budget: 4.
+- Cards: `×2`, `=`, `≠`. Budget: 6. Cheapest holding Law (cost 6): `y = 2·x`, the only one.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -106,7 +109,7 @@ state. The player learns a Law must protect itself.
   - `INSERT PAIR`: `true → n := n + 2`
   - `REMOVE PAIR`: `n ≥ 2 → n := n − 2`
 - Meltdown: `n = 0`.
-- Cards: `MOD 2`, `=`, `≥`. Budget: 4.
+- Cards: `MOD 2`, `=`, `≥`. Budget: 7. Cheapest holding Laws (cost 7): `n mod 2 = 1`, `n mod 2 ≥ 1`.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -128,7 +131,7 @@ state. The player learns a Law must protect itself.
 - Controls:
   - `CYCLE`: `true → x := x + y, y := y + 1`
 - Meltdown: `x < 0`.
-- Cards: `≥ ×2`, `AND`. Budget: 7.
+- Cards: `≥ ×2`, `AND`. Budget: 11. Cheapest holding Law (cost 11): `x ≥ 0 ∧ y ≥ 0`, the only one.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -154,7 +157,7 @@ the defense that looks right because it is literally the safety condition.
   - `PULSE A→B`: `A ≥ 2 → A := A − 2, B := B + 2`
   - `PULSE B→A`: `B ≥ 2 → B := B − 2, A := A + 2`
 - Meltdown: `(A = 0 ∧ B = 0) ∨ A = 3`.
-- Cards: `ADD`, `MOD 2`, `= ×2`, `AND`, `OR`. Budget: 10.
+- Cards: `ADD`, `MOD 2`, `= ×2`, `AND`, `OR`. Budget: 17. Cheapest holding Laws (cost 17): `A + B = 6 ∧ A mod 2 = 0`, `A + B = 6 ∧ B mod 2 = 0`.
 
 | Law | Verdict | Why |
 |---|---|---|

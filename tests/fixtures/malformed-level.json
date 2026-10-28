@@ -11,5 +11,5 @@
   "hand": { "cards": { "add": 1 }, "budget": 3 },
   "solutions": ["q >= 0"],
   "knownWrong": [],
-  "argus": { "intro": ["TEST."] }
+  "argus": { "intro": ["TEST."], "hints": { "default": ["TEST HINT."] } }
 }

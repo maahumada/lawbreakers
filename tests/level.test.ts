@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { evalBool, pretty, size } from "../src/engine/expr.ts";
+import { evalBool, pretty } from "../src/engine/expr.ts";
 import {
   CARD_IDS,
   cardOf,
+  cardCost,
   initialState,
+  lawCost,
   LevelError,
   loadBundledLevels,
   loadLevel,
@@ -46,11 +48,22 @@ describe("bundled levels", () => {
     expect(m01 && initialState(m01)).toEqual({ A: 2, B: 4 });
   });
 
+  it("prices modules by family (sensors and dials 1, structure 2–3)", () => {
+    expect(lawCost(parseBool("A + B = 6"))).toBe(7);
+    expect(lawCost(parseBool("n mod 2 = 1"))).toBe(7);
+    expect(lawCost(parseBool("y = 2 * x"))).toBe(6);
+    expect(lawCost(parseBool("x >= 0 && y >= 0"))).toBe(11);
+    expect(lawCost(parseBool("!(x - 1 < 0) || true"))).toBe(2 + 2 + 2 + 1 + 1 + 1 + 3 + 1);
+    expect(CARD_IDS.map((id) => cardCost(id))).toEqual([
+      2, 2, 2, 2, 3, 3, 2, 2, 2, 2, 2, 2, 3, 3, 2,
+    ]);
+  });
+
   it.each(levels.map((l) => [l.id, l] as const))(
     "%s: budget matches the reference Law",
     (_id, l) => {
       const [reference] = l.solutions;
-      expect(reference && size(reference)).toBe(l.hand.budget);
+      expect(reference && lawCost(reference)).toBe(l.hand.budget);
     },
   );
 

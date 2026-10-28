@@ -1,0 +1,289 @@
+/* Intro cinematic. Act one is ARGUS's world (cold black, red alarm, hex grid); act two cuts to the
+   human console (warm black, amber, CRT). Lines stay on screen like a broadcast log. */
+
+.intro {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--space-5);
+  padding: var(--space-4) clamp(var(--space-4), 6vw, 6rem) var(--space-6);
+  background:
+    radial-gradient(
+      ellipse 90% 60% at 50% 110%,
+      color-mix(in srgb, var(--argus-primary) 16%, transparent),
+      transparent 70%
+    ),
+    var(--argus-bg);
+  color: var(--argus-text);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.intro[data-act="human"] {
+  background:
+    radial-gradient(
+      ellipse 70% 60% at 25% 40%,
+      color-mix(in srgb, var(--human-secondary) 16%, transparent),
+      transparent 70%
+    ),
+    var(--human-bg);
+  color: var(--human-text);
+}
+
+/* Alarm: the frame pulses red while the network falls. */
+.intro[data-alarm]::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 4px var(--argus-primary);
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    color-mix(in srgb, var(--argus-primary) 22%, transparent)
+  );
+  animation: intro-alarm 1.1s ease-in-out infinite;
+}
+
+@keyframes intro-alarm {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* Power cut between the acts. */
+.intro__surge {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: var(--black);
+  opacity: 0;
+  animation: intro-cut 0.7s steps(1) both;
+}
+
+.intro[data-act="argus"] .intro__surge {
+  animation: none;
+}
+
+@keyframes intro-cut {
+  0% {
+    opacity: 1;
+  }
+  20% {
+    opacity: 0.2;
+  }
+  30% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.4;
+  }
+  65% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* --- Top bar ------------------------------------------------------------- */
+
+.intro__bar {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+}
+
+.intro__channel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--argus-primary);
+}
+
+.intro[data-act="human"] .intro__channel {
+  color: var(--human-secondary);
+}
+
+.intro__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+  animation: fx-blink 0.9s steps(1) infinite;
+}
+
+.intro__controls {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.intro__skip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid currentColor;
+  background: transparent;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--argus-muted);
+  cursor: pointer;
+}
+
+.intro[data-act="human"] .intro__skip {
+  color: var(--human-secondary);
+}
+
+.intro__skip:hover {
+  color: var(--argus-text);
+}
+
+.intro[data-act="human"] .intro__skip:hover {
+  color: var(--human-primary);
+}
+
+.intro__skip kbd {
+  padding: 0 var(--space-1);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0;
+}
+
+/* --- Lines ---------------------------------------------------------------- */
+
+.intro__lines {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  max-width: 52rem;
+  margin-top: clamp(var(--space-3), 5vh, 4rem);
+  padding: 0;
+  list-style: none;
+}
+
+.intro__line {
+  font-family: var(--font-terminal);
+  font-size: clamp(1.25rem, 2.6vw, 1.9rem);
+  line-height: 1.15;
+  letter-spacing: 0.03em;
+  transition:
+    opacity 0.6s,
+    filter 0.6s;
+}
+
+/* Act one's lines stay, burnt out, once the analog world takes over. */
+.intro[data-act="human"] .intro__line[data-act="argus"] {
+  opacity: 0.3;
+  filter: grayscale(0.8);
+}
+
+.intro__line--date {
+  margin-bottom: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.8rem, 8vw, 5.5rem);
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+}
+
+.intro__line--alarm .intro__text {
+  padding: 0 var(--space-2);
+  background: var(--argus-primary);
+  color: var(--argus-bg);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--argus-primary) 55%, transparent);
+}
+
+.intro__value {
+  color: var(--argus-primary);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--argus-primary) 60%, transparent);
+}
+
+.intro__line--argus {
+  color: var(--argus-primary);
+  text-shadow:
+    -1px 0 color-mix(in srgb, var(--argus-secondary) 45%, transparent),
+    0 0 12px color-mix(in srgb, var(--argus-primary) 45%, transparent);
+}
+
+.intro__prompt {
+  margin-right: 0.5em;
+  color: var(--argus-muted);
+  text-shadow: none;
+}
+
+.intro__line--human {
+  color: var(--human-primary);
+  text-shadow:
+    0 0 4px color-mix(in srgb, var(--human-primary) 70%, transparent),
+    0 0 14px color-mix(in srgb, var(--human-primary) 35%, transparent);
+}
+
+.intro__line--mission {
+  margin-top: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 3.6vw, 2.7rem);
+  line-height: 1.05;
+  color: var(--human-text);
+}
+
+/* Lines after the takeover keep ARGUS's interjection on the human screen: it is still listening. */
+.intro[data-act="human"] .intro__line--argus[data-act="human"] {
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+}
+
+/* --- Footer --------------------------------------------------------------- */
+
+.intro__foot {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  min-height: 4.5rem;
+}
+
+.intro__hint {
+  font-size: var(--text-xs);
+  color: var(--argus-muted);
+}
+
+.intro[data-act="human"] .intro__hint {
+  color: var(--human-muted);
+}
+
+.intro__go {
+  animation: intro-go 0.4s ease-out both;
+}
+
+@keyframes intro-go {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro[data-alarm]::after,
+  .intro__surge,
+  .intro__dot {
+    animation: none;
+  }
+}

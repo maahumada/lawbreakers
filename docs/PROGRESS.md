@@ -6,8 +6,8 @@ along the way, and a log of each work session.
 
 ## Current state
 
-- **Milestone:** M3 — Content and depth
-- **Next task:** M3-T3 ARGUS personality
+- **Milestone:** M4 — Polish, playtest, submit
+- **Next task:** M4-T3 Tutorial overlay
 - **Blockers:** none
 - **Deployed URL:** https://maahumada.github.io/lawbreakers/ (live since 2026-10-28, auto-deploys on
   push to `main`; verified in Chromium, Firefox still unchecked)
@@ -18,6 +18,15 @@ Decisions that deviate from or refine the docs. Newest first.
 
 | Date | Decision | Why |
 |---|---|---|
+| 2026-10-28 | Intro plays inside the title route (no `?intro` URL) on the first START only; seen flag `lawbreakers:intro-seen`; "Replay intro" on the title once seen. Esc, Enter, a click anywhere or SKIP leave it (all go to mission select). It calls `warmUp()` on mount | the URL stays shareable; any obvious gesture gets the player out; Z3 boots during ~16 s of reading |
+| 2026-10-28 | Audio: one `AudioContext`, created/resumed on the first pointerdown/keydown (capture listener kept installed), master gain 0.32; mute in `lawbreakers:muted` (`"1"` = muted, default sound on). Sounds hook in by store subscriptions only (`audio/bindings.ts`): global (unlock, UI clicks) from `App`, mission sounds (rack, ENGAGE, scan, replay clacks, klaxon, success, typing ticks, hum) while `MissionScreen` is mounted | no game logic calls audio; the hum stops when the mission screen goes away |
+| 2026-10-28 | Juice timing hooks on existing phases: breach shake/flash on `replaying → verdict` with a failed verdict (the moment the meter fills); success relays on `data-shield="sealed"`, one column every 140 ms (`--relay-step`, same as `RELAY_STEP_S` in `sfx.ts`), all inside the 950 ms before the results open. Shake/flash use the Web Animations API (no remounts); reduced motion keeps a softer flash and no shake | no change to `engage.ts` timings or the smokes |
+| 2026-10-28 | Mission select gets an ARGUS threat board (radar of the six facilities + status + a progress taunt) from 1180 px up; hidden below | uses the empty right half on desktop, phones stay a clean list |
+| 2026-10-28 | Module costs (`MODULE_COST` in `engine/level.ts`, used by `lawCost` and the rack's `rackCost`): sensor/constant 1; `ADD`/`SUB`/`×k`/comparators/`NOT` 2; `MOD k`/`AND`/`OR` 3. Budget = cost of the reference Law (01: 7, 02: 4, 03: 6, 04: 7, 05: 11, 06: 17). Efficiency term now `25 × (budget − cost)` (was 50 per module) | structure costs more than readings; with costs roughly doubled, halving the per-point weight keeps the efficiency term on the old scale |
+| 2026-10-28 | Cost balance is a test: `tests/costBalance.test.ts` enumerates every Law each hand can build up to the reference cost (dials −2…12) and verifies the survivors of cheap concrete refutation with the real `verify`; `npm run cost-search` prints the wider report | a rebalanced hand or budget cannot silently open a cheaper unintended solution |
+| 2026-10-28 | ARGUS lines: global pools in `game/argusLines.ts` + per-mission `argus.taunts` / `argus.rattled` in the level JSON, mixed into the pools; placeholders include one per gauge from the verdict's key state. Extra lines: identical failed Law engaged again (`repeat`), first reach of 50% breach, every failure from 80%, first-try win, win after ≥ 3 failures. All picks take an injectable RNG | data-driven, deterministic tests, missions get a voice without code |
+| 2026-10-28 | Banner hints: per-mission ladder `argus.hints` (`default`, optional per-kind lists), one rung per failed engagement; init failures always get the generic power-on hint; lab/insufficient without their own list get the generic kind explanation first. Hints are free (the DESIGN "Hint used +10%" row is for a future on-demand hint) and tested never to contain a reference Law or a "comparator + number" fragment | escalate from nudge to specific without giving the answer |
+| 2026-10-28 | Training results are a proper variant of `ResultsOverlay` (reads `missionStore.training`): no tubes, breakdown or breach; a cyan note says no score is recorded. The CSS hiding in `mission.css` is gone | the dialog says what happened instead of hiding parts of it |
 | 2026-10-28 | Routing by query string: no query = title, `?missions` = mission select, `?mission=NN` = mission, `?dev` kept. In-app moves use `history.pushState` + a custom event (`ui/router.ts`, `useSyncExternalStore`), Back/Forward via `popstate`; a document click handler turns same-page `<a href="?…">` links (e.g. the results' "Next mission") into in-app navigations. Unknown `?mission=` numbers show mission select | no router dependency, static-hosting friendly, deep links work on Pages |
 | 2026-10-28 | Deep links to a locked mission are allowed and flagged OFF-CAMPAIGN in the header; winning it secures it (and unlocks its successor) without touching the missions before it | the jury may open any mission directly; no redirect surprises |
 | 2026-10-28 | Progress = list of secured mission ids in `localStorage` `lawbreakers:progress` (`{"secured": [...]}`); mission N+1 is available when N is secured, 01 always. Training flag in `lawbreakers:training`. "Reset progress" (with a confirm step) clears secured missions and best scores, keeps the training setting | small, robust to storage failures (every access in try/catch) |
@@ -69,6 +78,79 @@ Decisions that deviate from or refine the docs. Newest first.
 
 Newest first. One entry per completed task: what was done, files touched, anything surprising,
 follow-ups.
+
+### 2026-10-28 — M3-T5 Juice pass 1, M4-T1 Intro, M4-T2 Audio (+ mission select threat board)
+- Juice (`ui/rack/RackBoard.tsx`, `rack.css`): flowing current is brighter, the glow breathes, the
+  SHIELD jack pulses; a one-shot surge runs down the wires (deepest first, `pathLength=1` dash) when
+  the circuit closes; modules drop in with a "clack" animation; breach: wires short-flicker, sparks
+  on the root module as well as the SHIELD; holds: relays close column by column, two bolts lock the
+  SHIELD, a light sweep crosses the board. `ui/fx/ImpactFx.tsx`: screen shake + red flash (cyan for
+  lab breaches). `BreachMeter`: cells fill dark → white → red in sequence, notches at 50/75 %,
+  crossing one pulses the meter. ENGAGE: a charge bar fills once when the Law completes, then an
+  armed glow; press-down on click. All respect reduced motion (global rule + explicit `animation:
+  none` for loops).
+- Intro (`ui/screens/IntroScreen.tsx`, `introScript.ts`, `intro.css`, `game/introSeen.ts`): two
+  acts, ARGUS's (red alarm frame, hex grid, glitch) then a power cut to the amber CRT; status
+  lines show their value in red; ARGUS interjects twice; ends on "Open mission select".
+  `TitleScreen` shows it on the first START, "Replay intro" afterwards.
+- Audio (`src/audio/sound.ts`, `sfx.ts`, `bindings.ts`; `ui/fx/SoundToggle.tsx` on title, intro,
+  mission select and mission headers): clack, unplug, notch (dial/move), UI click, typing ticks
+  (rate limited), charge, scan beeps, klaxon, lab shimmer, success relays + chord, glitch, hum.
+- Mission select: `ThreatBoard.tsx` + `campaign.css` (layout grid, radar with a rotating sweep).
+- Tests: `tests/sfx.test.ts` (mocked AudioContext: every sound silent before a gesture and plays
+  after, no throw on a broken context, tick rate limit, hum follows mute, mute persists and works
+  without storage; intro seen flag; intro script; relay count). 265 tests.
+- Browser: new `scripts/juice-smoke.mjs` (`npm run juice-smoke`): intro on first START, skip by
+  button/Esc/Enter/click, the sound switch does not skip, seen flag, replay, mute persists, current
+  flows, breach sparks, holds, phone has no threat board and no horizontal scroll. Screenshots
+  `docs/screenshots/m4-t1-{intro-1,intro-2,intro-3,intro-end,intro-mobile,title,missions}.png`,
+  `m3-t5-{rack-live,breach,holds}.png`. `campaign-smoke` now goes through the intro (skips it) on
+  fresh profiles. `smoke` (`?dev`), `engage-smoke`, `missions-smoke`, `proof-smoke`, `campaign-smoke`
+  pass on `vite preview`; `rack-smoke` failed only on its hard-coded "Cost 5 / Budget 5" checks,
+  which M3-T7's new costs change (owned by the parallel session).
+- **Follow-ups:** no human has heard the mix yet (levels are guesses); the first ARGUS intro line's
+  prompt wraps above its text on desktop (reads as a speaker label, left as is); the nixie score
+  count-up already existed in the results.
+
+### 2026-10-28 — M3-T3 ARGUS personality, M3-T7 Cost rebalancing (+ training results variant)
+- **M3-T7:** `engine/level.ts` gains `MODULE_COST`, `cardCost`, `lawCost`; `game/rack.ts`
+  `rackCost` sums `moduleCost` (same table). `engine/score.ts`: `SCORE_PER_COST_POINT = 25`
+  replaces `SCORE_PER_SPARE_MODULE = 50`. Budgets 01 7, 02 4, 03 6, 04 7, 05 11, 06 17 (= reference
+  cost). `tests/fixtures/lawSearch.ts` (bounded enumerator over a hand + cheap sound refutation:
+  init, BFS, a box of states for lab/meltdown; survivors through `verify`), `tests/costBalance.test.ts`,
+  `scripts/cost-search.mjs` (`npm run cost-search [-- --slack N --only NN]`). Tests switched from
+  `size` to `lawCost` (conformance, level, rack); score tests updated for 25/point.
+- **Bounded-search results** (every buildable Law up to reference cost + 4, dials −2…12; the hands
+  are small enough that this is the whole buildable space for those dials): 01 1 780 Laws, cheapest
+  holding cost 7 = reference, alternatives `A + B ≥ c` for c = 1…6 at the same cost; 02 47 Laws,
+  only `x ≤ 10` (4); 03 134 Laws, only `y = 2·x` (6); 04 95 Laws, `n mod 2 = 1` and `n mod 2 ≥ 1`
+  (7); 05 2 080 Laws, only `x ≥ 0 ∧ y ≥ 0` (11); 06 159 837 Laws, `A + B = 6 ∧ A mod 2 = 0` and the
+  `B mod 2 = 0` twin (17). No mission has a cheaper unintended solution, so no hand changed.
+  Runtime: ~1 s per mission (06 ~9 s with slack 4), so the test runs in `npm test` at the
+  reference bound.
+- **M3-T3:** `game/argusLines.ts` rewritten: bigger global pools, `repeat`, `menaceMid`/`menaceHigh`
+  (`MENACE_MID` 50, `MENACE_HIGH` 80), `holdsFirstTry`, `holdsAfterStruggle`; `verdictPools`,
+  `pickVerdictLines`, `aftermathLines`, `GENERIC_HINTS`, `hintLadder`, `missionHint`, all with an
+  injectable RNG. Level schema: `argus.taunts`, `argus.rattled`, `argus.hints` (required
+  `default`); all six missions got a third intro line, taunts quoting counterexample values,
+  rattled lines and a 3-rung hint ladder (+ per-kind ladders where a kind needs its own story:
+  02/03/04/05 lab, 05/06 insufficient). `ui/argus/verdictText.ts`: `verdictVars` (placeholder
+  values incl. one per gauge), `verdictCopy(…, failures)` takes hints from `missionHint`;
+  `VerdictBanner` passes `missionStore.failures`. `ui/argus/engage.ts` (outside my area, minimal):
+  `present` uses `pickVerdictLines`, a repeat line before an identical failure (`mission|law|kind`
+  key, reset on RETRY), aftermath lines after `recordVerdict`.
+- **Training results:** `ResultsOverlay` renders its own training variant (`data-training`,
+  `results-training` test id); `.results__training` in `overlays.css`; the hiding rules removed from
+  `mission.css` (only edit there).
+- Docs: DESIGN §4 cost table, §5 ARGUS pools and hints, §6 formula (25 ×); LEVELS.md hand rules,
+  budgets and cheapest Laws per mission; ARCHITECTURE level-file `argus` fields and cost.
+- Tests: `tests/argus.test.ts` (pools, placeholders resolve for every mission × kind, determinism,
+  aftermath thresholds, hint ladder, hints never contain a reference Law), `tests/costBalance.test.ts`.
+  265 tests. `engage-smoke`, `campaign-smoke`, `missions-smoke` pass on `vite preview`
+  (screenshots written to a scratch dir; only `m3-t4-training-results.png` refreshed in docs).
+- **Follow-ups:** card faces in the hand do not show their cost yet (DESIGN §4 says they should;
+  `ui/rack/` belonged to the parallel juice task). Aftermath lines are appended untyped right after
+  the verdict (no pause); M3-T5 may want to pace them.
 
 ### 2026-10-28 — M3-T1 Campaign, M3-T2 Missions 02–06, M3-T4 Training mode
 - Game: `src/game/campaign.ts` (`missionStatus`, `nextMission`, `loadSecured`, Zustand `useCampaign`:

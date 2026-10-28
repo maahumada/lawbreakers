@@ -16,6 +16,34 @@
     var(--human-bg);
 }
 
+/* Top-left utility row (sound, replay intro), above the CRT overlay. */
+.title__bar {
+  position: absolute;
+  top: var(--space-4);
+  left: clamp(var(--space-4), 6vw, 6rem);
+  z-index: 3;
+  display: flex;
+  gap: var(--space-3);
+}
+
+.title__replay {
+  padding: 2px var(--space-2);
+  border: 1px solid var(--human-line);
+  background: transparent;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--human-muted);
+  cursor: pointer;
+}
+
+.title__replay:hover {
+  border-color: var(--human-primary);
+  color: var(--human-primary);
+}
+
 .title__main {
   display: grid;
   align-content: center;
@@ -443,5 +471,243 @@ a.station__plate:focus-visible {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-1) var(--space-3);
+  }
+}
+
+/* --- Threat board (mission select, wide screens only) ------------------------ */
+
+.select__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 60rem);
+}
+
+.threat {
+  display: none;
+}
+
+@media (min-width: 1180px) {
+  .select__layout {
+    grid-template-columns: minmax(0, 60rem) minmax(20rem, 26rem);
+    align-items: start;
+    gap: var(--space-6);
+    padding-right: var(--space-5);
+  }
+
+  .threat {
+    position: sticky;
+    top: var(--space-5);
+    display: grid;
+    gap: var(--space-5);
+    margin-top: var(--space-6);
+    padding: var(--space-5);
+    border: 0;
+    border-left: 6px solid transparent;
+    border-image: repeating-linear-gradient(
+        -45deg,
+        var(--argus-primary) 0 8px,
+        var(--argus-bg) 8px 16px
+      )
+      6;
+    background: var(--argus-bg);
+    color: var(--argus-text);
+  }
+}
+
+.threat__head {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.threat__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-xl);
+  letter-spacing: 0.3em;
+  color: var(--argus-primary);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--argus-primary) 55%, transparent);
+}
+
+.threat__sub {
+  font-family: var(--font-terminal);
+  font-size: var(--text-lg);
+  color: var(--argus-secondary);
+}
+
+.threat__radar {
+  position: relative;
+  width: min(100%, 17rem);
+  aspect-ratio: 1;
+  justify-self: center;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--argus-primary) 10%, transparent),
+    transparent 70%
+  );
+}
+
+.threat__radar svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.radar__ring,
+.radar__cross {
+  fill: none;
+  stroke: color-mix(in srgb, var(--argus-primary) 35%, transparent);
+  stroke-width: 0.8;
+}
+
+.radar__cross {
+  stroke-dasharray: 2 3;
+}
+
+.radar__blip {
+  fill: var(--argus-muted);
+  font-family: var(--font-terminal);
+  font-size: 11px;
+}
+
+.radar__blip text {
+  fill: var(--argus-muted);
+}
+
+.radar__blip[data-status="available"] {
+  fill: var(--argus-primary);
+}
+
+.radar__blip[data-status="available"] text {
+  fill: var(--argus-text);
+}
+
+.radar__blip[data-status="secured"] {
+  fill: var(--human-primary);
+}
+
+.radar__blip[data-status="secured"] text {
+  fill: var(--human-primary);
+}
+
+.radar__ping {
+  fill: none;
+  stroke: var(--argus-primary);
+  stroke-width: 1.2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: radar-ping 1.6s ease-out infinite;
+}
+
+@keyframes radar-ping {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(4);
+  }
+}
+
+/* The sweep: a cone of red light turning over the rings. */
+.radar__sweep {
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  pointer-events: none;
+  background: conic-gradient(
+    from 0deg,
+    color-mix(in srgb, var(--argus-primary) 45%, transparent),
+    transparent 22%
+  );
+  -webkit-mask: radial-gradient(circle, var(--black) 69%, transparent 70%);
+  mask: radial-gradient(circle, var(--black) 69%, transparent 70%);
+  animation: radar-sweep 5s linear infinite;
+}
+
+@keyframes radar-sweep {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.threat__legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2) var(--space-4);
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-xs);
+  color: var(--argus-muted);
+}
+
+.threat__legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.threat__key {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--argus-muted);
+}
+
+.threat__legend [data-status="available"] .threat__key {
+  background: var(--argus-primary);
+}
+
+.threat__legend [data-status="secured"] .threat__key {
+  border-radius: 0;
+  background: var(--human-primary);
+}
+
+.threat__stats {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.threat__stats div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px dashed var(--argus-line);
+}
+
+.threat__stats dt {
+  font-size: var(--text-xs);
+  color: var(--argus-muted);
+}
+
+.threat__stats dd {
+  margin: 0;
+  font-family: var(--font-terminal);
+  font-size: var(--text-lg);
+  text-align: right;
+  text-transform: uppercase;
+  color: var(--argus-text);
+}
+
+.threat__line {
+  font-family: var(--font-terminal);
+  font-size: var(--text-lg);
+  line-height: 1.3;
+  color: var(--argus-text);
+}
+
+.threat__prompt {
+  color: var(--argus-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radar__sweep,
+  .radar__ping {
+    animation: none;
   }
 }

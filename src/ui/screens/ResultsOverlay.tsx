@@ -3,9 +3,10 @@ import type { Level } from "../../engine/level.ts";
 import {
   SCORE_PER_FAILED_ATTEMPT,
   SCORE_PER_INTEGRITY_POINT,
-  SCORE_PER_SPARE_MODULE,
+  SCORE_PER_COST_POINT,
 } from "../../engine/score.ts";
 import { useEngage } from "../../game/engageStore.ts";
+import { useMission } from "../../game/missionStore.ts";
 import { retry } from "../argus/engage.ts";
 import { useCountUp } from "../argus/useCountUp.ts";
 import { formatExpr } from "../machine/format.ts";
@@ -24,8 +25,12 @@ interface Props {
   next: Level | undefined;
 }
 
-/** THE LAW HOLDS: score breakdown, the Law, retry / next mission. */
+/**
+ * THE LAW HOLDS: score breakdown, the Law, retry / next mission. A training win records no score,
+ * so its variant drops the tubes, the breakdown and the breach, and says why.
+ */
 export function ResultsOverlay({ level, next }: Props) {
+  const training = useMission((m) => m.training);
   const result = useEngage((s) => s.result);
   const law = useEngage((s) => s.law);
   const setPhase = useEngage((s) => s.setPhase);
@@ -47,7 +52,7 @@ export function ResultsOverlay({ level, next }: Props) {
     { label: "Law holds", how: "base", value: score.base },
     {
       label: "Efficiency",
-      how: `${SCORE_PER_SPARE_MODULE} × (budget ${result.budget} − cost ${result.cost})`,
+      how: `${SCORE_PER_COST_POINT} × (budget ${result.budget} − cost ${result.cost})`,
       value: score.efficiency,
     },
     {
@@ -65,7 +70,7 @@ export function ResultsOverlay({ level, next }: Props) {
   const digits = String(total).padStart(4, "0").split("");
 
   return (
-    <div className="overlay" data-testid="results">
+    <div className="overlay" data-testid="results" data-training={training || undefined}>
       <section
         className="results panel"
         role="dialog"
@@ -79,43 +84,52 @@ export function ResultsOverlay({ level, next }: Props) {
           <h2 className="results__title fx-glow" id="results-title">
             The Law holds
           </h2>
+          {training && (
+            <p className="results__training" data-testid="results-training">
+              Training run: the mission counts as secured, but no score is recorded.
+            </p>
+          )}
         </header>
 
-        <div className="results__score">
-          <div className="results__tubes" role="img" aria-label={`Score ${score.total}`}>
-            {digits.map((d, i) => (
-              <span key={`${i}-${d}`} className="tube" aria-hidden>
-                {d}
-              </span>
-            ))}
-          </div>
-          <p className="results__best" data-testid="results-best">
-            {result.newBest ? "New best for this mission" : `Best ${result.best}`}
-          </p>
-        </div>
+        {!training && (
+          <>
+            <div className="results__score">
+              <div className="results__tubes" role="img" aria-label={`Score ${score.total}`}>
+                {digits.map((d, i) => (
+                  <span key={`${i}-${d}`} className="tube" aria-hidden>
+                    {d}
+                  </span>
+                ))}
+              </div>
+              <p className="results__best" data-testid="results-best">
+                {result.newBest ? "New best for this mission" : `Best ${result.best}`}
+              </p>
+            </div>
 
-        <table className="results__table">
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.label}>
-                <th scope="row">{r.label}</th>
-                <td className="results__how">{r.how}</td>
-                <td className="results__value" data-negative={r.value < 0 || undefined}>
-                  {signed(r.value)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr>
-              <th scope="row">Score</th>
-              <td className="results__how" />
-              <td className="results__value" data-testid="results-total">
-                {score.total}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
+            <table className="results__table">
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.label}>
+                    <th scope="row">{r.label}</th>
+                    <td className="results__how">{r.how}</td>
+                    <td className="results__value" data-negative={r.value < 0 || undefined}>
+                      {signed(r.value)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th scope="row">Score</th>
+                  <td className="results__how" />
+                  <td className="results__value" data-testid="results-total">
+                    {score.total}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </>
+        )}
 
         <dl className="results__facts">
           <div className="results__law">
@@ -132,10 +146,12 @@ export function ResultsOverlay({ level, next }: Props) {
             <dt>Attempts</dt>
             <dd>{result.attempts}</dd>
           </div>
-          <div>
-            <dt>AI breach</dt>
-            <dd>{result.breach}%</dd>
-          </div>
+          {!training && (
+            <div>
+              <dt>AI breach</dt>
+              <dd>{result.breach}%</dd>
+            </div>
+          )}
         </dl>
 
         <div className="results__actions">

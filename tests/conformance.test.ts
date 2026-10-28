@@ -4,20 +4,9 @@
 
 import { afterAll, describe, expect, it } from "vitest";
 import type { Expr } from "../src/engine/expr.ts";
-import {
-  and,
-  c,
-  evalBool,
-  ge,
-  not,
-  pretty,
-  scale,
-  size,
-  substBool,
-  v,
-} from "../src/engine/expr.ts";
+import { and, c, evalBool, ge, not, pretty, scale, substBool, v } from "../src/engine/expr.ts";
 import type { CardId, Level } from "../src/engine/level.ts";
-import { cardOf, initialState, loadBundledLevels } from "../src/engine/level.ts";
+import { cardOf, initialState, lawCost, loadBundledLevels } from "../src/engine/level.ts";
 import { findModel, shutdownZ3 } from "../src/engine/smt.ts";
 import { domainConstraints, verify } from "../src/engine/verify.ts";
 
@@ -94,7 +83,7 @@ describe.each(levels.map((l) => [l.id, l] as const))("%s", (_id, level) => {
     "solution %s fits the hand and budget",
     (_law, law) => {
       expect(missingCards(level, law)).toEqual([]);
-      expect(size(law)).toBeLessThanOrEqual(level.hand.budget);
+      expect(lawCost(law)).toBeLessThanOrEqual(level.hand.budget);
     },
   );
 

@@ -13,6 +13,7 @@ export function VerdictBanner({ level }: { level: Level }) {
   const hasResult = useEngage((s) => s.result !== null);
   const setPhase = useEngage((s) => s.setPhase);
   const breach = useMission((m) => m.breach);
+  const failures = useMission((m) => m.failures);
   const ref = useRef<HTMLElement>(null);
   const actionRef = useRef<HTMLButtonElement>(null);
 
@@ -22,7 +23,8 @@ export function VerdictBanner({ level }: { level: Level }) {
   }, []);
 
   if (!verdict || !law) return null;
-  const copy = verdictCopy(level, law, verdict);
+  // The banner shows once the verdict is recorded, so `failures` already counts this one.
+  const copy = verdictCopy(level, law, verdict, failures);
   const holds = verdict.kind === "holds";
 
   return (

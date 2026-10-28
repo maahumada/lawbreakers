@@ -137,8 +137,17 @@ The root of the rack is the **SHIELD** socket (square): whatever signal reaches 
 Everything stays in **linear integer arithmetic + modulo by a constant**: decidable, fast for Z3, and
 enough for every mission. No variable × variable.
 
-Each module has a **cost** (shown on the card). Sensors and constants are cheap, logic is pricier.
-The cost of the Law is part of the score.
+Each module has a **cost**. Sensors and constants are cheap, logic is pricier:
+
+| Module | Cost |
+|---|---|
+| Sensor, constant | 1 |
+| `ADD`, `SUB`, `×k`, comparators, `NOT` | 2 |
+| `MOD k`, `AND`, `OR` | 3 |
+
+The cost of the Law is part of the score. Each mission's budget is the cost of its reference Law,
+and a bounded search over every Law its hand can build (`npm run cost-search`, also a test) finds
+no cheaper Law that holds.
 
 ### Example (Mission 01)
 
@@ -149,7 +158,7 @@ The cost of the Law is part of the score.
           [6] ────┘
 ```
 
-Reads as `A + B = 6`. Underneath the rack there is always a small live readout of the formula, so
+Reads as `A + B = 6`, cost 1 + 1 + 2 + 1 + 2 = 7. Underneath the rack there is always a small live readout of the formula, so
 players who want the math can see it. Players who don't can ignore it.
 
 ---
@@ -173,7 +182,14 @@ and on success:
 > ARGUS: THIS IS NOT POSSIBLE.
 ```
 
-A small pool of lines per verdict, picked at random, keeps it alive. ARGUS's side of the screen is
+A pool of lines per verdict, picked at random, keeps it alive; each mission adds its own taunts
+(quoting the actual counterexample: gauge values, the control it pressed) and rattled lines. ARGUS
+notices an identical failed Law engaged twice, gloats when the breach first reaches 50%, and
+threatens after every failure from 80%. A first-try win and a hard-fought one get their own lines.
+
+After a failure the verdict banner shows a **hint**: a ladder per mission (optionally per verdict
+kind), one rung per failed engagement, from a nudge ("Count by twos.") to something specific
+("Feed the count into MOD 2 and watch its reading."). Hints never spell out the Law. ARGUS's side of the screen is
 digital (red, hex grids, scanlines); the player's side is analog (amber, brass, relays).
 
 ---
@@ -211,7 +227,7 @@ locked mission still opens it, flagged OFF-CAMPAIGN.
 
 ```
 score = 1000
-      + 50 × (hand budget − Law cost)
+      + 25 × (hand budget − Law cost)
       + 5  × (100 − breach%)
       − 100 × (failed attempts)
       + time bonus (max 200, decays over 5 minutes)
@@ -255,7 +271,8 @@ This is the reveal: the player was doing program verification the whole time.
 
 **Audio** (WebAudio, mostly synthesized, so no asset licensing): relay click on plug, hum while the
 circuit is complete, scanning beeps during attack, klaxon on breach, a rising chord on success. Mute
-toggle always visible.
+toggle always visible (every screen's top bar), remembered between visits; sound starts on the first
+click or key press (browser rule).
 
 ---
 

@@ -1,0 +1,57 @@
+/* Screen-level effects and the sound switch. */
+
+/* --- Breach flash ---------------------------------------------------------- */
+
+.impact-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--argus-primary) 35%, transparent),
+    color-mix(in srgb, var(--argus-primary) 80%, transparent)
+  );
+  mix-blend-mode: screen;
+}
+
+.impact-flash[data-tone="lab"] {
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--argus-secondary) 20%, transparent),
+    color-mix(in srgb, var(--argus-secondary) 60%, transparent)
+  );
+}
+
+/* --- Sound switch ------------------------------------------------------------ */
+
+.sound-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border: 1px solid var(--human-line);
+  background: transparent;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--human-muted);
+  cursor: pointer;
+}
+
+.sound-toggle[aria-pressed="true"] {
+  border-color: var(--human-secondary);
+  color: var(--human-secondary);
+}
+
+.sound-toggle:hover {
+  border-color: var(--human-primary);
+  color: var(--human-primary);
+}
+
+.sound-toggle__icon {
+  flex: none;
+}

@@ -3,11 +3,12 @@
 // (breach, attempts, score). Every await re-checks a run token, so REBUILD, RETRY or leaving the
 // mission cancels a sequence in flight.
 
+import type { BoolExpr } from "../../engine/expr.ts";
 import type { Level } from "../../engine/level.ts";
 import { initialState } from "../../engine/level.ts";
 import { BREACH_MAX, scoreMission } from "../../engine/score.ts";
 import type { Verdict } from "../../engine/types.ts";
-import { ARGUS_LINES, pickLine } from "../../game/argusLines.ts";
+import { aftermathLines, ARGUS_LINES, pickLine, pickVerdictLines } from "../../game/argusLines.ts";
 import { loadBest, saveBest } from "../../game/bestScores.ts";
 import { useCampaign } from "../../game/campaign.ts";
 import type { LineTone } from "../../game/engageStore.ts";
@@ -17,7 +18,7 @@ import { useRack } from "../../game/rackStore.ts";
 import { verifyLaw } from "../../worker/client.ts";
 import { formatExpr } from "../machine/format.ts";
 import { prefersReducedMotion, revealElement } from "../motion.ts";
-import { controlLabel, formatMoves, formatState } from "./verdictText.ts";
+import { verdictVars } from "./verdictText.ts";
 
 /** Typing speed of ARGUS's terminal (also used by `TypedLine`). */
 export const TYPE_MS_PER_CHAR = 18;
@@ -39,6 +40,9 @@ const pace = (): Pace =>
 class Cancelled extends Error {}
 
 let run = 0;
+
+/** `mission|law|kind` of the last failed engagement, to spot an identical retry. */
+let lastFailure: string | null = null;
 
 const sleep = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
 
@@ -90,16 +94,29 @@ async function play(level: Level): Promise<void> {
   }
   alive();
 
+  const failureKey = `${level.id}|${formatExpr(law)}|${verdict.kind}`;
+  if (verdict.kind !== "holds" && failureKey === lastFailure) {
+    await say(pickLine(ARGUS_LINES.repeat));
+  }
+  lastFailure = verdict.kind === "holds" ? null : failureKey;
+
   useEngage.getState().setVerdict(verdict, 0);
   useEngage.getState().setPhase("replaying");
   revealElement(document.querySelector("[data-replay-target]"), "start");
-  await present(level, verdict, { say, wait, step: p.step });
+  await present(level, law, verdict, { say, wait, step: p.step });
 
   const mission = useMission.getState();
   const before = mission.breach;
   mission.recordVerdict(verdict.kind);
   const after = useMission.getState();
   useEngage.getState().setVerdict(verdict, after.breach - before);
+  const aftermath = aftermathLines({
+    kind: verdict.kind,
+    breachBefore: before,
+    breachAfter: after.breach,
+    failures: after.failures,
+  });
+  for (const text of aftermath) useEngage.getState().say(text);
 
   if (verdict.kind === "holds") {
     const cost = useRack.getState().cost;
@@ -146,59 +163,52 @@ interface Beats {
   step: number;
 }
 
-/** Show the verdict on the machine, with ARGUS narrating. */
-async function present(level: Level, v: Verdict, { say, wait, step }: Beats): Promise<void> {
+/** Show the verdict on the machine, with ARGUS narrating (global and mission lines). */
+async function present(
+  level: Level,
+  law: BoolExpr,
+  v: Verdict,
+  { say, wait, step }: Beats,
+): Promise<void> {
   const m = useMission.getState();
-  const lines = ARGUS_LINES.verdict[v.kind];
+  const lines = pickVerdictLines(level, v.kind, verdictVars(level, law, v));
   switch (v.kind) {
-    case "init_failure": {
-      const vars = { state: formatState(level, v.state) };
+    case "init_failure":
       m.show(v.state, "init");
-      await say(pickLine(lines.found, vars));
-      await say(pickLine(lines.closing, vars));
+      await say(lines.found);
+      await say(lines.closing);
       return;
-    }
     case "live_breach": {
       const [start, ...moves] = v.trace;
       if (!start) return;
       m.show(start.state, "live");
-      await say(pickLine(lines.found, { moves: formatMoves(level, v) }));
+      await say(lines.found);
       for (const t of moves) {
         await wait(step);
         m.replayFire(t.control);
       }
       await wait(step / 2);
-      await say(
-        pickLine(lines.closing, { state: formatState(level, v.trace.at(-1)?.state ?? {}) }),
-      );
+      await say(lines.closing);
       return;
     }
-    case "lab_breach": {
-      const vars = {
-        before: formatState(level, v.before),
-        after: formatState(level, v.after),
-        control: controlLabel(level, v.control),
-      };
-      await say(pickLine(lines.found, vars));
+    case "lab_breach":
+      await say(lines.found);
       m.show(v.before, "lab");
       await wait(step * 1.5);
       m.replayFire(v.control);
       await wait(step / 2);
-      await say(pickLine(lines.closing, vars));
+      await say(lines.closing);
       return;
-    }
-    case "insufficient": {
-      const vars = { state: formatState(level, v.state) };
-      await say(pickLine(lines.found, vars));
+    case "insufficient":
+      await say(lines.found);
       m.show(v.state, "meltdown");
       await wait(step / 2);
-      await say(pickLine(lines.closing, vars));
+      await say(lines.closing);
       return;
-    }
     case "holds":
       m.show(initialState(level), "holds");
-      await say(pickLine(lines.found));
-      await say(pickLine(lines.closing));
+      await say(lines.found);
+      await say(lines.closing);
       return;
   }
 }
@@ -223,6 +233,7 @@ export function rebuild(): void {
 /** RETRY: the whole mission from scratch (breach, attempts, clock, rack, terminal). */
 export function retry(level: Level): void {
   cancelEngage();
+  lastFailure = null;
   useMission.getState().restart();
   useRack.getState().reset(level);
   useEngage.getState().reset(level);

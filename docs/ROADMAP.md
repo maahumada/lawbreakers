@@ -72,19 +72,19 @@ Goal: a stranger can open the URL, play Mission 01 start to finish and understan
 
 - [x] **M3-T1** Campaign: mission select, unlock progression, progress in `localStorage`.
 - [x] **M3-T2** Missions 02–06 playable; per-mission briefing art / gauge layout as needed.
-- [ ] **M3-T3** ARGUS personality: line pools per verdict and per mission, typing effect.
+- [x] **M3-T3** ARGUS personality: line pools per verdict and per mission, typing effect.
 - [x] **M3-T4** Training mode toggle (no breach, no score).
-- [ ] **M3-T5** Juice pass 1: wire current animation, breach screen shake + sparks, success relay
+- [x] **M3-T5** Juice pass 1: wire current animation, breach screen shake + sparks, success relay
   sequence, nixie score count-up.
 - [x] **M3-T6** Show the Proof: `dafny.ts`, panel with syntax highlighting and copy button.
   *Accept:* the six reference programs verify with real Dafny (run once by hand, paste output in PR).
-- [ ] **M3-T7** Cost rebalancing: per-module costs and budgets tuned so the reference Law is the
+- [x] **M3-T7** Cost rebalancing: per-module costs and budgets tuned so the reference Law is the
   optimum or close to it.
 
 ## M4 — Polish, playtest, submit (Nov 20 → Nov 28)
 
-- [ ] **M4-T1** Intro sequence (`YEAR 2050. GLOBAL NETWORK COMPROMISED…`), skippable.
-- [ ] **M4-T2** Audio: synthesized SFX for plug, hum, scan, klaxon, success; mute toggle.
+- [x] **M4-T1** Intro sequence (`YEAR 2050. GLOBAL NETWORK COMPROMISED…`), skippable.
+- [x] **M4-T2** Audio: synthesized SFX for plug, hum, scan, klaxon, success; mute toggle.
 - [ ] **M4-T3** Tutorial overlay on Mission 01 (first-time hints on telemetry, rack, engage).
 - [ ] **M4-T4** Playtest with 3–5 classmates; collect notes in `docs/PLAYTEST.md`; fix top issues.
 - [ ] **M4-T5** Mobile/tablet layout check, keyboard accessibility for the rack, reduced-motion mode.

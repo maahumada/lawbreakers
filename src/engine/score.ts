@@ -23,7 +23,8 @@ export function addBreach(breach: number, kind: VerdictKind): number {
 }
 
 export const SCORE_BASE = 1000;
-export const SCORE_PER_SPARE_MODULE = 50;
+/** Per cost point under (or over) the budget. Module costs are 1–3 (`MODULE_COST`). */
+export const SCORE_PER_COST_POINT = 25;
 export const SCORE_PER_INTEGRITY_POINT = 5;
 export const SCORE_PER_FAILED_ATTEMPT = 100;
 export const TIME_BONUS_MAX = 200;
@@ -33,7 +34,7 @@ export interface ScoreInput {
   verdict: VerdictKind;
   /** Hand budget of the mission. */
   budget: number;
-  /** Modules in the winning Law. May exceed the budget. */
+  /** Cost of the winning Law (`lawCost`). May exceed the budget. */
   cost: number;
   /** Breach percent when the Law held. */
   breach: number;
@@ -45,7 +46,7 @@ export interface ScoreInput {
 
 export interface ScoreBreakdown {
   base: number;
-  /** `50 × (budget − cost)`: negative when over budget. */
+  /** `25 × (budget − cost)`: negative when over budget. */
   efficiency: number;
   /** `5 × (100 − breach)`. */
   integrity: number;
@@ -72,7 +73,7 @@ export function scoreMission(input: ScoreInput): ScoreBreakdown | null {
   const breach = Math.min(BREACH_MAX, Math.max(0, input.breach));
   const parts = {
     base: SCORE_BASE,
-    efficiency: SCORE_PER_SPARE_MODULE * (input.budget - input.cost),
+    efficiency: SCORE_PER_COST_POINT * (input.budget - input.cost),
     integrity: SCORE_PER_INTEGRITY_POINT * (BREACH_MAX - breach),
     attempts: 0 - SCORE_PER_FAILED_ATTEMPT * Math.max(0, input.failedAttempts),
     time: timeBonus(input.elapsedMs),

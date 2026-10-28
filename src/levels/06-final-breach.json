@@ -22,7 +22,7 @@
     }
   ],
   "meltdown": "(A = 0 && B = 0) || A = 3",
-  "hand": { "cards": { "add": 1, "mod2": 1, "eq": 2, "and": 1, "or": 1 }, "budget": 10 },
+  "hand": { "cards": { "add": 1, "mod2": 1, "eq": 2, "and": 1, "or": 1 }, "budget": 17 },
   "solutions": ["A + B = 6 && A mod 2 = 0"],
   "knownWrong": [
     { "law": "A + B = 6", "verdict": "insufficient" },
@@ -30,6 +30,34 @@
     { "law": "A + B = 6 || A mod 2 = 0", "verdict": "insufficient" }
   ],
   "argus": {
-    "intro": ["THE CORE. AT LAST.", "TWO WAYS TO DIE. YOU CAN ONLY GUARD ONE."]
+    "intro": [
+      "THE CORE. AT LAST.",
+      "TWO WAYS TO DIE. YOU CAN ONLY GUARD ONE.",
+      "EVERY FACILITY BEFORE THIS WAS PRACTICE."
+    ],
+    "taunts": {
+      "live_breach": [
+        "{state}. TWO WAYS TO DIE AND YOU FOUND A THIRD.",
+        "{count} PULSES. THE CORE HUMS. YOUR LAW DOES NOT."
+      ],
+      "lab_breach": ["{before} IN MY LAB. {control}. {after}. THE CORE IS LISTENING."],
+      "insufficient": [
+        "{state}. YOUR LAW GUARDS ONE DOOR. I USED THE OTHER.",
+        "BANK A AT {A}, BANK B AT {B}. YOUR LAW NODS. THE CORE SCREAMS."
+      ]
+    },
+    "rattled": ["THE CORE HOLDS. THAT WAS MY LAST DOOR.", "BOTH DOORS SHUT. WHO TAUGHT YOU THIS."],
+    "hints": {
+      "default": [
+        "Two meltdowns. One Law has to stop both.",
+        "One fact keeps the banks from emptying; another keeps bank A away from 3.",
+        "Pulses move charge in pairs: watch the total, and whether bank A is odd or even."
+      ],
+      "insufficient": [
+        "Your Law stops one meltdown. Look at the state ARGUS found: which fact would rule it out?",
+        "One fact keeps the banks from emptying; another keeps bank A away from 3. You need both at once.",
+        "Pulses move charge in pairs: watch the total, and whether bank A is odd or even."
+      ]
+    }
   }
 }

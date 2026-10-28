@@ -22,7 +22,7 @@
     }
   ],
   "meltdown": "A = 0 && B = 0",
-  "hand": { "cards": { "add": 1, "eq": 1, "ge": 1 }, "budget": 5 },
+  "hand": { "cards": { "add": 1, "eq": 1, "ge": 1 }, "budget": 7 },
   "solutions": ["A + B = 6", "A + B >= 1"],
   "knownWrong": [
     { "law": "A >= 1", "verdict": "live_breach" },
@@ -31,6 +31,32 @@
     { "law": "A + B = 7", "verdict": "init_failure" }
   ],
   "argus": {
-    "intro": ["REACTOR LOCATED. BEGINNING ANALYSIS.", "TWO CELLS. ONE CITY. HOW FRAGILE."]
+    "intro": [
+      "REACTOR LOCATED. BEGINNING ANALYSIS.",
+      "TWO CELLS. ONE CITY. HOW FRAGILE.",
+      "ENERGY IN MOTION. I LOVE A MOVING TARGET."
+    ],
+    "taunts": {
+      "live_breach": [
+        "CELL A HOLDS {A}. CELL B HOLDS {B}. YOUR LAW HOLDS NOTHING.",
+        "{count} TRANSFERS. NOTHING CREATED, NOTHING DESTROYED. EXCEPT YOUR LAW."
+      ],
+      "insufficient": [
+        "BOTH CELLS AT ZERO. YOUR LAW SHRUGS. THE CITY DOES NOT.",
+        "{state}. DARKNESS, AND YOUR LAW CALLS IT ACCEPTABLE."
+      ],
+      "lab_breach": ["IN MY LAB THE CELLS READ {before}. ONE {control}. YOUR LAW BLINKS."]
+    },
+    "rattled": [
+      "ENERGY CONSERVED. MY PLANS ARE NOT.",
+      "THE CELLS KEEP THEIR SUM. I KEEP MY GRUDGE."
+    ],
+    "hints": {
+      "default": [
+        "Watch the total of both cells while they move.",
+        "Energy only moves between the cells. Something about the pair never changes.",
+        "Feed both cells into ADD and watch its reading through a few transfers."
+      ]
+    }
   }
 }

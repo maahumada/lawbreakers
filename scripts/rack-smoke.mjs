@@ -99,7 +99,7 @@ try {
 
     check((await readout(page)) === "A + B = 6", `${n}: readout is "${await readout(page)}"`);
     const cost = (await page.getByTestId("rack-cost").textContent()).replace(/\s+/g, " ").trim();
-    check(cost === "Cost 5 / Budget 5", `${n}: cost "${cost}"`);
+    check(cost === "Cost 7 / Budget 7", `${n}: cost "${cost}"`);
     check(await hand(page, "card-add").isDisabled(), `${n}: ADD card exhausted`);
     check(
       (await page.getByTestId("engage").getAttribute("data-ready")) !== null,
@@ -139,7 +139,7 @@ try {
     const text = await readout(page);
     check(text === "A + B = 6 AND A MOD 2 = 0", `06 ${vp.name}: readout "${text}"`);
     const cost = (await page.getByTestId("rack-cost").textContent()).replace(/\s+/g, " ").trim();
-    check(cost === "Cost 10 / Budget 10", `06 ${vp.name}: cost "${cost}"`);
+    check(cost === "Cost 17 / Budget 17", `06 ${vp.name}: cost "${cost}"`);
     await page.getByTestId("rack").scrollIntoViewIfNeeded();
     if (vp.name === "desktop") {
       await page.getByTestId("rack").screenshot({ path: `${out}-m06-desktop.png` });

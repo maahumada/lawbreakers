@@ -311,8 +311,8 @@
 
 .wire__current {
   stroke: var(--human-text);
-  stroke-width: 2;
-  stroke-dasharray: 2 16;
+  stroke-width: 2.5;
+  stroke-dasharray: 3 15;
   animation: wire-flow 0.9s linear infinite;
 }
 
@@ -598,9 +598,10 @@
   }
 }
 
-.shield__sparks {
+.sparks {
   position: absolute;
   inset: 0;
+  z-index: 3;
   pointer-events: none;
 }
 
@@ -655,7 +656,237 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .shield__sparks {
+  .sparks {
+    display: none;
+  }
+}
+
+/* --- Juice: current, plug-in, breach, success ------------------------------ */
+
+/* Current flows along a complete circuit into the SHIELD: a bright pulse train over a soft glow. */
+.board[data-live] .wire__glow {
+  animation: wire-breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes wire-breathe {
+  50% {
+    stroke: color-mix(in srgb, var(--human-primary) 34%, transparent);
+  }
+}
+
+/* The moment the circuit closes: a surge runs down every wire, deepest first, into the SHIELD. */
+.wire__surge {
+  stroke: var(--human-text);
+  stroke-width: 4;
+  stroke-dasharray: 0.25 1.25;
+  stroke-dashoffset: 0.25;
+  opacity: 0;
+  filter: drop-shadow(0 0 6px var(--human-primary));
+  animation: wire-surge 0.32s ease-in both;
+  animation-delay: calc(var(--seq, 0) * 90ms);
+}
+
+@keyframes wire-surge {
+  0% {
+    opacity: 1;
+    stroke-dashoffset: 0.25;
+  }
+  100% {
+    opacity: 1;
+    stroke-dashoffset: -1;
+  }
+}
+
+.board[data-live] .shield .jack {
+  animation: jack-feed 0.9s ease-in-out infinite;
+}
+
+@keyframes jack-feed {
+  50% {
+    box-shadow: 0 0 12px var(--human-primary);
+  }
+}
+
+/* A module plugs in: it drops onto the board with a hard stop and its plug flashes. */
+.placed {
+  animation: mod-clack 0.26s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+@keyframes mod-clack {
+  0% {
+    transform: translate(-6px, -10px) scale(1.06);
+    filter: brightness(1.8);
+  }
+  60% {
+    transform: translate(0, 1px) scale(1);
+  }
+  100% {
+    transform: none;
+    filter: none;
+  }
+}
+
+/* Breach: the wires to the SHIELD flicker dead. */
+.board[data-shield="breached"] .wire__core {
+  animation: wire-short 0.6s steps(2) both;
+}
+
+@keyframes wire-short {
+  0%,
+  60% {
+    opacity: 0.3;
+  }
+  30%,
+  100% {
+    opacity: 1;
+  }
+}
+
+/* THE LAW HOLDS: relays close column by column (deepest first), the SHIELD bolts lock, then a
+   sweep of light crosses the board. Step = --relay-step (matches the success sound). */
+.board {
+  --relay-step: 140ms;
+}
+
+.board[data-shield="sealed"] .placed {
+  animation: relay-close 0.3s ease-out both;
+  animation-delay: calc(var(--seq, 0) * var(--relay-step));
+}
+
+@keyframes relay-close {
+  0% {
+    transform: none;
+  }
+  35% {
+    transform: translateY(2px);
+    border-color: var(--human-text);
+    box-shadow:
+      0 1px 0 var(--black),
+      0 0 22px color-mix(in srgb, var(--human-primary) 70%, transparent);
+  }
+  100% {
+    transform: none;
+    border-color: var(--human-primary);
+    box-shadow:
+      0 3px 0 var(--black),
+      0 0 14px color-mix(in srgb, var(--human-primary) 40%, transparent);
+  }
+}
+
+.shield__bolt {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  height: 5px;
+  border-radius: 1px;
+  background: linear-gradient(
+    to right,
+    var(--human-secondary),
+    var(--human-primary) 50%,
+    var(--human-secondary)
+  );
+  box-shadow: 0 0 8px var(--human-primary);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.shield__bolt--top {
+  top: 14px;
+}
+
+.shield__bolt--bottom {
+  bottom: 6px;
+}
+
+.board[data-shield="sealed"] .shield__bolt {
+  animation: bolt-shut 0.22s cubic-bezier(0.5, 0, 0.6, 1.4) both;
+  animation-delay: calc(var(--cols, 1) * var(--relay-step));
+}
+
+.board[data-shield="sealed"] .shield__bolt--bottom {
+  animation-name: bolt-shut-r;
+}
+
+@keyframes bolt-shut {
+  0% {
+    opacity: 1;
+    transform: translateX(-120%);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes bolt-shut-r {
+  0% {
+    opacity: 1;
+    transform: translateX(120%);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.board[data-shield="sealed"] .shield {
+  animation: shield-lock 0.4s ease-out both;
+  animation-delay: calc(var(--cols, 1) * var(--relay-step));
+}
+
+@keyframes shield-lock {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.06);
+    filter: brightness(1.5);
+  }
+  100% {
+    transform: none;
+    filter: none;
+  }
+}
+
+.board__canvas::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.board[data-shield="sealed"] .board__canvas::after {
+  background: linear-gradient(
+      100deg,
+      transparent 44%,
+      color-mix(in srgb, var(--human-text) 30%, transparent) 50%,
+      transparent 56%
+    ) -100%
+    0 / 200% 100% no-repeat;
+  animation: light-sweep 0.7s ease-in-out both;
+  animation-delay: calc((var(--cols, 1) + 1) * var(--relay-step));
+}
+
+@keyframes light-sweep {
+  0% {
+    opacity: 1;
+    background-position: 200% 0;
+  }
+  100% {
+    opacity: 1;
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board[data-live] .wire__glow,
+  .board[data-live] .shield .jack,
+  .wire__surge,
+  .board__canvas::after {
+    animation: none;
+  }
+  .wire__surge {
     display: none;
   }
 }

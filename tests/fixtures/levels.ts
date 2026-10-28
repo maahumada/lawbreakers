@@ -27,7 +27,7 @@ export function mkLevel(id: string, m: MiniLevel): Level {
     hand: { cards: {}, budget: 1 },
     solutions: ["true"],
     knownWrong: [],
-    argus: { intro: ["TEST."] },
+    argus: { intro: ["TEST."], hints: { default: ["TEST HINT."] } },
   });
 }
 

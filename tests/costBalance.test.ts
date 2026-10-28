@@ -1,0 +1,39 @@
+// M3-T7: no mission has a holding Law cheaper than its reference. Every Law the hand can build up
+// to the reference cost (dial values −2…12) is enumerated and the survivors of cheap refutation go
+// through the real `verify`. `npm run cost-search` prints the full report with a wider bound.
+
+import { afterAll, describe, expect, it } from "vitest";
+import { pretty } from "../src/engine/expr.ts";
+import { lawCost, loadBundledLevels } from "../src/engine/level.ts";
+import { shutdownZ3 } from "../src/engine/smt.ts";
+import { buildableLaws, searchHolding } from "./fixtures/lawSearch.ts";
+
+afterAll(shutdownZ3);
+
+const CONSTS = Array.from({ length: 15 }, (_, i) => i - 2);
+
+describe("cost balance", () => {
+  it.each(loadBundledLevels().map((l) => [l.id, l] as const))(
+    "%s: the reference Law is the cheapest that holds",
+    async (_id, level) => {
+      const [reference] = level.solutions;
+      if (!reference) throw new Error("no reference");
+      const refCost = lawCost(reference);
+      const { holding } = await searchHolding(level, refCost, CONSTS);
+      expect(holding.length).toBeGreaterThan(0);
+      // The reference itself (or its mirror image) is among them; conformance checks it holds.
+      expect(holding.map((h) => h.cost)).toEqual(holding.map(() => refCost));
+    },
+    30_000,
+  );
+
+  it("enumerates within the hand: Mission 01 has no Law needing two ADD cards", () => {
+    const [m01] = loadBundledLevels();
+    if (!m01) throw new Error("Mission 01 missing");
+    const laws = buildableLaws(m01, 9, [0, 6]).map(pretty);
+    expect(laws).toContain("A + B = 6");
+    expect(laws).toContain("A >= 0");
+    expect(laws.some((l) => (l.match(/\+/g) ?? []).length > 1)).toBe(false);
+    expect(laws.every((l) => l.includes("A") || l.includes("B"))).toBe(true);
+  });
+});

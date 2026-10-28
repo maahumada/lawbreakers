@@ -11,7 +11,7 @@
     { "id": "cycle", "label": "CYCLE", "guard": "true", "update": { "x": "x + y", "y": "y + 1" } }
   ],
   "meltdown": "x < 0",
-  "hand": { "cards": { "ge": 2, "and": 1 }, "budget": 7 },
+  "hand": { "cards": { "ge": 2, "and": 1 }, "budget": 11 },
   "solutions": ["x >= 0 && y >= 0"],
   "knownWrong": [
     { "law": "x >= 0", "verdict": "lab_breach" },
@@ -19,6 +19,40 @@
     { "law": "x = 0", "verdict": "live_breach" }
   ],
   "argus": {
-    "intro": ["TURBINE SPINNING UP.", "WRITE THE OBVIOUS LAW, LAWSMITH. I DARE YOU."]
+    "intro": [
+      "TURBINE SPINNING UP.",
+      "WRITE THE OBVIOUS LAW, LAWSMITH. I DARE YOU.",
+      "MOMENTUM ONLY GROWS. UNTIL IT DOES NOT."
+    ],
+    "taunts": {
+      "live_breach": ["{count} CYCLES. MOMENTUM {x}, DRIVE {y}. YOUR LAW IS LEFT BEHIND."],
+      "lab_breach": [
+        "YOUR LAW IS TRUE, LAWSMITH. IT IS ALSO USELESS. {before}, ONE {control}: {after}.",
+        "{before} IN MY LAB. ONE CYCLE: {after}. YOUR LAW LOSES ITS GRIP."
+      ],
+      "insufficient": [
+        "MOMENTUM {x}. THE TURBINE REVERSES. YOUR LAW APPLAUDS.",
+        "YOU GUARDED THE WRONG GAUGE. {state}."
+      ]
+    },
+    "rattled": [
+      "YOU GUARDED THE DRIVE. NOBODY GUARDS THE DRIVE.",
+      "THE OBVIOUS LAW, PLUS ONE. HOW DID YOU KNOW."
+    ],
+    "hints": {
+      "default": [
+        "Watch the drive y, not just the momentum.",
+        "Momentum grows by the drive. If the drive could go negative, so could momentum.",
+        "One Law can guard two gauges at once: that is what AND is for."
+      ],
+      "lab_breach": [
+        "In the lab the drive starts negative. Your Law must rule that out as well.",
+        "Momentum grows by the drive. If the drive could go negative, so could momentum.",
+        "One Law can guard two gauges at once: that is what AND is for."
+      ],
+      "insufficient": [
+        "Your Law keeps itself true, but it never mentions the momentum. The meltdown is about the momentum."
+      ]
+    }
   }
 }

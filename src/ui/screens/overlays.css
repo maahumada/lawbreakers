@@ -51,6 +51,15 @@
   color: var(--human-primary);
 }
 
+/* Training win: no score, a cyan practice note (same hologram colour as the TRAINING flag). */
+.results__training {
+  margin-top: var(--space-3);
+  max-width: 40ch;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--argus-secondary);
+}
+
 .results__score {
   display: flex;
   flex-wrap: wrap;

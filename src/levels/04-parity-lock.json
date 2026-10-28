@@ -9,7 +9,7 @@
     { "id": "remove", "label": "REMOVE PAIR", "guard": "n >= 2", "update": { "n": "n - 2" } }
   ],
   "meltdown": "n = 0",
-  "hand": { "cards": { "mod2": 1, "eq": 1, "ge": 1 }, "budget": 4 },
+  "hand": { "cards": { "mod2": 1, "eq": 1, "ge": 1 }, "budget": 7 },
   "solutions": ["n mod 2 = 1"],
   "knownWrong": [
     { "law": "n >= 1", "verdict": "lab_breach" },
@@ -17,6 +17,34 @@
     { "law": "n = 1", "verdict": "live_breach" }
   ],
   "argus": {
-    "intro": ["VAULT LOCK DETECTED. COUNTING PINS.", "ONE PIN. HOW... ODD."]
+    "intro": [
+      "VAULT LOCK DETECTED. COUNTING PINS.",
+      "ONE PIN. HOW... ODD.",
+      "PAIRS IN, PAIRS OUT. I ONLY NEED ZERO."
+    ],
+    "taunts": {
+      "live_breach": [
+        "{n} PINS. I COUNTED TWICE. YOUR LAW STILL FAILS.",
+        "{count} PAIRS LATER, THE LOCK READS {n}. YOUR LAW READS FALSE."
+      ],
+      "lab_breach": [
+        "{before}. YOUR LOCK NEVER SHOWS THAT COUNT. MY LAB DOES. ONE {control}: {after}.",
+        "THE REAL VAULT IS TIDY. MY VAULT HAS {before}. AND THEN IT HAS {after}."
+      ],
+      "insufficient": ["ZERO PINS. YOUR LAW ALLOWS IT. THE VAULT SAYS THANK YOU."]
+    },
+    "rattled": ["THE PINS STAY ODD. SO DOES THIS FEELING.", "PARITY. OF COURSE IT WAS PARITY."],
+    "hints": {
+      "default": [
+        "Count by twos.",
+        "Pins come in pairs, so one property of the count never changes.",
+        "Feed the count into MOD 2 and watch its reading."
+      ],
+      "lab_breach": [
+        "ARGUS starts from a count the real lock never shows. What kind of count is that?",
+        "Pins come in pairs, so one property of the count never changes.",
+        "Feed the count into MOD 2 and watch its reading."
+      ]
+    }
   }
 }

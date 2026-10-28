@@ -65,11 +65,11 @@ describe("score", () => {
     });
     expect(s).toEqual({
       base: 1000,
-      efficiency: 100,
+      efficiency: 50,
       integrity: 325,
       attempts: -200,
       time: 100,
-      total: 1325,
+      total: 1275,
     });
   });
 
@@ -80,7 +80,7 @@ describe("score", () => {
   });
 
   it("over budget gives a negative efficiency term", () => {
-    expect(scoreMission({ ...win, cost: 8 })?.efficiency).toBe(-150);
+    expect(scoreMission({ ...win, cost: 8 })?.efficiency).toBe(-75);
   });
 
   it("never goes below zero", () => {
@@ -92,7 +92,7 @@ describe("score", () => {
       elapsedMs: TIME_BONUS_WINDOW_MS * 2,
     });
     expect(s?.total).toBe(0);
-    expect(s?.efficiency).toBe(-1250);
+    expect(s?.efficiency).toBe(-625);
   });
 
   it("time bonus decays over five minutes", () => {

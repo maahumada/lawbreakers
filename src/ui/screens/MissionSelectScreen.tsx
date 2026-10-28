@@ -3,7 +3,9 @@ import type { Level } from "../../engine/level.ts";
 import { loadBest } from "../../game/bestScores.ts";
 import type { MissionStatus } from "../../game/campaign.ts";
 import { missionStatus, useCampaign } from "../../game/campaign.ts";
+import { SoundToggle } from "../fx/SoundToggle.tsx";
 import { navigate } from "../router.ts";
+import { ThreatBoard } from "./ThreatBoard.tsx";
 import { TrainingToggle } from "./TrainingToggle.tsx";
 import "./campaign.css";
 import "./mission.css";
@@ -19,6 +21,7 @@ export function MissionSelectScreen({ levels }: { levels: readonly Level[] }) {
   const secured = useCampaign((c) => c.secured);
   const ids = levels.map((l) => l.id);
   const securedSet = new Set(secured);
+  const statuses = levels.map((_, i) => missionStatus(ids, securedSet, i));
 
   return (
     <div className="select" data-testid="mission-select">
@@ -34,38 +37,44 @@ export function MissionSelectScreen({ levels }: { levels: readonly Level[] }) {
           >
             Title
           </a>
-          <span>
-            {secured.length} / {levels.length} secured
+          <span className="mission__flags">
+            <span>
+              {secured.length} / {levels.length} secured
+            </span>
+            <SoundToggle />
           </span>
         </div>
         <h1 className="select__title">Facilities under the Lawbreakers protocol</h1>
       </header>
 
-      <main className="select__main">
-        <ol className="select__list">
-          {levels.map((level, i) => {
-            const status = missionStatus(ids, securedSet, i);
-            const number = level.id.slice(0, 2);
-            const prev = ids[i - 1];
-            return (
-              <li
-                key={level.id}
-                className="station"
-                data-status={status}
-                data-feed={i === 0 || (prev !== undefined && securedSet.has(prev)) || undefined}
-                data-testid={`station-${number}`}
-              >
-                <MissionEntry level={level} number={number} status={status} prev={prev} />
-              </li>
-            );
-          })}
-        </ol>
+      <div className="select__layout">
+        <main className="select__main">
+          <ol className="select__list">
+            {levels.map((level, i) => {
+              const status = statuses[i] ?? "locked";
+              const number = level.id.slice(0, 2);
+              const prev = ids[i - 1];
+              return (
+                <li
+                  key={level.id}
+                  className="station"
+                  data-status={status}
+                  data-feed={i === 0 || (prev !== undefined && securedSet.has(prev)) || undefined}
+                  data-testid={`station-${number}`}
+                >
+                  <MissionEntry level={level} number={number} status={status} prev={prev} />
+                </li>
+              );
+            })}
+          </ol>
 
-        <footer className="select__foot">
-          <TrainingToggle />
-          <ResetProgress ids={ids} />
-        </footer>
-      </main>
+          <footer className="select__foot">
+            <TrainingToggle />
+            <ResetProgress ids={ids} />
+          </footer>
+        </main>
+        <ThreatBoard levels={levels} statuses={statuses} />
+      </div>
     </div>
   );
 }

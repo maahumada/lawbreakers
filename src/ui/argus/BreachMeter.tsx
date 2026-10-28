@@ -4,6 +4,8 @@ import { useEngage } from "../../game/engageStore.ts";
 import { useMission } from "../../game/missionStore.ts";
 
 const SEGMENTS = 20;
+/** Marked on the track; crossing one makes the whole meter pulse. */
+const THRESHOLDS = [50, 75] as const;
 
 /** AI BREACH: 20 cells of 5%. The last verdict's delta flashes next to the value. Off in training. */
 export function BreachMeter() {
@@ -12,6 +14,7 @@ export function BreachMeter() {
   const training = useMission((m) => m.training);
   const lit = Math.round((breach / BREACH_MAX) * SEGMENTS);
   const fresh = Math.round(((breach - delta) / BREACH_MAX) * SEGMENTS);
+  const crossed = THRESHOLDS.filter((t) => breach - delta < t && breach >= t).at(-1);
 
   return (
     <div
@@ -37,7 +40,22 @@ export function BreachMeter() {
           {breach}%
         </span>
       </div>
-      <div className="breach__track" aria-hidden>
+      <div
+        className="breach__track"
+        aria-hidden
+        style={{ "--fill-ms": `${Math.max(0, lit - fresh) * 90}ms` } as CSSProperties}
+      >
+        {THRESHOLDS.map((t) => (
+          <span
+            key={t}
+            className="breach__mark"
+            data-passed={breach >= t || undefined}
+            style={{ "--at": `${t}%` } as CSSProperties}
+          />
+        ))}
+        {crossed !== undefined && (
+          <span key={breach} className="breach__pulse" data-testid="breach-pulse" />
+        )}
         {Array.from({ length: SEGMENTS }, (_, i) => (
           <span
             key={i}

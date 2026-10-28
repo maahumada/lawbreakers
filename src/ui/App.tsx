@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { installGlobalSfx } from "../audio/bindings.ts";
 import { loadBundledLevels } from "../engine/level.ts";
 import { DevVerifyPanel } from "./dev/DevVerifyPanel.tsx";
 import { MissionScreen } from "./screens/MissionScreen.tsx";
@@ -11,6 +12,7 @@ const LEVELS = loadBundledLevels();
 export function App() {
   const route = parseRoute(useSearch());
   useEffect(interceptLinks, []);
+  useEffect(installGlobalSfx, []);
 
   switch (route.screen) {
     case "dev":

@@ -113,6 +113,7 @@
 }
 
 .breach__track {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(20, 1fr);
   gap: 3px;
@@ -139,10 +140,56 @@
   animation-delay: calc(var(--i) * 90ms);
 }
 
+/* Each new cell starts dark, flares white, then settles red: the meter visibly fills. */
 @keyframes breach-cell {
   0% {
+    border-color: var(--argus-line);
+    background: color-mix(in srgb, var(--argus-primary) 6%, transparent);
+    box-shadow: none;
+  }
+  35% {
     background: var(--argus-text);
     box-shadow: 0 0 16px var(--argus-primary);
+  }
+}
+
+/* Threshold notches (50%, 75%); crossing one sends a pulse through the whole meter. */
+.breach__mark {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  left: var(--at);
+  width: 2px;
+  margin-left: -1px;
+  background: var(--argus-muted);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.breach__mark[data-passed] {
+  background: var(--argus-text);
+  opacity: 1;
+}
+
+.breach__pulse {
+  position: absolute;
+  inset: -6px;
+  border: 2px solid var(--argus-primary);
+  pointer-events: none;
+  opacity: 0;
+  animation: breach-pulse 0.45s ease-out 3 both;
+  animation-delay: var(--fill-ms, 0ms);
+}
+
+@keyframes breach-pulse {
+  0% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--argus-primary) 60%, transparent);
+  }
+  100% {
+    opacity: 0;
+    box-shadow: 0 0 0 10px transparent;
+    transform: scale(1.03, 1.3);
   }
 }
 

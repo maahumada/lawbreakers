@@ -60,8 +60,11 @@ try {
   await page.screenshot({ path: `${dir}/m3-t1-title.png` });
   await mark(page);
   await page.getByTestId("title-start").click();
+  // First START plays the intro (M4-T1); skipping it lands on mission select.
+  await page.getByTestId("intro").waitFor();
+  await page.getByTestId("intro-skip").click();
   await page.getByTestId("mission-select").waitFor();
-  check((await search(page)) === "?missions", "START → ?missions");
+  check((await search(page)) === "?missions", "START → intro → skip → ?missions");
   const fresh = await statuses(page);
   check(
     fresh === "Ready,Locked,Locked,Locked,Locked,Locked",
@@ -184,6 +187,8 @@ try {
   await phone.evaluate(() => document.fonts.ready);
   await phone.screenshot({ path: `${dir}/m3-t1-title-mobile.png`, fullPage: true });
   await phone.getByTestId("title-start").click();
+  await phone.getByTestId("intro").waitFor();
+  await phone.keyboard.press("Escape");
   await phone.getByTestId("mission-select").waitFor();
   await phone.screenshot({ path: `${dir}/m3-t1-missions-mobile.png`, fullPage: true });
   const overflow = await phone.evaluate(

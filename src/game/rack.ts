@@ -8,7 +8,7 @@
 import type { BoolExpr, Expr, ExprType, NumExpr } from "../engine/expr.ts";
 import { add, and, c, cmp, mod, not, or, scale, sub, v } from "../engine/expr.ts";
 import type { CardId, Level } from "../engine/level.ts";
-import { CARD_IDS } from "../engine/level.ts";
+import { CARD_IDS, cardCost, MODULE_COST } from "../engine/level.ts";
 
 /** A constant dial's range. */
 export const CONST_MIN = -20;
@@ -194,10 +194,17 @@ export function cardsLeft(hand: Level["hand"], rack: Rack): Partial<Record<CardI
   return left;
 }
 
-/** Rack cost: one per module, so for a complete rack it equals `size` of its Law. */
+/** What one placed module costs (`MODULE_COST`); the same table as the engine's `lawCost`. */
+export function moduleCost(m: RackModule): number {
+  if (m.kind === "sensor") return MODULE_COST.sensor;
+  if (m.kind === "const") return MODULE_COST.constant;
+  return cardCost(m.card);
+}
+
+/** Rack cost: the sum of its modules' costs, so for a complete rack it equals `lawCost` of its Law. */
 export function rackCost(rack: Rack): number {
   if (!rack) return 0;
-  return 1 + rack.inputs.reduce((sum, n) => sum + rackCost(n), 0);
+  return moduleCost(rack.mod) + rack.inputs.reduce((sum, n) => sum + rackCost(n), 0);
 }
 
 export type PlaceCheck = "ok" | "no-socket" | "occupied" | "wrong-type" | "exhausted" | "unknown";

@@ -4,6 +4,7 @@
 import type { BoolExpr, State } from "../../engine/expr.ts";
 import type { Level } from "../../engine/level.ts";
 import type { Verdict } from "../../engine/types.ts";
+import { missionHint } from "../../game/argusLines.ts";
 import { formatExpr } from "../machine/format.ts";
 
 const num = (n: number) => (n < 0 ? `−${-n}` : String(n));
@@ -36,6 +37,40 @@ export function formatMoves(level: Level, verdict: Verdict): string {
     .join(", ");
 }
 
+/** The state a verdict is about: live → last state, lab → after the control, else the shown one. */
+function keyState(v: Verdict): State | null {
+  switch (v.kind) {
+    case "init_failure":
+    case "insufficient":
+      return v.state;
+    case "live_breach":
+      return v.trace.at(-1)?.state ?? null;
+    case "lab_breach":
+      return v.after;
+    case "holds":
+      return null;
+  }
+}
+
+/** Placeholder values for ARGUS's lines about `verdict` (see `game/argusLines.ts`). */
+export function verdictVars(level: Level, law: BoolExpr, verdict: Verdict): Record<string, string> {
+  const vars: Record<string, string> = {};
+  const key = keyState(verdict);
+  if (key) for (const x of level.vars) vars[x.name] = num(key[x.name] ?? 0);
+  vars.law = formatExpr(law);
+  if (key) vars.state = stateText(level, key);
+  if (verdict.kind === "live_breach") {
+    vars.moves = formatMoves(level, verdict);
+    vars.count = String(verdict.trace.length - 1);
+  }
+  if (verdict.kind === "lab_breach") {
+    vars.before = stateText(level, verdict.before);
+    vars.after = stateText(level, verdict.after);
+    vars.control = controlLabel(level, verdict.control);
+  }
+  return vars;
+}
+
 export interface VerdictCopy {
   /** Big title: `LAW BREACHED`, `THE LAW HOLDS`, … */
   title: string;
@@ -47,8 +82,16 @@ export interface VerdictCopy {
   hint: string;
 }
 
-/** Banner text for `verdict` on `law`. */
-export function verdictCopy(level: Level, law: BoolExpr, verdict: Verdict): VerdictCopy {
+/**
+ * Banner text for `verdict` on `law`. `failures` counts the failed engagements so far, this one
+ * included; the hint gets more specific as it grows (`missionHint`).
+ */
+export function verdictCopy(
+  level: Level,
+  law: BoolExpr,
+  verdict: Verdict,
+  failures = 1,
+): VerdictCopy {
   // Formulas and states never break across lines (narrow phones).
   const lawText = keep(formatExpr(law));
   const formatState = (lv: Level, s: State) => keep(stateText(lv, s), true);
@@ -58,7 +101,7 @@ export function verdictCopy(level: Level, law: BoolExpr, verdict: Verdict): Verd
         title: "Initialization failure",
         tag: "Power-on check",
         body: `The machine starts at ${formatState(level, verdict.state)}, and there your Law ${lawText} is already false.`,
-        hint: "A Law must be true before the first cycle. Check it against the power-on gauges.",
+        hint: missionHint(level, verdict.kind, failures),
       };
     case "live_breach": {
       const last = verdict.trace.at(-1)?.state ?? {};
@@ -67,7 +110,7 @@ export function verdictCopy(level: Level, law: BoolExpr, verdict: Verdict): Verd
         title: "Law breached",
         tag: "Live attack",
         body: `From power-on, ${n} legal ${n === 1 ? "move reaches" : "moves reach"} ${formatState(level, last)}, where ${lawText} is false. Your Law is simply not true on the real machine.`,
-        hint: "Watch the telemetry: what stays the same no matter which control fires?",
+        hint: missionHint(level, verdict.kind, failures),
       };
     }
     case "lab_breach":
@@ -75,14 +118,14 @@ export function verdictCopy(level: Level, law: BoolExpr, verdict: Verdict): Verd
         title: "Law breached",
         tag: "Lab simulation",
         body: `${lawText} may be true on every real run, but it does not protect itself: at ${formatState(level, verdict.before)} it holds, and one ${controlLabel(level, verdict.control)} gives ${formatState(level, verdict.after)}, where it fails.`,
-        hint: "A Law must survive every control from every state it allows, not only the ones you have seen. Make it stronger.",
+        hint: missionHint(level, verdict.kind, failures),
       };
     case "insufficient":
       return {
         title: "Insufficient protection",
         tag: "Safety check",
         body: `${lawText} protects itself, but it allows ${formatState(level, verdict.state)}, which is a meltdown.`,
-        hint: "Your Law must rule out every meltdown state. Tighten it.",
+        hint: missionHint(level, verdict.kind, failures),
       };
     case "holds":
       return {

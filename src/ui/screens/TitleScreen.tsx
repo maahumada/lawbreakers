@@ -1,24 +1,40 @@
+import { useState } from "react";
 import type { Level } from "../../engine/level.ts";
 import { nextMission, useCampaign } from "../../game/campaign.ts";
+import { introSeen } from "../../game/introSeen.ts";
+import { SoundToggle } from "../fx/SoundToggle.tsx";
 import { navigate } from "../router.ts";
+import { IntroScreen } from "./IntroScreen.tsx";
 import { TrainingToggle } from "./TrainingToggle.tsx";
 import "./campaign.css";
 
-/**
- * START opens mission select. Hook for M4-T1: the intro sequence plays here on a first START,
- * before mission select.
- */
-function start(): void {
-  navigate({ screen: "missions" });
-}
+const toMissions = () => navigate({ screen: "missions" });
 
+/** START opens mission select, through the intro the first time. The title can replay it. */
 export function TitleScreen({ levels }: { levels: readonly Level[] }) {
   const secured = useCampaign((c) => c.secured);
+  const [intro, setIntro] = useState(false);
+  const [seen] = useState(introSeen);
   const ids = levels.map((l) => l.id);
   const resume = secured.length > 0 ? nextMission(ids, new Set(secured)) : null;
 
+  if (intro) return <IntroScreen onDone={toMissions} />;
+
   return (
     <div className="title fx-crt" data-testid="title-screen">
+      <div className="title__bar">
+        {seen && (
+          <button
+            type="button"
+            className="title__replay"
+            onClick={() => setIntro(true)}
+            data-testid="title-replay-intro"
+          >
+            Replay intro
+          </button>
+        )}
+        <SoundToggle />
+      </div>
       <main className="title__main">
         <h1 className="title__name" aria-label="Lawbreakers: 2050">
           <span className="title__word fx-glow">Lawbreakers</span>
@@ -41,7 +57,7 @@ export function TitleScreen({ levels }: { levels: readonly Level[] }) {
           <button
             type="button"
             className="title__start"
-            onClick={start}
+            onClick={() => (introSeen() ? toMissions() : setIntro(true))}
             data-testid="title-start"
             autoFocus
           >

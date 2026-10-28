@@ -44,13 +44,14 @@ lawbreakers/
 │   ├── game/                missionStore.ts (machine state, telemetry, auto-run, replay display, breach/attempts/clock); rack.ts (pure partial-tree model); rackStore.ts (+ lock); engageStore.ts (ENGAGE phase, terminal lines, verdict, result); argusLines.ts (line pools); bestScores.ts (localStorage); campaign.ts (secured missions, unlock rule, training flag; localStorage)
 │   ├── ui/
 │   │   ├── router.ts        query-string routes (`?` title, `?missions`, `?mission=NN`, `?dev`), pushState navigation, `?…` link interception
-│   │   ├── screens/         BootScreen (coi reload), Title, MissionSelect, TrainingToggle, Mission, ResultsOverlay, MissionFailedOverlay (later Intro)
+│   │   ├── screens/         BootScreen (coi reload), Title, MissionSelect, TrainingToggle, Mission, ResultsOverlay, MissionFailedOverlay, IntroScreen (+ introScript), ThreatBoard (mission select radar)
 │   │   ├── rack/            RackEditor (dnd-kit context), Hand, RackBoard (sockets, modules, SVG wires, SHIELD), Dial, Readout, layout.ts (pure)
 │   │   ├── layout/          Slot (reserved areas for later features, `data-slot`)
 │   │   ├── machine/         MachineView, Briefing, Gauge, ControlCard, Telemetry, ReplayStrip (shown state + Law/meltdown probe), format.ts (guard/effect text), replay.css (verdict modes)
 │   │   ├── argus/           ArgusPanel, Terminal (typed lines), BreachMeter, EngageConsole + VerdictBanner (engage slot), engage.ts (the ENGAGE sequence), verdictText.ts
-│   │   └── proof/           ShowTheProof
-│   ├── audio/               sfx.ts (synth helpers)
+│   │   ├── proof/           ShowTheProof
+│   │   └── fx/              ImpactFx (breach shake + flash), SoundToggle (global mute switch)
+│   ├── audio/               sound.ts (AudioContext unlocked on first gesture, mute store), sfx.ts (synthesized sounds), bindings.ts (store subscriptions → sounds)
 │   └── styles/              tokens.css (palettes, type, space; self-hosted @fontsource fonts), effects.css (fx-* utilities), global.css
 ├── scripts/
 │   ├── smoke-worker.mjs     headless Chromium check of the worker on the `?dev` page (not in npm test)
@@ -60,6 +61,7 @@ lawbreakers/
 │   ├── missions-smoke.mjs   Missions 02–06: wrong Laws + reference Law, results, screenshots m3-t2-* (`npm run missions-smoke`)
 │   ├── campaign-smoke.mjs   title → select → unlocks, persistence, Back, CONTINUE, off-campaign, training, reset (`npm run campaign-smoke`)
 │   ├── pages-preview.mjs    GitHub Pages emulation: `dist/` under `/lawbreakers/`, no COOP/COEP (`npm run pages-preview`)
+│   ├── juice-smoke.mjs      intro, mute, threat board, current/breach/holds effects; screenshots m4-t1-*, m3-t5-* (`npm run juice-smoke`)
 │   └── coi-smoke.mjs        first visit through coi-serviceworker: one reload, isolated, Z3 works (`npm run coi-smoke`)
 └── tests/                   engine tests, level conformance (+ a few component smoke tests)
 ```
@@ -138,16 +140,27 @@ shrink under `prefers-reduced-motion` (same information).
     { "id": "b2a", "label": "TRANSFER B→A", "guard": "B >= 1", "update": { "A": "A + 1", "B": "B - 1" } }
   ],
   "meltdown": "A = 0 && B = 0",
-  "hand": { "cards": { "add": 1, "eq": 1, "ge": 1 }, "budget": 5 },
+  "hand": { "cards": { "add": 1, "eq": 1, "ge": 1 }, "budget": 7 },
   "solutions": ["A + B = 6", "A + B >= 1"],
   "knownWrong": [
     { "law": "A >= 1",     "verdict": "live_breach" },
     { "law": "A >= 0",     "verdict": "insufficient" },
     { "law": "A + B = 7",  "verdict": "init_failure" }
   ],
-  "argus": { "intro": ["REACTOR LOCATED. BEGINNING ANALYSIS."] }
+  "argus": {
+    "intro": ["REACTOR LOCATED. BEGINNING ANALYSIS."],
+    "taunts": { "live_breach": ["CELL A HOLDS {A}. CELL B HOLDS {B}. YOUR LAW HOLDS NOTHING."] },
+    "rattled": ["ENERGY CONSERVED. MY PLANS ARE NOT."],
+    "hints": { "default": ["Watch the total of both cells while they move.", "…"] }
+  }
 }
 ```
+
+`argus`: `intro` lines open the terminal; `taunts` (per failed verdict kind) and `rattled` (on
+THE LAW HOLDS) are mixed into the global pools of `game/argusLines.ts`, with the same placeholders
+(`{state}`, `{moves}`, `{count}`, `{before}`, `{after}`, `{control}`, `{law}`, and one per gauge);
+`hints` are the banner hints, least to most specific, climbed one rung per failed engagement
+(`default`, or a per-kind list such as `lab_breach`). Hints must never spell out a Law (tested).
 
 Expressions in level files are infix strings parsed by `parse.ts`
 (`+ - * mod = != < <= > >= && || ! ( ) true false`, `*` only with a constant operand).
@@ -159,8 +172,10 @@ literal `k`. A unary minus on a literal is a negative constant; on anything else
 
 `hand.cards` keys are card ids (`CARD_IDS` in `level.ts`): `add sub scale2 scale3 mod2 mod3 eq ne
 lt le gt ge and or not`. `scaleK` is the `×k` card, `modK` the `MOD k` card. Sensors and constants
-have no card (unlimited). Module count (`size` in `expr.ts`): every AST node is one module; `×k`
-and `MOD k` include their constant, so `y = 2 * x` costs 4.
+have no card (unlimited). Cost (`lawCost` / `MODULE_COST` in `level.ts`, same table as the
+rack's `rackCost`): sensor and constant 1, `ADD`/`SUB` 2, `×k` 2, comparators 2, `NOT` 2, `MOD k` 3,
+`AND`/`OR` 3; `×k` and `MOD k` include their constant, so `y = 2 * x` costs 6. `size` in `expr.ts`
+still counts modules (one per AST node). A mission's budget is the cost of its reference Law.
 
 ## Verification pipeline (`verify.ts`)
 

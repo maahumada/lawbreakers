@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { Expr } from "../src/engine/expr.ts";
-import { pretty, size } from "../src/engine/expr.ts";
+import { pretty } from "../src/engine/expr.ts";
 import type { CardId, Level } from "../src/engine/level.ts";
-import { CARD_IDS, cardOf, loadBundledLevels } from "../src/engine/level.ts";
+import { CARD_IDS, cardOf, lawCost, loadBundledLevels } from "../src/engine/level.ts";
 import { parseBool } from "../src/engine/parse.ts";
 import type { HandItem, Rack, SlotPath } from "../src/game/rack.ts";
 import {
@@ -70,7 +70,7 @@ function build(level: Level, law: Expr): Rack {
 
 describe("rack: reference solutions", () => {
   for (const level of LEVELS) {
-    const buildable = level.solutions.filter((s) => size(s) <= level.hand.budget);
+    const buildable = level.solutions.filter((s) => lawCost(s) <= level.hand.budget);
     for (const solution of buildable) {
       it(`${level.id}: builds ${pretty(solution)} within hand and budget`, () => {
         const rack = build(level, solution);
@@ -78,7 +78,7 @@ describe("rack: reference solutions", () => {
         expect(law).not.toBeNull();
         expect(pretty(law ?? solution)).toBe(pretty(solution));
         expect(rackText(rack)).toBe(pretty(solution));
-        expect(rackCost(rack)).toBe(size(solution));
+        expect(rackCost(rack)).toBe(lawCost(solution));
         const used = cardsUsed(rack);
         for (const [card, n] of Object.entries(used) as [CardId, number][]) {
           expect(n).toBeLessThanOrEqual(level.hand.cards[card] ?? 0);
@@ -94,7 +94,7 @@ describe("rack: reference solutions", () => {
 
   it("builds Mission 06's 10-module Law and exhausts the right cards", () => {
     const rack = build(m06, parseBool("A + B = 6 && A mod 2 = 0"));
-    expect(rackCost(rack)).toBe(10);
+    expect(rackCost(rack)).toBe(17);
     expect(cardsLeft(m06.hand, rack)).toEqual({ add: 0, mod2: 0, eq: 0, and: 0, or: 1 });
   });
 });
@@ -160,7 +160,7 @@ describe("rack: editing", () => {
     const rack = removeAt(full(), [0]);
     expect(rackText(rack)).toBe("? = 6");
     expect(rackToLaw(rack)).toBeNull();
-    expect(rackCost(rack)).toBe(2);
+    expect(rackCost(rack)).toBe(3); // = and the dial
     expect(cardsLeft(m01.hand, rack)).toEqual({ add: 1, eq: 0, ge: 1 });
     expect(removeAt(full(), [])).toBeNull();
     const same = full();
@@ -244,7 +244,7 @@ describe("rack: readout", () => {
       const rack = build(level, law);
       expect(rackText(rack)).toBe(pretty(law));
       expect(pretty(rackToLaw(rack) ?? law)).toBe(pretty(law));
-      expect(rackCost(rack)).toBe(size(law));
+      expect(rackCost(rack)).toBe(lawCost(law));
     }
   });
 });
@@ -324,11 +324,11 @@ describe("rack store", () => {
     s().place([1], { kind: "const" });
     s().setConst([1], 6);
     expect(pretty(s().law ?? parseBool("false"))).toBe("A + B = 6");
-    expect(s().cost).toBe(5);
+    expect(s().cost).toBe(7);
     s().move([0, 1], [0, 0]); // occupied: no-op
     s().remove([0]);
     expect(s().law).toBeNull();
-    expect(s().cost).toBe(2);
+    expect(s().cost).toBe(3); // = and the dial
     s().reset(m06);
     expect(s().rack).toBeNull();
     expect(s().cost).toBe(0);
