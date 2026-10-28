@@ -52,6 +52,7 @@ export function MissionScreen({ level, index, levels }: Props) {
   const resetRack = useRack((r) => r.reset);
   const resetEngage = useEngage((s) => s.reset);
   const phase = useEngage((s) => s.phase);
+  const campaignDone = useCampaign((c) => levels.every((l) => c.secured.includes(l.id)));
 
   useEffect(() => {
     load(level, undefined, training);
@@ -78,6 +79,18 @@ export function MissionScreen({ level, index, levels }: Props) {
       useHelp.getState().endTutorial();
     }
   }, [phase]);
+
+  // Reading the tutorial is not solving time: the time bonus clock starts when it closes, as long
+  // as no Law has been engaged yet.
+  useEffect(
+    () =>
+      useHelp.subscribe((h, prev) => {
+        if (prev.step !== null && h.step === null && useMission.getState().attempts === 0) {
+          useMission.setState({ startedAt: Date.now() });
+        }
+      }),
+    [],
+  );
 
   const number = level.id.slice(0, 2);
 
@@ -136,7 +149,9 @@ export function MissionScreen({ level, index, levels }: Props) {
 
       <VerdictAnnouncer level={level} />
       <ImpactFx shakeSelector=".mission__grid" />
-      {phase === "results" && <ResultsOverlay level={level} next={next} />}
+      {phase === "results" && (
+        <ResultsOverlay level={level} next={next} campaignDone={campaignDone} />
+      )}
       {phase === "failed" && <MissionFailedOverlay level={level} />}
       <HelpLayer tutorial autoStart={index === 0} />
     </div>

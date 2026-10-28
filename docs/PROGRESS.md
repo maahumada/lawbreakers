@@ -7,7 +7,8 @@ along the way, and a log of each work session.
 ## Current state
 
 - **Milestone:** M4 — Polish, playtest, submit
-- **Next task:** M4-T4 Playtest
+- **Next task:** M4-T7 Submit (draft in `docs/SUBMISSION.md`). M4-T4 was an agent playtest; a
+  human playtest with classmates is still pending (`docs/REVIEW.md`)
 - **Blockers:** none
 - **Deployed URL:** https://maahumada.github.io/lawbreakers/ (live since 2026-10-28, auto-deploys on
   push to `main`; verified in Chromium, Firefox still unchecked)
@@ -18,6 +19,10 @@ Decisions that deviate from or refine the docs. Newest first.
 
 | Date | Decision | Why |
 |---|---|---|
+| 2026-10-28 | Typeset expressions (`formatExpr`) always bracket an AND inside an OR and vice versa; `pretty` (engine) unchanged | players should not need precedence rules to read `(A = 0 AND B = 0) OR A = 3` |
+| 2026-10-28 | Tutorial steps may list `avoid` selectors; the card takes the first placement (below, above, right, left, right screen edge) that covers neither the target nor those | cards no longer hide the gauges/hand their text points at |
+| 2026-10-28 | Time bonus clock restarts when the tutorial closes, if nothing has been engaged yet | reading the tutorial is not solving time |
+| 2026-10-28 | MISSION FAILED adds a training-mode tip and a Mission select link; the last mission's results show "Campaign complete…" (when all six are secured) and a primary Mission select button | no dead ends; the campaign gets an ending |
 | 2026-10-28 | `@axe-core/playwright` devDependency, used only by `npm run a11y-smoke` (serious/critical violations fail it) | cheap automated a11y regression check; not part of `npm test` |
 | 2026-10-28 | Tutorial = 6 coach marks by COMMAND (human voice, sentence case, amber) over the live mission screen: facility & meltdown → controls/telemetry → hand & socket shapes → rack/SHIELD → ENGAGE → verdict. Non-blocking (only the card takes clicks; the game stays playable under the spotlight). Auto-starts on Mission 01 if `lawbreakers:tutorial-seen` is unset; finishing or skipping (button or a bare Esc) sets it; the results / mission failed dialogs end it. Replay from the "?" How to play panel on any mission | learn by doing, never trap the player; one flag, one place to replay |
 | 2026-10-28 | "?" How to play panel in the top bar of title, mission select and mission screens: the three checks in ARGUS's order with their verdict names, live vs lab breach, controls/keyboard line; "Replay tutorial" only on mission screens. Modal with focus trap, Esc closes, focus returns to "?" | the rules in one screen, reachable anywhere |
@@ -84,6 +89,41 @@ Decisions that deviate from or refine the docs. Newest first.
 
 Newest first. One entry per completed task: what was done, files touched, anything surprising,
 follow-ups.
+
+### 2026-10-28 — M4-T4 Playtest (agent) + fixes
+- Played the production build end to end in Playwright Chromium as a newcomer and as a
+  verification student (fresh profile, intro + tutorial, wrong Laws first, then reasoning from the
+  verdicts): all six missions, every verdict kind, spam ENGAGE, leave/Back/reload mid-attack, mute,
+  training, MISSION FAILED, replay, 320 → 2560 px windows. Notes, issue list and highlights in
+  `docs/PLAYTEST.md`. No P0 found.
+- Fixes: `MissionFailedOverlay.tsx` (training tip, Mission select link; `overlays.css`),
+  `ResultsOverlay.tsx` + `MissionScreen.tsx` (`campaignDone`, end text, Mission select button),
+  `help/Tutorial.tsx` + `tutorialSteps.ts` (`avoid` placement), `machine/format.ts` (AND/OR
+  brackets; `tests/format.test.ts` updated + 2 cases), `MissionScreen.tsx` (clock restarts when
+  the tutorial closes), `machine.css` (control state fixed width), `index.html` (inline favicon).
+- Checks: lint, typecheck, 271 tests, build; all 8 smokes pass against preview (`smoke-worker`
+  needs `?dev` in its URL; `a11y-smoke` flaked once on a results contrast scan, then passed twice).
+- **Follow-ups:** human playtest; design questions (hint ladder repeat, score loophole on leave,
+  identical re-engage, phone ARGUS panel, signed PINS) in `docs/REVIEW.md`.
+
+### 2026-10-28 — M4-T6 README + submission draft
+- `README.md` rewritten: PLAY link, animated hero (`docs/media/mission-01-run.webp`), pitch, How
+  to play (machine, rack/hand, ENGAGE, five verdicts, live vs lab, breach, score, training, Show
+  the Proof), screenshot grid, Key design ideas (DESIGN §10 refined with what shipped) +
+  considerations, Missions table (name + concept only), Under the hood (pipeline diagram,
+  correctness evidence: 271 tests, conformance with 20 known-wrong Laws, cost search, dafny-check),
+  Run locally, docs, credits (incl. "built with AI coding agents"), license note (none chosen).
+- `docs/SUBMISSION.md`: ready-to-paste board post (Korean summary on top, links, how to play,
+  design ideas, differences from InvGame, AI disclosure). Images use raw.githubusercontent URLs.
+- `docs/media/`: stable-named copies of the best screenshots plus fresh ones from a Playwright run
+  of Mission 01 (`mission-rack`, `live-breach`, `law-holds` cropped to hide the Law,
+  `show-the-proof`). Hero clip: Playwright video (1440×1580) → ffmpeg animated WebP (880 px,
+  12 fps, 1.25× speed, 4.1 MB); a GIF was 6.5–15 MB, so WebP it is (GitHub renders it).
+- **Surprise:** port 4173 was already taken by another agent's `vite preview` (my own server
+  failed with `--strictPort`), so the clip was recorded against that server's `dist/`; I stopped
+  it by mistake when cleaning up and restarted `vite preview --port 4173` on `dist/`.
+- **Follow-ups:** owner to pick a license; check the Korean summary; link `docs/PLAYTEST.md` from
+  the README once it exists; re-record the clip if the UI changes visibly after the playtest fixes.
 
 ### 2026-10-28 — M4-T3 Tutorial, M4-T5 Mobile / keyboard / screen reader / reduced motion
 - Tutorial (`ui/help/Tutorial.tsx`, `tutorialSteps.ts`, `helpStore.ts`, `HelpLayer.tsx`,

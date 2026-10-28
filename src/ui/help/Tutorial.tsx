@@ -48,19 +48,49 @@ function scrollToTarget(el: Element) {
   });
 }
 
-/** Callout placement beside the spotlight: below, above, right, left, else bottom-right. */
-function placeCard(spot: Box, w: number, h: number): CSSProperties {
+const overlaps = (a: Box, b: Box) =>
+  a.left < b.left + b.width &&
+  b.left < a.left + a.width &&
+  a.top < b.top + b.height &&
+  b.top < a.top + a.height;
+
+/** Viewport boxes of the parts of the screen a step's card must leave visible. */
+function avoidBoxes(selectors: readonly string[]): Box[] {
+  return selectors.flatMap((sel) => {
+    const el = document.querySelector(sel);
+    const r = el?.getBoundingClientRect();
+    return r && r.height > 0
+      ? [{ top: r.top, left: r.left, width: r.width, height: r.height }]
+      : [];
+  });
+}
+
+/**
+ * Callout placement beside the spotlight: below, above, right, left, then at the right edge of
+ * the screen (over ARGUS's panel). The first spot that fits and covers neither the target nor
+ * anything in `avoid` wins; if none does, the first that fits; else bottom-right.
+ */
+function placeCard(spot: Box, w: number, h: number, avoid: readonly Box[]): CSSProperties {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const clampX = (x: number) => Math.min(Math.max(EDGE, x), vw - w - EDGE);
   const clampY = (y: number) => Math.min(Math.max(EDGE, y), vh - h - EDGE);
   const bottom = spot.top + spot.height;
   const right = spot.left + spot.width;
-  if (vh - bottom >= h + GAP + EDGE) return { top: bottom + GAP, left: clampX(spot.left) };
-  if (spot.top >= h + GAP + EDGE) return { top: spot.top - GAP - h, left: clampX(spot.left) };
-  if (vw - right >= w + GAP + EDGE) return { top: clampY(spot.top), left: right + GAP };
-  if (spot.left >= w + GAP + EDGE) return { top: clampY(spot.top), left: spot.left - GAP - w };
-  return { top: vh - h - EDGE, left: vw - w - EDGE };
+  const candidates: { fits: boolean; top: number; left: number }[] = [
+    { fits: vh - bottom >= h + GAP + EDGE, top: bottom + GAP, left: clampX(spot.left) },
+    { fits: spot.top >= h + GAP + EDGE, top: spot.top - GAP - h, left: clampX(spot.left) },
+    { fits: vw - right >= w + GAP + EDGE, top: clampY(spot.top), left: right + GAP },
+    { fits: spot.left >= w + GAP + EDGE, top: clampY(spot.top), left: spot.left - GAP - w },
+    { fits: vw >= w + 2 * EDGE, top: clampY(spot.top), left: vw - w - EDGE },
+  ];
+  const fitting = candidates.filter((c) => c.fits);
+  const clear = fitting.find((c) => {
+    const box = { top: c.top, left: c.left, width: w, height: h };
+    return !overlaps(box, spot) && !avoid.some((a) => overlaps(box, a));
+  });
+  const pick = clear ?? fitting[0];
+  return pick ? { top: pick.top, left: pick.left } : { top: vh - h - EDGE, left: vw - w - EDGE };
 }
 
 /** First-time coach marks: a spotlight on one part of the mission screen and COMMAND's note. */
@@ -110,8 +140,9 @@ export function Tutorial() {
       setCardPos({});
       return;
     }
-    setCardPos(placeCard(spot, card.offsetWidth, card.offsetHeight));
-  }, [spot, step]);
+    const avoid = "avoid" in current ? avoidBoxes(current.avoid) : [];
+    setCardPos(placeCard(spot, card.offsetWidth, card.offsetHeight, avoid));
+  }, [spot, step, current]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

@@ -25,15 +25,24 @@ export function MissionFailedOverlay({ level }: { level: Level }) {
           ARGUS reached 100% breach after {attempts} failed Laws. The facility has fallen. Retry
           starts the mission over from the briefing, with the breach back at 0%.
         </p>
-        <button
-          ref={ref}
-          type="button"
-          className="failed__retry"
-          onClick={() => retry(level)}
-          data-testid="failed-retry"
-        >
-          Retry mission
-        </button>
+        <p className="failed__tip">
+          Stuck? Training mode (on mission select) turns the breach meter off. Wins still unlock the
+          next mission.
+        </p>
+        <div className="failed__actions">
+          <button
+            ref={ref}
+            type="button"
+            className="failed__retry"
+            onClick={() => retry(level)}
+            data-testid="failed-retry"
+          >
+            Retry mission
+          </button>
+          <a className="failed__missions" href="?missions" data-testid="failed-missions">
+            Mission select
+          </a>
+        </div>
       </section>
     </div>
   );

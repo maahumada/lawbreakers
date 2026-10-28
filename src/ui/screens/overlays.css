@@ -295,3 +295,32 @@
   color: var(--argus-bg);
   cursor: pointer;
 }
+
+.failed__tip {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--argus-muted);
+}
+
+.failed__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.failed__missions {
+  padding: var(--space-3) var(--space-4);
+  border: 2px solid transparent;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-md);
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  text-transform: uppercase;
+  color: var(--argus-text);
+}
+
+.failed__missions:hover {
+  border-color: var(--argus-primary);
+}

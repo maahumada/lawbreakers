@@ -23,13 +23,15 @@ interface Props {
   level: Level;
   /** The mission after this one, if any. */
   next: Level | undefined;
+  /** Every mission of the campaign is secured (this win included). */
+  campaignDone: boolean;
 }
 
 /**
  * THE LAW HOLDS: score breakdown, the Law, retry / next mission. A training win records no score,
  * so its variant drops the tubes, the breakdown and the breach, and says why.
  */
-export function ResultsOverlay({ level, next }: Props) {
+export function ResultsOverlay({ level, next, campaignDone }: Props) {
   const training = useMission((m) => m.training);
   const result = useEngage((s) => s.result);
   const law = useEngage((s) => s.law);
@@ -154,6 +156,14 @@ export function ResultsOverlay({ level, next }: Props) {
           )}
         </dl>
 
+        {!next && (
+          <p className="results__end" data-testid="results-end">
+            {campaignDone
+              ? "Campaign complete. Every facility holds. ARGUS has nothing left to break."
+              : "Last mission cleared. Facilities still unsecured wait on mission select."}
+          </p>
+        )}
+
         <div className="results__actions">
           {next ? (
             <a
@@ -165,7 +175,14 @@ export function ResultsOverlay({ level, next }: Props) {
               Next mission
             </a>
           ) : (
-            <p className="results__end">Last mission cleared.</p>
+            <a
+              ref={firstRef}
+              className="results__btn results__btn--primary"
+              href="?missions"
+              data-testid="results-missions"
+            >
+              Mission select
+            </a>
           )}
           <button
             type="button"
@@ -176,7 +193,6 @@ export function ResultsOverlay({ level, next }: Props) {
             Show the proof
           </button>
           <button
-            ref={next ? undefined : firstRef}
             type="button"
             className="results__btn"
             onClick={() => retry(level)}

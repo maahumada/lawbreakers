@@ -23,7 +23,9 @@ describe("machine view text", () => {
 
   it("uses typographic operators", () => {
     expect(formatExpr(parseBool("A = 0 && B = 0"))).toBe("A = 0 AND B = 0");
-    expect(formatExpr(parseBool("(A = 0 && B = 0) || A = 3"))).toBe("A = 0 AND B = 0 OR A = 3");
+    expect(formatExpr(parseBool("(A = 0 && B = 0) || A = 3"))).toBe("(A = 0 AND B = 0) OR A = 3");
+    expect(formatExpr(parseBool("(x = 1 || y = 2) && x = 3"))).toBe("(x = 1 OR y = 2) AND x = 3");
+    expect(formatExpr(parseBool("A = 1 && B = 2 && A = 3"))).toBe("A = 1 AND B = 2 AND A = 3");
     expect(formatExpr(parseBool("!(x != -1) || 2 * x - 3 <= x mod 2"))).toBe(
       "NOT (x ≠ −1) OR 2×x − 3 ≤ x MOD 2",
     );

@@ -271,7 +271,7 @@
 .control-card {
   display: grid;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4) var(--space-4);
+  padding: var(--space-3) var(--space-3) var(--space-4);
   text-align: left;
   border: 1px solid var(--human-secondary);
   border-bottom-width: 4px;
@@ -303,14 +303,17 @@
   border-color: var(--human-line);
 }
 
+/* The state word is always 6 characters wide (LOCKED; the font is monospaced), so a control
+   locking or firing never re-wraps its name. */
 .control-card__head {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 
 .control-card__lamp {
   flex: none;
+  margin-right: var(--space-1);
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -332,7 +335,10 @@
 }
 
 .control-card__state {
+  flex: none;
+  min-width: 6ch;
   margin-left: auto;
+  text-align: right;
   font-size: var(--text-xs);
   color: var(--human-primary);
 }

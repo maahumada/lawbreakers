@@ -25,9 +25,18 @@ export function typeset(text: string): string {
   return SYMBOLS.reduce((acc, [re, sym]) => acc.replace(re, sym), text);
 }
 
-/** `pretty` with typographic operators. */
+/**
+ * `pretty` with typographic operators. An AND inside an OR (or the reverse) is always bracketed:
+ * `(A = 0 AND B = 0) OR A = 3`. `pretty` drops those brackets because AND binds tighter, but
+ * players should not need to know precedence rules to read a meltdown condition.
+ */
 export function formatExpr(e: BoolExpr | NumExpr): string {
-  return typeset(pretty(e));
+  if (e.k !== "and" && e.k !== "or") return typeset(pretty(e));
+  const other = e.k === "and" ? "or" : "and";
+  // Left-nested chains of the same operator read left to right without brackets.
+  const side = (x: BoolExpr, right: boolean) =>
+    x.k === other || (right && x.k === e.k) ? `(${formatExpr(x)})` : formatExpr(x);
+  return `${side(e.l, false)} ${e.k === "and" ? "AND" : "OR"} ${side(e.r, true)}`;
 }
 
 /** Guard line of a control card: `IF A ≥ 1`, or `ALWAYS` for an unconditional control. */

@@ -5,7 +5,8 @@ Things decided autonomously while the owner was away, or that need a human. Newe
 ## Needs a human
 
 - [ ] **Firefox check** of the live site (Playwright here only has Chromium).
-- [ ] **Playtest with 3–5 real people** (M4-T4 was done with an agent-driven playtest only).
+- [ ] **Playtest with 3–5 real people** (M4-T4 was done with an agent-driven playtest only; notes
+      and the issue list are in `docs/PLAYTEST.md`, a template for the human round).
 - [ ] **Independent engine review did not run.** The `code-reviewer` agent failed with
       `model_not_found` (its definition points to `claude-4.6-opus-high-thinking`, request
       `req_011CgUXnYN6DJESRhzKru7nK`). Fix the agent's model or run `/code-review` on `src/engine/`
@@ -15,6 +16,38 @@ Things decided autonomously while the owner was away, or that need a human. Newe
       posting is the owner's call.
 
 ## Decisions worth a second look
+
+- **Agent playtest (M4-T4), design questions it raised** (details in `docs/PLAYTEST.md`; none of
+  these were changed because they touch rules or mission content):
+  - *Hint ladder can repeat itself.* For a lab/insufficient verdict without its own list the
+    ladder is `[generic, ...default]`, so on Mission 01 a live breach (rung 1 = default[0]) followed
+    by an insufficient Law (rung 2 = default[0] again) shows "Watch the total…" twice. Options:
+    index the default list by failures regardless of kind, or show the generic line only once.
+  - *Mission 01's first hint is nearly the answer* ("Watch the total of both cells while they
+    move."). Fine for a tutorial mission if intended; otherwise swap rungs 1 and 2.
+  - *Score loophole:* leaving a mission and coming back resets breach and attempts (the mission
+    store reloads), so fail, leave, return, win "first try". Local scores only, so low stakes;
+    a fix would keep the session per mission until it is won or failed.
+  - *Re-engaging an identical failed Law* charges breach again (ARGUS has a taunt for it). A
+    newcomer may do it by accident after REBUILD; greying out ENGAGE (or a confirm) for an
+    unchanged failed Law would be kinder.
+  - *Phones:* the ARGUS panel (breach meter + terminal) is below the console, so its typing during
+    an attack is off screen; the verdict banner carries the information.
+  - *Mission 04's PINS gauge is signed* (ℤ, "+" tube) although pins cannot be negative. Presumably
+    deliberate (ℤ makes `n ≥ 1` a lab breach from n = 2 either way, but ℕ would change the
+    domain the lab explores); worth a line in the briefing or a ℕ check against LEVELS.md.
+- **Playtest fixes I chose (M4-T4).** MISSION FAILED now has a "Stuck? Training mode…" line and a
+  Mission select link; the Mission 06 results say "Campaign complete…" and offer Mission select;
+  tutorial cards avoid the parts their step names (gauges, telemetry, hand), falling back to the
+  right edge over ARGUS's panel; mixed AND/OR is always bracketed in typeset expressions
+  (`(A = 0 AND B = 0) OR A = 3`), which changes how Laws read in the banner, terminal and
+  results too; the time bonus clock restarts when the tutorial closes (only before the first
+  engage); the control card's state word has a fixed 6-character width, and the card's side
+  padding went from `--space-4` to `--space-3` so "TRANSFER A→B LOCKED" fits on one line; an
+  inline SVG favicon (amber shield) in `index.html` ends the `/favicon.ico` 404. Copy is mine.
+- **a11y smoke flaked once** after these changes: axe flagged `.results__btn--primary` contrast
+  on the Mission 01 results, then two reruns passed. Probably the scan catching the dialog's
+  fade-in; worth making that scan wait for the animation if it recurs.
 
 - **Tutorial copy and voice (M4-T3).** Six coach marks signed "Command" (amber, sentence case) in
   `src/ui/help/tutorialSteps.ts`. Step 2 says "Look for something that never changes" — the core
@@ -69,3 +102,26 @@ Things decided autonomously while the owner was away, or that need a human. Newe
   itself. `npm run dafny-check` disables that (`/infer:t`) to show the game's verdicts match Dafny's.
   The in-game panel only shows winning Laws, which verify with plain `dafny verify`. Worth knowing if
   someone pastes a wrong Law into Dafny by hand and asks why it passes.
+
+- **README / submission (M4-T6).**
+  - **No license yet.** README says "all rights reserved by default". Pick one (MIT is the usual
+    choice for a course project) and add `LICENSE`; then fix the README's License section.
+  - **Korean summary** at the top of `docs/SUBMISSION.md` was written by an agent; please have a
+    native speaker read it once.
+  - **Mission 01's answer is visible in the media.** The hero clip (asked for: wrong Law → breach
+    → correct Law → holds) and `docs/media/show-the-proof.png` show Mission 01's reference Law. No
+    text in README/SUBMISSION names any Law, and `law-holds.png` is cropped above "YOUR LAW".
+    Mission 01 is the tutorial and DESIGN already publishes it; if you want zero spoilers, replace
+    the proof screenshot and cut the clip before the second ENGAGE.
+  - **Hero clip is animated WebP, not GIF** (4.1 MB; the GIF was 6.5–15 MB because of the CRT
+    scanlines). GitHub renders it; the course board may not — if not, upload the `.webp` there or
+    link to the README.
+  - **Clip recorded on the playtest agent's in-progress build** (port 4173 was its server). If the
+    playtest fixes change the mission screen visibly, re-record (Playwright `recordVideo` +
+    `ffmpeg … -c:v libwebp_anim -q:v 70`).
+  - **Claims to double-check:** "Tested in Chromium-based browsers" (Firefox still unchecked);
+    InvGame credited to Bounov, DeRossi, Menarini, Griswold, Lerner (CHI 2018 paper, from memory);
+    "Claude Code" named as the agent tool in Credits and in the post.
+  - **README links no PLAYTEST.md yet** (another agent is writing it); add it under Project docs.
+  - **Submission images** use `raw.githubusercontent.com/.../main/docs/media/...`, so they only
+    resolve after `docs/media/` is pushed to `main`.

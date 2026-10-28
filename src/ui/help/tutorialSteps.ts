@@ -6,6 +6,8 @@ export interface TutorialStep {
   id: string;
   /** CSS selectors tried in order; the first visible match is spotlighted. */
   targets: readonly string[];
+  /** Parts of the screen the step talks about besides its target: the card must not cover them. */
+  avoid?: readonly string[];
   title: string;
   body: string;
 }
@@ -14,12 +16,14 @@ export const TUTORIAL_STEPS = [
   {
     id: "machine",
     targets: [".machine__brief"],
+    avoid: [".machine__gauges"],
     title: "This is the facility",
     body: "Gauges show its state. The red box is the meltdown condition: if it ever comes true, we lose the facility.",
   },
   {
     id: "controls",
     targets: [".machine__controls", ".machine__gauges"],
+    avoid: [".machine__gauges", ".machine__telemetry"],
     title: "Work the controls",
     body: "Press a control and watch the gauges. Telemetry logs every state. Look for something that never changes.",
   },
@@ -32,6 +36,7 @@ export const TUTORIAL_STEPS = [
   {
     id: "rack",
     targets: ["[data-testid='rack-board']"],
+    avoid: [".hand"],
     title: "Wire a Law",
     body: "Pick a module, then a lit socket. Whatever signal reaches the SHIELD is your Law: a rule the machine must always obey.",
   },
