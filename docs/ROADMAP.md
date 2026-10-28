@@ -94,6 +94,17 @@ Goal: a stranger can open the URL, play Mission 01 start to finish and understan
 - [ ] **M4-T7** Submit on the Social Contributions board: repo URL, page URL, how to play, design ideas.
   *Note:* draft ready in `docs/SUBMISSION.md`; posting is the owner's call.
 
+## Post-playtest (owner playtest, Oct 29)
+
+Players did not see why a Law must hold from states the machine never reaches ("(3,3) can't
+happen, why does it break?"). Teach: the Law is the only fence, the controls are the only moves.
+
+- [x] INSUFFICIENT banner says "may never reach … but the Law cannot rule it out"; LAB banner says
+  ARGUS may start from any state the Law allows, then use a real control; Mission 06 hint rung 1.
+- [x] One-time COMMAND explainer cards: first lab breach, first insufficient (also in training).
+- [x] "?" How to play: fence + moves paragraph; lab breach and insufficient lines reworded.
+- [x] Mission 05 replaced by THE COUNTERWEIGHT (strengthening where the obvious AND fails).
+
 ## Stretch (only after M4-T6)
 
 - Global leaderboard (Supabase table, nickname + per-mission score).

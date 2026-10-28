@@ -108,11 +108,11 @@ describe("ARGUS verdict lines", () => {
     const m05 = byNumber("05");
     const vars = verdictVars(m05, parseBool("x >= 0"), {
       kind: "lab_breach",
-      before: { x: 0, y: -1 },
-      control: "cycle",
+      before: { x: 0, y: 1 },
+      control: "pull",
       after: { x: -1, y: 0 },
     });
-    expect(vars).toMatchObject({ x: "−1", y: "0", before: "x = 0, y = −1", control: "CYCLE" });
+    expect(vars).toMatchObject({ x: "−1", y: "0", after: "x = −1, y = 0", control: "HOIST" });
   });
 
   it("every placeholder in every pool resolves for its verdict kind", () => {

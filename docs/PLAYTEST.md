@@ -98,6 +98,8 @@ verification student would predict.
 
 ### 05 The False Defense
 
+*(Since replaced by 05 THE COUNTERWEIGHT after the owner playtest; see `docs/LEVELS.md`.)*
+
 - `x ≥ 0` is the trap, as intended. The lab replay (x = 0, y = −1 → x = −1) is clear, and so is the
   hint "In the lab the drive starts negative".
 - `y ≥ 0` alone is insufficient, with the hint "it never mentions the momentum". Then AND. This

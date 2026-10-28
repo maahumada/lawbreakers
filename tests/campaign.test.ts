@@ -4,6 +4,7 @@ import {
   CHAPTERS,
   chapterIndex,
   chapterStartingAt,
+  migrateSecured,
   missionStatus,
   nextMission,
   useCampaign,
@@ -47,6 +48,13 @@ describe("campaign unlocks", () => {
     expect(statuses(main)[6]).toBe("available");
     expect(statuses(main.slice(0, 5))[6]).toBe("locked");
     expect(nextMission(ids, new Set(main))).toBe("07-the-splitter");
+  });
+
+  it("a save that secured the replaced Mission 05 keeps 05 secured and 06 open", () => {
+    const old = ["01-last-reactor", "05-false-defense", "05-counterweight"];
+    expect(migrateSecured(old)).toEqual(["01-last-reactor", "05-counterweight"]);
+    const secured = migrateSecured(ids.slice(0, 4).concat("05-false-defense"));
+    expect(statuses(secured).slice(4, 6)).toEqual(["secured", "available"]);
   });
 
   it("all secured: nothing left to continue", () => {

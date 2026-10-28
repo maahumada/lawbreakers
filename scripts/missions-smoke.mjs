@@ -4,7 +4,8 @@
 // the page never scrolls sideways. Writes docs/screenshots/m3-t2-NN.png (desktop, after the first
 // wrong Law: the replay state) and m3-t2-NN-mobile.png; the bonus chapter (07–09) writes
 // stretch-NN.png, stretch-NN-mobile.png and stretch-NN-reference.png (the largest Law, built).
-// Not part of `npm test`.
+// Then the one-time explainer cards on Mission 05 (post-playtest-explainer-*.png, desktop and
+// mobile) and Mission 05 at rest (post-playtest-05.png). Not part of `npm test`.
 // Usage: start a server (`npx vite preview --port 4173`), then
 // `node scripts/missions-smoke.mjs [url] [outDir]`.
 
@@ -82,12 +83,27 @@ const MISSIONS = [
   {
     n: "05",
     wrong: [
+      {
+        text: "x ≥ 0 AND y ≥ 0",
+        steps: law(["card-and", "root"], ...cmp("ge", "x", 0, "0"), ...cmp("ge", "y", 0, "1")),
+        verdict: "lab_breach",
+      },
+      {
+        text: "x = y",
+        steps: law(["card-eq", "root"], ["sensor-x", "0"], ["sensor-y", "1"]),
+        verdict: "insufficient",
+      },
       { text: "x ≥ 0", steps: cmp("ge", "x", 0), verdict: "lab_breach" },
-      { text: "y ≥ 0", steps: cmp("ge", "y", 0), verdict: "insufficient" },
     ],
     ref: {
-      text: "x ≥ 0 AND y ≥ 0",
-      steps: law(["card-and", "root"], ...cmp("ge", "x", 0, "0"), ...cmp("ge", "y", 0, "1")),
+      text: "x = y AND y ≥ 0",
+      steps: law(
+        ["card-and", "root"],
+        ["card-eq", "0"],
+        ["sensor-x", "0-0"],
+        ["sensor-y", "0-1"],
+        ...cmp("ge", "y", 0, "1"),
+      ),
     },
   },
   {
@@ -322,6 +338,83 @@ try {
       check(errors.length === 0, `${tag}: no page errors ${errors.join("; ")}`);
       await context.close();
     }
+  }
+
+  // --- One-time explainer cards (post-playtest): first lab breach, first insufficient ---------
+  for (const vp of [
+    { name: "desktop", width: 1440, height: 900 },
+    { name: "mobile", width: 390, height: 844 },
+  ]) {
+    const mobile = vp.name === "mobile";
+    const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height } });
+    await context.addInitScript(() => localStorage.setItem("lawbreakers:tutorial-seen", "1"));
+    const page = await context.newPage();
+    const errors = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    page.on("console", (msg) => msg.type() === "error" && errors.push(msg.text()));
+    await page.goto(`${url}?mission=05`);
+    await page.getByTestId("rack").waitFor();
+    await page.evaluate(() => document.fonts.ready);
+    const tag = `explainer ${vp.name}`;
+    if (!mobile) await page.screenshot({ path: `${dir}/post-playtest-05.png`, fullPage: true });
+    const focused = () =>
+      page.evaluate(() => document.activeElement?.getAttribute("data-testid") ?? null);
+
+    for (const [kind, steps, title, key, shot] of [
+      [
+        "lab_breach",
+        law(["card-and", "root"], ...cmp("ge", "x", 0, "0"), ...cmp("ge", "y", 0, "1")),
+        "Why does ARGUS use a state that never happens?",
+        "Escape",
+        "post-playtest-explainer-lab",
+      ],
+      [
+        "insufficient",
+        law(["card-eq", "root"], ["sensor-x", "0"], ["sensor-y", "1"]),
+        "Never happening ≠ proven impossible",
+        "Enter",
+        "post-playtest-explainer-insufficient",
+      ],
+    ]) {
+      await build(page, steps);
+      check((await engageAndWait(page)) === kind, `${tag}: ${kind}`);
+      const card = page.getByTestId("explainer");
+      await card.waitFor({ timeout: 5_000 });
+      check((await card.getAttribute("data-kind")) === kind, `${tag}: ${kind} card`);
+      check(
+        ((await card.locator("h3").textContent()) ?? "") === title,
+        `${tag}: ${kind} card title`,
+      );
+      check((await card.locator("li").count()) <= 3, `${tag}: ${kind} card has ≤ 3 lines`);
+      check((await focused()) === "explainer-dismiss", `${tag}: ${kind} card takes focus`);
+      check((await overflow(page)) <= 0, `${tag}: ${kind} card, no horizontal scroll`);
+      check(
+        (await page.evaluate(
+          (k) => localStorage.getItem(`lawbreakers:explainer-seen:${k}`),
+          kind,
+        )) === "1",
+        `${tag}: ${kind} card marked seen`,
+      );
+      await page.waitForTimeout(400);
+      await card.scrollIntoViewIfNeeded();
+      await page.screenshot({
+        path: `${dir}/${shot}${mobile ? "-mobile" : ""}.png`,
+        fullPage: !mobile,
+      });
+      await page.keyboard.press(key);
+      check((await card.count()) === 0, `${tag}: ${key} dismisses the ${kind} card`);
+      check((await focused()) === "rebuild", `${tag}: focus back on Rebuild after ${key}`);
+      await page.getByTestId("rebuild").click();
+      await page.getByTestId("rack-clear").click();
+    }
+
+    // Seen once: the next lab breach comes without a card.
+    await build(page, cmp("ge", "x", 0));
+    check((await engageAndWait(page)) === "lab_breach", `${tag}: x ≥ 0 lab breach again`);
+    await page.waitForTimeout(1_200);
+    check((await page.getByTestId("explainer").count()) === 0, `${tag}: no second lab card`);
+    check(errors.length === 0, `${tag}: no page errors ${errors.join("; ")}`);
+    await context.close();
   }
 } finally {
   await browser.close();

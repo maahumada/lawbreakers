@@ -272,7 +272,7 @@ by `ui/proof/ShowTheProof.tsx` after a win (button on the results screen):
 files) exports every level's `solutions` (must verify) and `knownWrong` (must fail verification, not
 parsing) and runs `dafny verify --boogie /infer:t`. The flag matters: Boogie's default interval
 analysis infers loop invariants of its own (`0 <= x <= 10` in Mission 02), which made `x != 11`,
-`x <= 11` (02) and `x >= 0`, `y >= 0` (05) verify. With inference off only the Law carries the proof.
+`x <= 11` (02) and `x = y` (05) verify. With inference off only the Law carries the proof.
 Plain `dafny verify` still verifies every correct Law, which is all the panel ever shows.
 `npm run proof-smoke` drives the panel in Chromium (Mission 01 win → proof → copy → Escape).
 

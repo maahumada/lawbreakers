@@ -126,28 +126,42 @@ state. The player learns a Law must protect itself.
 
 ---
 
-## 05 — THE FALSE DEFENSE
+## 05 — THE COUNTERWEIGHT
 
-*Concept: strengthening. The safety property itself is not inductive; it needs a helper Law.*
+*Concept: strengthening. The safety property is not inductive, and neither is the obvious
+strengthening (guard both gauges); the helper fact is a relation between them.*
 
-> A turbine accumulates momentum. Every cycle, the momentum `x` grows by the drive `y`, and the drive
-> itself grows by one. If momentum ever goes negative, the turbine reverses and tears itself apart.
+> A cable crane hangs over the spillway. LOWER pays out one notch of cable and racks one
+> counterweight block; HOIST reels in a notch and drops a block. The hoist interlock only reads the
+> counterweight: with no blocks racked it refuses. If the cable ever reads below zero, the drum
+> winds past its stop and the cable snaps.
 
-- State: `x ∈ ℤ`, `y ∈ ℤ`. Init: `x = 0, y = 0`.
+- State: `x ∈ ℤ` (LOAD), `y ∈ ℤ` (COUNTERWEIGHT). Init: `x = 0, y = 0`.
 - Controls:
-  - `CYCLE`: `true → x := x + y, y := y + 1`
+  - `LOWER` (id `push`): `true → x := x + 1, y := y + 1`
+  - `HOIST` (id `pull`): `y ≥ 1 → x := x − 1, y := y − 1`
 - Meltdown: `x < 0`.
-- Cards: `≥ ×2`, `AND`. Budget: 11. Cheapest holding Law (cost 11): `x ≥ 0 ∧ y ≥ 0`, the only one.
+- Cards: `=`, `≥ ×2`, `AND`. Budget: 11. Cheapest holding Laws (cost 11): `x = y ∧ y ≥ 0`,
+  `x = y ∧ x ≥ 0`, `x ≥ y ∧ y ≥ 0`, `x ≥ 0 ∧ x ≥ y`, nothing cheaper.
 
 | Law | Verdict | Why |
 |---|---|---|
-| `x ≥ 0 ∧ y ≥ 0` | **HOLDS** | reference |
-| `x ≥ 0` | LAB BREACH | from `(0, −1)`, `CYCLE` gives `(−1, 0)` |
-| `y ≥ 0` | INSUFFICIENT | allows `x = −1` |
-| `x = 0` | LIVE BREACH | after two cycles `x = 1` |
+| `x = y ∧ y ≥ 0` | **HOLDS** | reference |
+| `x = y ∧ x ≥ 0` | **HOLDS** | also valid, same cost |
+| `x ≥ y ∧ y ≥ 0` | **HOLDS** | also valid, same cost (`x ≥ 0 ∧ x ≥ y` too) |
+| `x ≥ 0 ∧ y ≥ 0` | LAB BREACH | from `(0, 1)`, `HOIST` gives `(−1, 0)`: the obvious AND guards each gauge but not the link between them |
+| `x ≥ 0` | LAB BREACH | from `(0, 1)`, `HOIST` gives `(−1, 0)` (Safe itself) |
+| `x = y` | INSUFFICIENT | inductive (both controls move both gauges together), but allows `(−10, −10)` |
+| `x = 0` | LIVE BREACH | one `LOWER` gives `(1, 1)` |
+| `x = 1` | INIT FAILURE | power-on is `(0, 0)` |
 
-Narrative beat: ARGUS taunts — *"Your law is TRUE, Lawsmith. It is also USELESS."* The title refers to
-the defense that looks right because it is literally the safety condition.
+Teaching beat: the player fixes the Mission 02 lesson ("guard the gauge the meltdown is about") and
+adds the other gauge, and ARGUS still wins from a state the crane never reaches (an empty load with
+a block racked). The relation `x = y` alone then gets INSUFFICIENT at `(−10, −10)`: never reached,
+but not ruled out. Both halves are needed: the relation ties the load to what the interlock reads,
+the bound is what the interlock actually guarantees. Replaced the old 05 (THE FALSE DEFENSE,
+turbine `x := x + y, y := y + 1`, answer `x ≥ 0 ∧ y ≥ 0`) after the owner playtest: there the
+obvious AND was the answer.
 
 ---
 
@@ -236,7 +250,7 @@ sides because a control swaps them.*
 | `L − R ≤ 3 ∧ R − L ≤ 3` | INSUFFICIENT | inductive (the swap and the interlocks keep it), but allows `(3, 0)` |
 
 Teaching beat: one meltdown, one side, yet the Law needs both sides. Unlike Mission 05 the helper
-fact is not about another gauge but about the same gap read the other way; `SUB` is new.
+fact is not a relation to another gauge but the same gap read the other way; `SUB` is new.
 
 ---
 

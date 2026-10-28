@@ -117,14 +117,14 @@ export function verdictCopy(
       return {
         title: "Law breached",
         tag: "Lab simulation",
-        body: `${lawText} may be true on every real run, but it does not protect itself: at ${formatState(level, verdict.before)} it holds, and one ${controlLabel(level, verdict.control)} gives ${formatState(level, verdict.after)}, where it fails.`,
+        body: `ARGUS may start from any state your Law allows, even one the real machine never reaches, then use a real control. At ${formatState(level, verdict.before)}, ${lawText} holds; one ${controlLabel(level, verdict.control)} gives ${formatState(level, verdict.after)}, where it fails. Your Law does not protect itself.`,
         hint: missionHint(level, verdict.kind, failures),
       };
     case "insufficient":
       return {
         title: "Insufficient protection",
         tag: "Safety check",
-        body: `${lawText} protects itself, but it allows ${formatState(level, verdict.state)}, which is a meltdown.`,
+        body: `The real machine may never reach ${formatState(level, verdict.state)}, but ${lawText} cannot rule it out — and that state is a meltdown. A proof only knows what the Law says.`,
         hint: missionHint(level, verdict.kind, failures),
       };
     case "holds":
@@ -134,5 +134,42 @@ export function verdictCopy(
         body: `${lawText} is true at power-on, survives every control, and rules out meltdown. ARGUS found no way in.`,
         hint: "",
       };
+  }
+}
+
+export interface ExplainerCopy {
+  title: string;
+  /** At most three short lines. */
+  lines: string[];
+}
+
+/**
+ * The one-time explainer card for a lab breach or an insufficient verdict (see
+ * `game/explainerSeen.ts`), with the verdict's concrete states. `null` for other kinds.
+ */
+export function explainerCopy(level: Level, law: BoolExpr, verdict: Verdict): ExplainerCopy | null {
+  const lawText = keep(formatExpr(law));
+  const at = (s: State) => keep(stateText(level, s), true);
+  switch (verdict.kind) {
+    case "lab_breach":
+      return {
+        title: "Why does ARGUS use a state that never happens?",
+        lines: [
+          `Your Law is the only fence. ARGUS may start anywhere inside it, here at ${at(verdict.before)}, even if the machine never gets there.`,
+          `From there it may only use the real controls: one ${controlLabel(level, verdict.control)} gives ${at(verdict.after)}, outside the fence.`,
+          "Hold at power-on and for one step from anywhere inside, and you cover every run, forever. That is the proof.",
+        ],
+      };
+    case "insufficient":
+      return {
+        title: "Never happening ≠ proven impossible",
+        lines: [
+          `The machine may never reach ${at(verdict.state)}. Your Law ${lawText} still allows it.`,
+          "A proof never watches the machine run: it only knows what the Law says. To the proof, that state is possible, and it is a meltdown.",
+          "Make the Law say why it cannot happen.",
+        ],
+      };
+    default:
+      return null;
   }
 }

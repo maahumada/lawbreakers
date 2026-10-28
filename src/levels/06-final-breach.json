@@ -54,7 +54,7 @@
         "Pulses move charge in pairs: watch the total, and whether bank A is odd or even."
       ],
       "insufficient": [
-        "Your Law stops one meltdown. Look at the state ARGUS found: which fact would rule it out?",
+        "The real core may never reach the state ARGUS found, but your Law cannot rule it out, and a proof only knows what the Law says. Which fact would rule it out?",
         "One fact keeps the banks from emptying; another keeps bank A away from 3. You need both at once.",
         "Pulses move charge in pairs: watch the total, and whether bank A is odd or even."
       ]

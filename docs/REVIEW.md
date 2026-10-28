@@ -17,6 +17,39 @@ Things decided autonomously while the owner was away, or that need a human. Newe
 
 ## Decisions worth a second look
 
+- **Post-playtest: "fence + moves" copy and explainer cards (Oct 29).** Please read them in the game
+  (screenshots `docs/screenshots/post-playtest-explainer-lab.png`, `…-insufficient-mobile.png`).
+  - *Insufficient banner:* "The real machine may never reach A = 3, B = 3, but A + B = 6 cannot
+    rule it out — and that state is a meltdown. A proof only knows what the Law says."
+  - *Lab banner:* "ARGUS may start from any state your Law allows, even one the real machine never
+    reaches, then use a real control. At …, LAW holds; one CONTROL gives …, where it fails. Your
+    Law does not protect itself." (longer than before, worth a look on a phone.)
+  - *Card "Why does ARGUS use a state that never happens?"* — "Your Law is the only fence. ARGUS
+    may start anywhere inside it, here at …, even if the machine never gets there." / "From there
+    it may only use the real controls: one CONTROL gives …, outside the fence." / "Hold at power-on
+    and for one step from anywhere inside, and you cover every run, forever. That is the proof."
+  - *Card "Never happening ≠ proven impossible"* — "The machine may never reach …. Your Law LAW
+    still allows it." / "A proof never watches the machine run: it only knows what the Law says.
+    To the proof, that state is possible, and it is a meltdown." / "Make the Law say why it cannot
+    happen."
+  - Cards sit inline under the verdict banner (not an overlay), appear 0.7 s after it (at once
+    with reduced motion), take focus (Esc/Enter/Got it dismiss, focus returns to Rebuild). Seen
+    flags `lawbreakers:explainer-seen:lab_breach|insufficient` are set when the card appears, so
+    a fast REBUILD within 0.7 s skips it for good; "Reset progress" does not clear them (like the
+    tutorial flag).
+- **New Mission 05 THE COUNTERWEIGHT (replaces THE FALSE DEFENSE).** Spillway cable crane: LOAD
+  `x`, COUNTERWEIGHT `y` (ℤ, init 0); LOWER `x+1, y+1`; HOIST `y ≥ 1 → x−1, y−1`; meltdown `x < 0`.
+  Hand `=`, `≥ ×2`, AND, budget 11. `x ≥ 0 ∧ y ≥ 0` is a LAB BREACH (from `(0,1)`, HOIST), `x = y`
+  is INSUFFICIENT (`(−10,−10)`), reference `x = y ∧ y ≥ 0`; four holding Laws at cost 11, none
+  cheaper. Things to judge: difficulty jump after 04 (it is now clearly harder than before), the
+  crane flavour, the briefing naming the interlock ("only reads the counterweight"), and the hint
+  ladder (rung 3: "Tie the two gauges together, then add the one fact the interlock relies on").
+  - *Id changed* to `05-counterweight`. Saved progress that secured `05-false-defense` is migrated
+    on load (05 stays secured, 06 stays open); the old 05 best score is left orphaned in storage on
+    purpose (different puzzle). Shared links `?mission=05` keep working (routes use the number).
+  - Plain `dafny verify` (with Boogie inference) wrongly accepts `x = y` here; `npm run
+    dafny-check` (`/infer:t`) rejects it as before. ARCHITECTURE/REVIEW notes updated.
+
 - **Bonus chapter 07–09 (Stretch "More missions").** Content is mine; please play them once.
   - *Arc:* FINAL BREACH stays the main finale; 07–09 are "ARGUS Strikes Back", unlocked by 06.
     06's results now say "Main campaign complete… bonus chapter … is open" and offer Next mission
@@ -116,7 +149,7 @@ Things decided autonomously while the owner was away, or that need a human. Newe
   pass hooks into — check for merge overlap.
 
 - **Dafny export and Dafny's own loop inference.** With plain `dafny verify`, a few wrong Laws
-  (M02 `x != 11`, `x <= 11`; M05 `x >= 0`, `y >= 0`) verify anyway, because Dafny infers loop bounds by
+  (M02 `x != 11`, `x <= 11`; M05 `x = y`) verify anyway, because Dafny infers loop bounds by
   itself. `npm run dafny-check` disables that (`/infer:t`) to show the game's verdicts match Dafny's.
   The in-game panel only shows winning Laws, which verify with plain `dafny verify`. Worth knowing if
   someone pastes a wrong Law into Dafny by hand and asks why it passes.

@@ -87,6 +87,20 @@ function write(key: string, value: string | null): void {
   }
 }
 
+/**
+ * Missions replaced after release, old id → new id. A player who secured the old mission keeps the
+ * slot secured (so the next mission stays unlocked); the old best score is left behind, since it
+ * was earned on a different puzzle.
+ */
+export const RENAMED_MISSIONS: Readonly<Record<string, string>> = {
+  "05-false-defense": "05-counterweight",
+};
+
+/** `ids` with renamed missions mapped to their new id, without duplicates. */
+export function migrateSecured(ids: readonly string[]): string[] {
+  return [...new Set(ids.map((id) => RENAMED_MISSIONS[id] ?? id))];
+}
+
 export function loadSecured(): string[] {
   const raw = read(PROGRESS_KEY);
   if (raw === null) return [];
@@ -96,7 +110,9 @@ export function loadSecured(): string[] {
       typeof parsed === "object" && parsed !== null && "secured" in parsed
         ? (parsed as { secured: unknown }).secured
         : null;
-    return Array.isArray(list) ? list.filter((x): x is string => typeof x === "string") : [];
+    return Array.isArray(list)
+      ? migrateSecured(list.filter((x): x is string => typeof x === "string"))
+      : [];
   } catch {
     return [];
   }

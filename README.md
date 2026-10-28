@@ -173,7 +173,7 @@ Everything works with the keyboard (Tab, Enter, Esc, arrow keys on the dial, Del
 | 02 | Coolant Valve | bounds, and your first lab simulation |
 | 03 | Mirror Pistons | a linear relation between gauges |
 | 04 | Parity Lock | modular invariants |
-| 05 | The False Defense | strengthening: the safety rule alone is not enough |
+| 05 | The Counterweight | strengthening: the safety rule, even with the obvious helper, is not enough |
 | 06 | Final Breach | compound Laws |
 | | ***Bonus chapter: ARGUS Strikes Back*** | |
 | 07 | The Splitter | weighted conservation: not every unit counts the same |

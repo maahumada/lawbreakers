@@ -105,7 +105,15 @@ This distinction is the most important piece of pedagogy in the game, so it gets
   see, but it is not inductive. Testing would never find this. This is exactly the
   "it passes a thousand runs but is not a proof" lesson.
 
-Mission 02 and Mission 05 are designed so the natural first guess triggers a lab simulation.
+Mission 02 and Mission 05 are designed so the natural first guess triggers a lab simulation (in
+05 even the obvious strengthening, guarding both gauges, still does).
+
+The idea players miss most (owner playtest): **the Law is the only fence, the controls are the only
+moves.** ARGUS may start from *any* state the Law allows, even one the machine never reaches, and
+then may only use the real controls. Checking power-on plus one step from anywhere inside covers
+every run, forever; "never happens in practice" is not "ruled out by the Law". The lab and
+insufficient banners, the "?" panel and two one-time COMMAND explainer cards (first lab breach,
+first insufficient verdict) all say this in those terms.
 
 ---
 

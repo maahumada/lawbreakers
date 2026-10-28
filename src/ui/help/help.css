@@ -294,6 +294,16 @@
   letter-spacing: 0.04em;
 }
 
+.howto__fence {
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--human-primary);
+  color: var(--human-text);
+}
+
+.howto__fence b {
+  color: var(--human-primary);
+}
+
 .howto__win b {
   text-transform: uppercase;
   font-family: var(--font-display);
@@ -372,8 +382,82 @@
   background: color-mix(in srgb, var(--human-primary) 14%, transparent);
 }
 
+/* --- Explainer cards (one-time, under the verdict banner) ------------------ */
+
+.explainer {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border: 1px solid var(--human-secondary);
+  border-top: 3px solid var(--human-primary);
+  background: var(--human-surface);
+  animation: explainer-in var(--dur-med) ease-out;
+}
+
+.explainer__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--human-secondary);
+}
+
+.explainer__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-lg);
+  line-height: 1.15;
+  color: var(--human-primary);
+}
+
+.explainer__lines {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-left: var(--space-4);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--human-text);
+}
+
+.explainer__lines li::marker {
+  color: var(--human-primary);
+}
+
+.explainer__dismiss {
+  justify-self: end;
+  min-width: 4.5rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--human-primary);
+  background: var(--human-primary);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--human-bg);
+  cursor: pointer;
+}
+
+.explainer__dismiss:hover {
+  background: color-mix(in srgb, var(--human-primary) 85%, var(--human-text));
+}
+
+@keyframes explainer-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .coach__lamp {
+  .coach__lamp,
+  .explainer {
     animation: none;
   }
 }

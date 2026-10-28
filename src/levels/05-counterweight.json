@@ -1,0 +1,63 @@
+{
+  "id": "05-counterweight",
+  "title": "THE COUNTERWEIGHT",
+  "concept": "strengthening",
+  "briefing": "A cable crane hangs over the spillway. LOWER pays out one notch of cable and racks one counterweight block; HOIST reels in a notch and drops a block. The hoist interlock only reads the counterweight: with no blocks racked it refuses. If the cable ever reads below zero, the drum winds past its stop and the cable snaps.",
+  "vars": [
+    { "name": "x", "label": "LOAD", "domain": "int", "init": 0 },
+    { "name": "y", "label": "COUNTERWEIGHT", "domain": "int", "init": 0 }
+  ],
+  "controls": [
+    { "id": "push", "label": "LOWER", "guard": "true", "update": { "x": "x + 1", "y": "y + 1" } },
+    { "id": "pull", "label": "HOIST", "guard": "y >= 1", "update": { "x": "x - 1", "y": "y - 1" } }
+  ],
+  "meltdown": "x < 0",
+  "hand": { "cards": { "eq": 1, "ge": 2, "and": 1 }, "budget": 11 },
+  "solutions": ["x = y && y >= 0", "x = y && x >= 0", "x >= y && y >= 0"],
+  "knownWrong": [
+    { "law": "x >= 0 && y >= 0", "verdict": "lab_breach" },
+    { "law": "x >= 0", "verdict": "lab_breach" },
+    { "law": "x = y", "verdict": "insufficient" },
+    { "law": "x = 0", "verdict": "live_breach" },
+    { "law": "x = 1", "verdict": "init_failure" }
+  ],
+  "argus": {
+    "intro": [
+      "SPILLWAY CRANE ONLINE.",
+      "GUARD THE LOAD. GUARD THE COUNTERWEIGHT. WATCH IT FAIL ANYWAY.",
+      "TWO TRUE FACTS DO NOT MAKE A PROOF."
+    ],
+    "taunts": {
+      "live_breach": ["{count} MOVES. LOAD {x}, COUNTERWEIGHT {y}. YOUR LAW FELL OFF THE HOOK."],
+      "lab_breach": [
+        "{before} IN MY LAB. ONE {control}: {after}. THE CABLE SNAPS.",
+        "TWO TRUE FACTS, LAWSMITH. NEITHER KNOWS THE OTHER EXISTS. {before}, {control}: {after}."
+      ],
+      "insufficient": [
+        "LOAD {x}, COUNTERWEIGHT {y}. YOUR LAW SEES NOTHING WRONG.",
+        "THE CRANE NEVER GOES THERE. YOUR LAW NEVER SAID SO. {state}."
+      ]
+    },
+    "rattled": [
+      "YOU TIED THE LOAD TO THE COUNTERWEIGHT. AND THE COUNTERWEIGHT TO THE FLOOR.",
+      "THE OBVIOUS DEFENSE FAILED. YOURS DID NOT."
+    ],
+    "hints": {
+      "default": [
+        "The interlock reads the counterweight, never the load. Watch both gauges together.",
+        "Every control moves the load and the counterweight by the same amount. Something between them never changes.",
+        "Tie the two gauges together, then add the one fact the interlock relies on."
+      ],
+      "lab_breach": [
+        "ARGUS may start from any state your Law allows, such as an empty load with blocks still racked. The real crane never gets there, but your Law does not say so.",
+        "Guarding each gauge on its own does not help: HOIST only checks the counterweight. What keeps the load in step with it?",
+        "Tie the two gauges together, then add the one fact the interlock relies on."
+      ],
+      "insufficient": [
+        "The real crane never reaches that state, but your Law cannot rule it out, and it is a meltdown. A proof only knows what the Law says.",
+        "Your relation protects itself, yet it lets both gauges sit below empty together. Add the fact that stops that.",
+        "Tie the two gauges together, then add the one fact the interlock relies on."
+      ]
+    }
+  }
+}

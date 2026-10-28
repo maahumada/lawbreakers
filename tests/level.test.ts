@@ -32,7 +32,7 @@ describe("bundled levels", () => {
       "02-coolant-valve",
       "03-mirror-pistons",
       "04-parity-lock",
-      "05-false-defense",
+      "05-counterweight",
       "06-final-breach",
       "07-the-splitter",
       "08-twin-jacks",

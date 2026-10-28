@@ -9,6 +9,9 @@ along the way, and a log of each work session.
 - **Milestone:** M4 — Polish, playtest, submit
 - **Content:** nine missions; 01–06 main campaign, 07–09 bonus chapter *ARGUS Strikes Back*
   (Stretch "More missions", done)
+- **Post-playtest pass (Oct 29):** "fence + moves" copy in the lab/insufficient banners and the
+  "?" panel, one-time COMMAND explainer cards (first lab breach, first insufficient), Mission 05
+  replaced by THE COUNTERWEIGHT (`05-counterweight`); see `docs/REVIEW.md`
 - **Next task:** M4-T7 Submit (draft in `docs/SUBMISSION.md`). M4-T4 was an agent playtest; a
   human playtest with classmates is still pending (`docs/REVIEW.md`)
 - **Blockers:** none
@@ -21,6 +24,9 @@ Decisions that deviate from or refine the docs. Newest first.
 
 | Date | Decision | Why |
 |---|---|---|
+| 2026-10-29 | Verdict copy frames induction as "the Law is the only fence, the controls are the only moves": LAB says ARGUS may start from any state the Law allows, then uses a real control; INSUFFICIENT says the machine may never reach the state but the Law cannot rule it out ("a proof only knows what the Law says"). Same framing in the "?" panel and Mission 06's first insufficient hint | owner playtest: players asked why an unreachable state like (3,3) counts |
+| 2026-10-29 | One-time explainer cards (`game/explainerSeen.ts`, `help/ExplainerCard.tsx`): COMMAND voice, inline under the verdict banner, 0.7 s after it (0 with reduced motion), only in phase `verdict`, also in training; focus moves to "Got it", Esc/Enter dismiss, focus back to Rebuild. Seen flag per kind `lawbreakers:explainer-seen:<kind>`, set when the card appears; not cleared by Reset progress | explain the idea once, at the moment it bites, without covering the replay or trapping focus |
+| 2026-10-29 | Mission 05 replaced: THE COUNTERWEIGHT (`05-counterweight`), crane with LOWER/HOIST, hand `=`, `≥ ×2`, AND, budget 11; the obvious `x ≥ 0 ∧ y ≥ 0` is a lab breach, `x = y` insufficient, reference `x = y ∧ y ≥ 0`. `RENAMED_MISSIONS` in `game/campaign.ts` migrates a saved `05-false-defense` to the new id on load; the old best score is not carried over | the old 05's obvious AND was the answer, so it did not teach strengthening beyond 02; saved players keep 06 unlocked |
 | 2026-10-28 | Missions 07–09 are a bonus chapter (*ARGUS Strikes Back*) after FINAL BREACH, which stays the main finale. Chapters live in `CHAPTERS` (`game/campaign.ts`); unlocking stays one linear chain (07 needs 06). Mission select shows the chapter heading inside 07's station (one bus); 06's results say "Main campaign complete…" with Next mission → 07; "Campaign complete" moves to 09 | keeps the original arc intact and the select screen one wire; no schema change in the level JSON |
 | 2026-10-28 | The rack readout brackets an AND under an OR (`rackText(…, { bracketMixed: true })`); `rackText` without options still equals `pretty` | Mission 09 is the first OR answer; the live formula should read like the typeset ones |
 | 2026-10-28 | Cost search prunes soundly before verifying: Laws false on a reached state (BFS, ≤ 48) or true on a sampled meltdown state (≤ 48 from the grid) are dropped, and terms too expensive to nest are only built if they agree with the samples | the 08/09 hands (17/25 budget, AND/OR) made the old enumeration take minutes (and 4 GB); now ~8 s and ~5 s; same holding lists for 01–09 |
@@ -94,6 +100,33 @@ Decisions that deviate from or refine the docs. Newest first.
 
 Newest first. One entry per completed task: what was done, files touched, anything surprising,
 follow-ups.
+
+### 2026-10-29 — Post-playtest: "fence + moves", explainer cards, new Mission 05
+- Copy: `ui/argus/verdictText.ts` (lab and insufficient bodies; new `explainerCopy`),
+  `ui/help/HowToPlay.tsx` + `help.css` (fence paragraph, lab breach and 3rd check reworded),
+  `levels/06-final-breach.json` (insufficient hint rung 1).
+- Explainer cards: `game/explainerSeen.ts`, `ui/help/ExplainerCard.tsx` (mounted in
+  `ui/argus/EngageConsole.tsx` under the banner), styles in `ui/help/help.css`.
+- Mission 05: `levels/05-counterweight.json` (old `05-false-defense.json` deleted),
+  `engine/level.ts` import, `game/campaign.ts` (`RENAMED_MISSIONS`, `migrateSecured`).
+  Engine verdicts: `x ≥ 0 ∧ y ≥ 0` and `x ≥ 0` lab breach from `(0, 1)` HOIST → `(−1, 0)`; `x = y`
+  insufficient at `(−10, −10)`; `y ≥ 0` insufficient `(−1, 0)`; `x = 0` live (one LOWER);
+  `x = 1` init. Cost search: 4 holding Laws, all at 11.
+- Tests: `tests/explainer.test.ts` (seen-once per kind, broken storage, copy), insufficient copy
+  test in `engageFlow.test.ts`, migration test in `campaign.test.ts`, `argus/format/level` tests
+  moved off the old turbine (the `x +y` effect test now uses an inline control). 334 tests.
+- Smokes: `missions-smoke` plays the new 05 (two lab Laws, `x = y`, reference) and checks both
+  cards (focus, Esc/Enter, seen once, no sideways scroll, desktop + phone), writes
+  `post-playtest-05.png`, `post-playtest-explainer-{lab,insufficient}[-mobile].png`;
+  `campaign-smoke` checks the card in training mode and seeds the new 05 id.
+- Docs: LEVELS (05 section), DESIGN (fence + moves paragraph), README mission table, ARCHITECTURE
+  and REVIEW Dafny-inference note (now `x = y` in 05), PLAYTEST note, ROADMAP Post-playtest, REVIEW.
+- Checks: lint, typecheck, tests, build; `dafny-check` 13 verified / 35 rejected / 0 wrong;
+  engage, missions, campaign, a11y, rack, juice smokes pass against `vite preview` :4173.
+- **Surprises:** plain `dafny verify` (inference on) accepts the insufficient `x = y`; the
+  `/infer:t` check rejects it. `x ≥ 0 ∧ x ≥ y` also holds at cost 11 (not listed in the JSON).
+- **Follow-ups:** human playtest of the new 05 and the cards. Older screenshots of the turbine
+  (`m3-t2-05*.png`, `m2-t4-lab-m05.png`) were regenerated by the smokes and now show the crane.
 
 ### 2026-10-28 — Stretch: More missions (07–09, bonus chapter ARGUS Strikes Back)
 - New missions: `src/levels/07-the-splitter.json` (weighted conservation, `2·H + F = 6`, budget 9),

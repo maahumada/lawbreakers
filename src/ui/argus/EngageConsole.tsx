@@ -2,6 +2,7 @@ import type { Level } from "../../engine/level.ts";
 import { useEngage } from "../../game/engageStore.ts";
 import { useRack } from "../../game/rackStore.ts";
 import { engage } from "./engage.ts";
+import { ExplainerCard } from "../help/ExplainerCard.tsx";
 import { VerdictBanner } from "./VerdictBanner.tsx";
 
 /** The slot under the rack: ENGAGE, then ARGUS's progress, then the verdict banner. */
@@ -40,5 +41,10 @@ export function EngageConsole({ level }: { level: Level }) {
     );
   }
 
-  return <VerdictBanner level={level} />;
+  return (
+    <>
+      <VerdictBanner level={level} />
+      <ExplainerCard level={level} />
+    </>
+  );
 }

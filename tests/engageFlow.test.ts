@@ -73,9 +73,22 @@ describe("verdict text", () => {
       }),
     );
     expect(copy.tag).toBe("Lab simulation");
+    expect(copy.body).toContain("may start from any state your Law allows");
     expect(copy.body).toContain("does not protect itself");
     expect(copy.body).toContain("x = 12");
     expect(copy.body).toContain("CLOSE gives x = 11");
+  });
+
+  it("explains an insufficient Law as not ruling out an unreached meltdown", () => {
+    const m06 = levels[5];
+    if (!m06) throw new Error("Mission 06 missing");
+    const copy = plain(
+      verdictCopy(m06, parseBool("A + B = 6"), { kind: "insufficient", state: { A: 3, B: 3 } }),
+    );
+    expect(copy.title).toBe("Insufficient protection");
+    expect(copy.body).toBe(
+      "The real machine may never reach A = 3, B = 3, but A + B = 6 cannot rule it out — and that state is a meltdown. A proof only knows what the Law says.",
+    );
   });
 });
 

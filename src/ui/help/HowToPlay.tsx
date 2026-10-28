@@ -13,7 +13,7 @@ const CHECKS = [
   {
     check: "Rules out meltdown",
     fail: "Insufficient protection",
-    what: "it allows a meltdown state",
+    what: "it allows a meltdown state, even one never reached",
   },
 ] as const;
 
@@ -98,6 +98,11 @@ export function HowToPlay({ canReplay }: { canReplay: boolean }) {
         <p className="howto__win">
           Pass all three: <b>The Law holds</b>.
         </p>
+        <p className="howto__fence" data-testid="howto-fence">
+          Your Law is the only fence: ARGUS may start from <b>any</b> state it allows, even ones the
+          machine never reaches, then use a real control. Hold at power-on and for one step from
+          anywhere inside, and every run stays inside, forever.
+        </p>
 
         <div className="howto__breaches">
           <div className="howto__breach howto__breach--live">
@@ -107,8 +112,8 @@ export function HowToPlay({ canReplay }: { canReplay: boolean }) {
           <div className="howto__breach howto__breach--lab">
             <h3 className="howto__breach-name">Lab breach</h3>
             <p>
-              A made-up state where your Law is true, and one move breaks it. True on every run you
-              will see, but it does not protect itself. Make it stronger.
+              ARGUS starts inside your fence, somewhere the machine never goes, and one real control
+              steps outside. "Never happens" is not "ruled out": make the Law say more.
             </p>
           </div>
         </div>

@@ -150,6 +150,11 @@ try {
     "training: x ≠ 11 still breached",
   );
   check((await breach(page)) === 0, "training: failed engage does not move breach");
+  await page.getByTestId("explainer").waitFor({ timeout: 5_000 });
+  check(
+    (await page.getByTestId("explainer").getAttribute("data-kind")) === "lab_breach",
+    "training: first lab breach shows the explainer card",
+  );
   check((await page.getByTestId("verdict-breach").count()) === 0, "training: no breach line");
   await page.screenshot({ path: `${dir}/m3-t4-training.png`, fullPage: true });
   await page.getByTestId("rebuild").click();
@@ -193,7 +198,7 @@ try {
           "02-coolant-valve",
           "03-mirror-pistons",
           "04-parity-lock",
-          "05-false-defense",
+          "05-counterweight",
         ],
       }),
     ),

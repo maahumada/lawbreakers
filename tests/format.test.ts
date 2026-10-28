@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadBundledLevels } from "../src/engine/level.ts";
-import { parseBool } from "../src/engine/parse.ts";
+import { parseBool, parseNum } from "../src/engine/parse.ts";
 import { describeControl, formatEffect, formatExpr, gaugeScale } from "../src/ui/machine/format.ts";
 
 const levels = loadBundledLevels();
@@ -18,7 +18,14 @@ describe("machine view text", () => {
 
   it("shows unconditional guards and variable increments", () => {
     expect(describeControl(control(2, "push"))).toBe("ALWAYS: x +1, y +2");
-    expect(formatEffect(control(4, "cycle"))).toBe("x +y, y +1");
+    expect(describeControl(control(4, "pull"))).toBe("IF y ≥ 1: x −1, y −1");
+    const cycle = {
+      id: "cycle",
+      label: "CYCLE",
+      guard: parseBool("true"),
+      update: { x: parseNum("x + y"), y: parseNum("y + 1") },
+    };
+    expect(formatEffect(cycle)).toBe("x +y, y +1");
   });
 
   it("uses typographic operators", () => {

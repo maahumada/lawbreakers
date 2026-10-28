@@ -13,7 +13,7 @@ import level01 from "../levels/01-last-reactor.json";
 import level02 from "../levels/02-coolant-valve.json";
 import level03 from "../levels/03-mirror-pistons.json";
 import level04 from "../levels/04-parity-lock.json";
-import level05 from "../levels/05-false-defense.json";
+import level05 from "../levels/05-counterweight.json";
 import level06 from "../levels/06-final-breach.json";
 import level07 from "../levels/07-the-splitter.json";
 import level08 from "../levels/08-twin-jacks.json";
