@@ -1,9 +1,10 @@
-// Missions 02–09 end to end in a real browser (real worker + Z3): for each mission, build the
+// Missions 02–15 end to end in a real browser (real worker + Z3): for each mission, build the
 // LEVELS.md known-wrong Laws and the reference Law by click-to-place, engage them and check the
 // verdicts, then the results screen. Also checks gauges (signed ℤ values, scale labels) and that
 // the page never scrolls sideways. Writes docs/screenshots/m3-t2-NN.png (desktop, after the first
 // wrong Law: the replay state) and m3-t2-NN-mobile.png; the bonus chapter (07–09) writes
-// stretch-NN.png, stretch-NN-mobile.png and stretch-NN-reference.png (the largest Law, built).
+// stretch-NN.png, stretch-NN-mobile.png and stretch-NN-reference.png (the largest Law, built),
+// and The Deep Grid (10–15) the same as chapter3-NN*.png.
 // Then the one-time explainer cards on Mission 05 (post-playtest-explainer-*.png, desktop and
 // mobile) and Mission 05 at rest (post-playtest-05.png). Not part of `npm test`.
 // Usage: start a server (`npx vite preview --port 4173`), then
@@ -146,35 +147,6 @@ const MISSIONS = [
     n: "07",
     shot: "stretch-07",
     wrong: [
-      { text: "F ≤ 6", steps: cmp("le", "F", 6), verdict: "lab_breach" },
-      {
-        text: "H + F = 3",
-        steps: law(
-          ["card-eq", "root"],
-          ["card-add", "0"],
-          ["sensor-H", "0-0"],
-          ["sensor-F", "0-1"],
-          ["const", "1", 3],
-        ),
-        verdict: "live_breach",
-      },
-    ],
-    ref: {
-      text: "2×H + F = 6",
-      steps: law(
-        ["card-eq", "root"],
-        ["card-add", "0"],
-        ["card-scale2", "0-0"],
-        ["sensor-H", "0-0-0"],
-        ["sensor-F", "0-1"],
-        ["const", "1", 6],
-      ),
-    },
-  },
-  {
-    n: "08",
-    shot: "stretch-08",
-    wrong: [
       {
         text: "L − R ≤ 2",
         steps: law(
@@ -210,8 +182,8 @@ const MISSIONS = [
     },
   },
   {
-    n: "09",
-    shot: "stretch-09",
+    n: "08",
+    shot: "stretch-08",
     wrong: [
       {
         text: "p = 0 AND a = 4",
@@ -234,6 +206,252 @@ const MISSIONS = [
         ["card-and", "1"],
         ...cmp("eq", "p", 1, "1-0"),
         ...cmp("eq", "a", 0, "1-1"),
+      ),
+    },
+  },
+  {
+    n: "09",
+    shot: "stretch-09",
+    wrong: [
+      { text: "F ≤ 6", steps: cmp("le", "F", 6), verdict: "lab_breach" },
+      {
+        text: "H + F = 3",
+        steps: law(
+          ["card-eq", "root"],
+          ["card-add", "0"],
+          ["sensor-H", "0-0"],
+          ["sensor-F", "0-1"],
+          ["const", "1", 3],
+        ),
+        verdict: "live_breach",
+      },
+    ],
+    ref: {
+      text: "2×H + F = 6",
+      steps: law(
+        ["card-eq", "root"],
+        ["card-add", "0"],
+        ["card-scale2", "0-0"],
+        ["sensor-H", "0-0-0"],
+        ["sensor-F", "0-1"],
+        ["const", "1", 6],
+      ),
+    },
+  },
+  {
+    n: "10",
+    shot: "chapter3-10",
+    wrong: [
+      {
+        text: "R + W + S = 3",
+        steps: law(
+          ["card-eq", "root"],
+          ["card-add", "0"],
+          ["card-add", "0-0"],
+          ["sensor-R", "0-0-0"],
+          ["sensor-W", "0-0-1"],
+          ["sensor-S", "0-1"],
+          ["const", "1", 3],
+        ),
+        verdict: "live_breach",
+      },
+      { text: "W ≤ 1", steps: cmp("le", "W", 1), verdict: "lab_breach" },
+    ],
+    ref: {
+      text: "R + 3×W + S = 3",
+      steps: law(
+        ["card-eq", "root"],
+        ["card-add", "0"],
+        ["card-add", "0-0"],
+        ["sensor-R", "0-0-0"],
+        ["card-scale3", "0-0-1"],
+        ["sensor-W", "0-0-1-0"],
+        ["sensor-S", "0-1"],
+        ["const", "1", 3],
+      ),
+    },
+  },
+  {
+    n: "11",
+    shot: "chapter3-11",
+    wrong: [
+      { text: "y ≤ 4", steps: cmp("le", "y", 4), verdict: "lab_breach" },
+      {
+        text: "2×(x + y) + m ≤ 12",
+        steps: law(
+          ["card-le", "root"],
+          ["card-add", "0"],
+          ["card-scale2", "0-0"],
+          ["card-add", "0-0-0"],
+          ["sensor-x", "0-0-0-0"],
+          ["sensor-y", "0-0-0-1"],
+          ["sensor-m", "0-1"],
+          ["const", "1", 12],
+        ),
+        verdict: "insufficient",
+      },
+    ],
+    ref: {
+      text: "2×x + 3×y + m ≤ 12",
+      steps: law(
+        ["card-le", "root"],
+        ["card-add", "0"],
+        ["card-add", "0-0"],
+        ["card-scale2", "0-0-0"],
+        ["sensor-x", "0-0-0-0"],
+        ["card-scale3", "0-0-1"],
+        ["sensor-y", "0-0-1-0"],
+        ["sensor-m", "0-1"],
+        ["const", "1", 12],
+      ),
+    },
+  },
+  {
+    n: "12",
+    shot: "chapter3-12",
+    wrong: [
+      {
+        text: "a ≤ 4 AND b ≤ 2",
+        steps: law(["card-and", "root"], ...cmp("le", "a", 4, "0"), ...cmp("le", "b", 2, "1")),
+        verdict: "lab_breach",
+      },
+      {
+        text: "a + c = 4",
+        steps: law(
+          ["card-eq", "root"],
+          ["card-add", "0"],
+          ["sensor-a", "0-0"],
+          ["sensor-c", "0-1"],
+          ["const", "1", 4],
+        ),
+        verdict: "insufficient",
+      },
+    ],
+    ref: {
+      text: "a + c = 4 AND a = 2×b",
+      steps: law(
+        ["card-and", "root"],
+        ["card-eq", "0"],
+        ["card-add", "0-0"],
+        ["sensor-a", "0-0-0"],
+        ["sensor-c", "0-0-1"],
+        ["const", "0-1", 4],
+        ["card-eq", "1"],
+        ["sensor-a", "1-0"],
+        ["card-scale2", "1-1"],
+        ["sensor-b", "1-1-0"],
+      ),
+    },
+  },
+  {
+    n: "13",
+    shot: "chapter3-13",
+    wrong: [
+      { text: "a ≠ 4", steps: cmp("ne", "a", 4), verdict: "lab_breach" },
+      { text: "a ≤ 6", steps: cmp("le", "a", 6), verdict: "live_breach" },
+      {
+        text: "a ≤ 9 AND b ≤ 6",
+        steps: law(["card-and", "root"], ...cmp("le", "a", 9, "0"), ...cmp("le", "b", 6, "1")),
+        verdict: "insufficient",
+      },
+    ],
+    ref: {
+      text: "a MOD 3 = 0 AND b MOD 3 = 0",
+      steps: law(
+        ["card-and", "root"],
+        ["card-eq", "0"],
+        ["card-mod3", "0-0"],
+        ["sensor-a", "0-0-0"],
+        ["const", "0-1", 0],
+        ["card-eq", "1"],
+        ["card-mod3", "1-0"],
+        ["sensor-b", "1-0-0"],
+        ["const", "1-1", 0],
+      ),
+    },
+  },
+  {
+    n: "14",
+    shot: "chapter3-14",
+    wrong: [
+      {
+        text: "r ≠ g",
+        steps: law(["card-ne", "root"], ["sensor-r", "0"], ["sensor-g", "1"]),
+        verdict: "lab_breach",
+      },
+      {
+        text: "(r − g) MOD 3 = 2",
+        steps: law(
+          ["card-eq", "root"],
+          ["card-mod3", "0"],
+          ["card-sub", "0-0"],
+          ["sensor-r", "0-0-0"],
+          ["sensor-g", "0-0-1"],
+          ["const", "1", 2],
+        ),
+        verdict: "insufficient",
+      },
+    ],
+    ref: {
+      text: "(r − g) MOD 3 = 2 AND (r − b) MOD 3 = 1",
+      steps: law(
+        ["card-and", "root"],
+        ["card-eq", "0"],
+        ["card-mod3", "0-0"],
+        ["card-sub", "0-0-0"],
+        ["sensor-r", "0-0-0-0"],
+        ["sensor-g", "0-0-0-1"],
+        ["const", "0-1", 2],
+        ["card-eq", "1"],
+        ["card-mod3", "1-0"],
+        ["card-sub", "1-0-0"],
+        ["sensor-r", "1-0-0-0"],
+        ["sensor-b", "1-0-0-1"],
+        ["const", "1-1", 1],
+      ),
+    },
+  },
+  {
+    n: "15",
+    shot: "chapter3-15",
+    wrong: [
+      {
+        text: "x ≤ y",
+        steps: law(["card-le", "root"], ["sensor-x", "0"], ["sensor-y", "1"]),
+        verdict: "live_breach",
+      },
+      {
+        text: "(x + y) MOD 3 = 0",
+        steps: law(
+          ["card-eq", "root"],
+          ["card-mod3", "0"],
+          ["card-add", "0-0"],
+          ["sensor-x", "0-0-0"],
+          ["sensor-y", "0-0-1"],
+          ["const", "1", 0],
+        ),
+        verdict: "insufficient",
+      },
+    ],
+    ref: {
+      text: "(x + y) MOD 3 = 0 AND x ≤ 2×y AND y ≤ 2×x",
+      steps: law(
+        ["card-and", "root"],
+        ["card-and", "0"],
+        ["card-eq", "0-0"],
+        ["card-mod3", "0-0-0"],
+        ["card-add", "0-0-0-0"],
+        ["sensor-x", "0-0-0-0-0"],
+        ["sensor-y", "0-0-0-0-1"],
+        ["const", "0-0-1", 0],
+        ["card-le", "0-1"],
+        ["sensor-x", "0-1-0"],
+        ["card-scale2", "0-1-1"],
+        ["sensor-y", "0-1-1-0"],
+        ["card-le", "1"],
+        ["sensor-y", "1-0"],
+        ["card-scale2", "1-1"],
+        ["sensor-x", "1-1-0"],
       ),
     },
   },

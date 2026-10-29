@@ -4,7 +4,7 @@
 // profile" for reads and "this session only" for writes.
 
 import { create } from "zustand";
-import { clearBest } from "./bestScores.ts";
+import { clearBest, moveBest } from "./bestScores.ts";
 
 export const PROGRESS_KEY = "lawbreakers:progress";
 export const TRAINING_KEY = "lawbreakers:training";
@@ -14,26 +14,39 @@ export type MissionStatus = "locked" | "available" | "secured";
 export interface Chapter {
   /** Number of the chapter's first mission ("01"); it runs until the next chapter starts. */
   first: string;
+  /** Small tag before the title in the mission-select heading ("Bonus chapter"). */
+  tag: string;
   title: string;
   /** Results line when the chapter's last mission is won and all of the chapter is secured. */
   doneLine: string;
 }
 
 /**
- * The main campaign ends at FINAL BREACH (06); ARGUS STRIKES BACK (07–09) is a bonus chapter.
- * Unlocking stays one linear chain: 07 opens when 06 is secured.
+ * The main campaign ends at FINAL BREACH (06); ARGUS STRIKES BACK (07–09) and THE DEEP GRID
+ * (10–15) are bonus chapters. Unlocking stays one linear chain: 07 opens when 06 is secured, 10
+ * when 09 is.
  */
 export const CHAPTERS: readonly Chapter[] = [
   {
     first: "01",
+    tag: "Main campaign",
     title: "The Lawbreakers Protocol",
     doneLine:
       "Main campaign complete. The Core holds. ARGUS is not finished: bonus chapter ARGUS Strikes Back is open.",
   },
   {
     first: "07",
+    tag: "Bonus chapter",
     title: "ARGUS Strikes Back",
-    doneLine: "Campaign complete. Every facility holds. ARGUS has nothing left to break.",
+    doneLine:
+      "Bonus chapter complete. The surface holds. ARGUS has gone underground: The Deep Grid is open.",
+  },
+  {
+    first: "10",
+    tag: "Deep chapter",
+    title: "The Deep Grid",
+    doneLine:
+      "Campaign complete. Every facility holds, down to the bottom of the silo. ARGUS has nowhere left to hide.",
   },
 ];
 
@@ -88,13 +101,29 @@ function write(key: string, value: string | null): void {
 }
 
 /**
- * Missions replaced after release, old id → new id. A player who secured the old mission keeps the
- * slot secured (so the next mission stays unlocked); the old best score is left behind, since it
- * was earned on a different puzzle.
+ * Missions that kept their puzzle but changed number (the bonus chapter was reordered by
+ * difficulty), old id → new id. Secured status and best score both follow the mission.
+ */
+export const MOVED_MISSIONS: Readonly<Record<string, string>> = {
+  "07-the-splitter": "09-the-splitter",
+  "08-twin-jacks": "07-twin-jacks",
+  "09-the-airlock": "08-the-airlock",
+};
+
+/**
+ * Every id change after release, old id → new id: replaced missions and `MOVED_MISSIONS`. A player
+ * who secured a replaced mission keeps the slot secured (so the next mission stays unlocked); its
+ * old best score is left behind, since it was earned on a different puzzle.
  */
 export const RENAMED_MISSIONS: Readonly<Record<string, string>> = {
   "05-false-defense": "05-counterweight",
+  ...MOVED_MISSIONS,
 };
+
+/** Move the best scores of renumbered missions to their new ids (idempotent). */
+export function migrateBestScores(): void {
+  for (const [from, to] of Object.entries(MOVED_MISSIONS)) moveBest(from, to);
+}
 
 /** `ids` with renamed missions mapped to their new id, without duplicates. */
 export function migrateSecured(ids: readonly string[]): string[] {
@@ -129,7 +158,7 @@ interface CampaignStore {
 }
 
 export const useCampaign = create<CampaignStore>()((set, get) => ({
-  secured: loadSecured(),
+  secured: (migrateBestScores(), loadSecured()),
   training: read(TRAINING_KEY) === "1",
   secure: (levelId) => {
     if (get().secured.includes(levelId)) return;

@@ -176,13 +176,20 @@ Everything works with the keyboard (Tab, Enter, Esc, arrow keys on the dial, Del
 | 05 | The Counterweight | strengthening: the safety rule, even with the obvious helper, is not enough |
 | 06 | Final Breach | compound Laws |
 | | ***Bonus chapter: ARGUS Strikes Back*** | |
-| 07 | The Splitter | weighted conservation: not every unit counts the same |
-| 08 | Twin Jacks | bounded difference: two gauges kept within a band |
-| 09 | The Airlock | disjunctive Laws: a machine with two phases, and the first OR answer |
+| 07 | Twin Jacks | bounded difference: two gauges kept within a band |
+| 08 | The Airlock | disjunctive Laws: a machine with two phases, and the first OR answer |
+| 09 | The Splitter | weighted conservation: not every unit counts the same |
+| | ***Deep chapter: The Deep Grid*** | |
+| 10 | The Reading Room | shared access tokens: readers and a writer |
+| 11 | The Lossy Exchange | a market that skims: when nothing is conserved |
+| 12 | The Fuel Cell | two facts at once |
+| 13 | The Sluice Tanks | measuring with two tanks |
+| 14 | The Phase Rotor | three phases in rotation |
+| 15 | Twin Thrusters | the finale: where the burns can reach |
 
 Mission 01 is always open; each win unlocks the next. The main campaign ends at Mission 06; winning
-it opens the bonus chapter. Any mission can be opened directly with
-`?mission=NN` (it is then flagged OFF-CAMPAIGN).
+it opens the bonus chapter, and winning Mission 09 opens The Deep Grid. Any mission can be opened
+directly with `?mission=NN` (it is then flagged OFF-CAMPAIGN).
 
 ---
 
@@ -259,7 +266,7 @@ are listed in `package.json` and described in [ARCHITECTURE.md](docs/ARCHITECTUR
 ## Project docs
 
 - [Game design](docs/DESIGN.md): premise, core loop, verdicts, scoring, visual direction.
-- [Missions](docs/LEVELS.md): the nine facilities and their expected verdicts. **Contains the
+- [Missions](docs/LEVELS.md): the fifteen facilities and their expected verdicts. **Contains the
   answers.**
 - [Architecture](docs/ARCHITECTURE.md): stack, verification pipeline, Z3 in the browser, deploy.
 - [Roadmap](docs/ROADMAP.md) and [progress log](docs/PROGRESS.md).

@@ -45,9 +45,11 @@ is a proof checked by the real Z3 solver, compiled to WebAssembly and running in
    Proof* turns the facility into a Dafny loop with your Law as its `invariant`: *"You just wrote
    this."*
 
-Nine missions: conservation, bounds, linear relations, modular invariants, strengthening and
-compound Laws in the main campaign, then a bonus chapter (*ARGUS Strikes Back*) with weighted
-conservation, bounded differences and disjunctive Laws. Works on phones and with the keyboard.
+Fifteen missions: conservation, bounds, linear relations, modular invariants, strengthening and
+compound Laws in the main campaign, then a bonus chapter (*ARGUS Strikes Back*) with bounded
+differences, disjunctive Laws and weighted conservation, and a deep chapter (*The Deep Grid*) with
+classic puzzles: readers–writers tokens, a lossy market, a fuel cell, the Die Hard jugs, a
+three-phase rotor and a two-thruster reachability finale. Works on phones and with the keyboard.
 
 ## Key design ideas and considerations
 
@@ -107,7 +109,7 @@ keeps that "look at the data" step (the telemetry log) and changes the rest:
 - **Instant, real verification.** Each candidate is verified by Z3 in the browser, typically in well under a second once the solver has loaded,
   with no server.
 - **The reveal.** Each win ends with the Dafny program the player just verified.
-- **Campaign and score.** Nine missions (six plus a bonus chapter) that each introduce one invariant idea, a breach meter,
+- **Campaign and score.** Fifteen missions (six plus two bonus chapters) that each introduce one invariant idea, a breach meter,
   cost-based scoring and best scores, plus a no-pressure training mode.
 
 ## Built with AI

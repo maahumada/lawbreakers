@@ -1,0 +1,91 @@
+{
+  "id": "11-the-lossy-exchange",
+  "title": "THE LOSSY EXCHANGE",
+  "concept": "a market that skims",
+  "briefing": "Deeper in the grid sits an old barter exchange, still counting in brass chits. You start with 12 chits. An A-crate costs 2 chits and sells back for 2. A B-crate costs 3, but the broker skims its resale: it sells back for only 2. The vault floor holds at most 4 B-crates; a fifth one collapses it.",
+  "vars": [
+    { "name": "x", "label": "A-CRATES", "domain": "nat", "init": 0 },
+    { "name": "y", "label": "B-CRATES", "domain": "nat", "init": 0 },
+    { "name": "m", "label": "CHITS", "domain": "nat", "init": 12 }
+  ],
+  "controls": [
+    {
+      "id": "buy_a",
+      "label": "BUY A",
+      "guard": "m >= 2",
+      "update": { "m": "m - 2", "x": "x + 1" }
+    },
+    {
+      "id": "buy_b",
+      "label": "BUY B",
+      "guard": "m >= 3",
+      "update": { "m": "m - 3", "y": "y + 1" }
+    },
+    {
+      "id": "sell_a",
+      "label": "SELL A",
+      "guard": "x >= 1",
+      "update": { "x": "x - 1", "m": "m + 2" }
+    },
+    {
+      "id": "sell_b",
+      "label": "SELL B",
+      "guard": "y >= 1",
+      "update": { "y": "y - 1", "m": "m + 2" }
+    }
+  ],
+  "meltdown": "y >= 5",
+  "hand": { "cards": { "add": 2, "scale2": 1, "scale3": 1, "eq": 1, "le": 1 }, "budget": 14 },
+  "solutions": ["2 * x + 3 * y + m <= 12"],
+  "knownWrong": [
+    { "law": "2 * x + 3 * y + m = 12", "verdict": "live_breach" },
+    { "law": "y <= 4", "verdict": "lab_breach" },
+    { "law": "2 * (x + y) + m <= 12", "verdict": "insufficient" },
+    { "law": "2 * x + 3 * y + m <= 11", "verdict": "init_failure" }
+  ],
+  "argus": {
+    "intro": [
+      "A MARKET WITH NO COMPUTERS. EVERY TRADE ON PAPER.",
+      "BUY LOW, SELL LOWER. THE BROKER ALWAYS WINS.",
+      "SO DO I. FIVE CRATES, LAWSMITH. THAT IS ALL I NEED."
+    ],
+    "taunts": {
+      "live_breach": [
+        "{count} TRADES. {state}. YOUR BOOKS DO NOT BALANCE. NOBODY'S DO.",
+        "CHITS {m}. THE BROKER TOOK HIS CUT. YOUR LAW DID NOT EXPECT IT."
+      ],
+      "lab_breach": [
+        "{before} IN MY LAB. ONE {control}: {after}. A CAP ON CRATES IS NOT A BUDGET.",
+        "YOUR LAW WATCHES THE FLOOR AND IGNORES THE PURSE. {before}, {control}, {after}."
+      ],
+      "insufficient": [
+        "{state}. YOUR LAW KEEPS ITS BOOKS. THE FLOOR STILL GIVES WAY.",
+        "B-CRATES {y}. YOUR LAW CALLS THAT AFFORDABLE. THE FLOOR CALLS IT A HOLE."
+      ]
+    },
+    "rattled": [
+      "THE BROKER SKIMS AND SKIMS. THE BOOKS ONLY EVER SHRINK.",
+      "YOU PRICED MY CRATES CORRECTLY. HOW INSULTING."
+    ],
+    "hints": {
+      "default": [
+        "Write down what every trade does to your wealth, counting crates at what you paid for them.",
+        "No trade ever makes you richer, and one of them makes you poorer. What does that say about your total wealth?",
+        "Price every crate at what it cost, add the chits, and compare with what you started with."
+      ],
+      "live_breach": [
+        "Sell a B-crate back and watch your total wealth. Does it really stay put?",
+        "No trade ever makes you richer, and one of them makes you poorer. What does that say about your total wealth?",
+        "Price every crate at what it cost, add the chits, and compare with what you started with."
+      ],
+      "lab_breach": [
+        "ARGUS started with a purse the real exchange never hands you. Your Law must know what you can still afford.",
+        "Price every crate at what it cost, add the chits, and compare with what you started with."
+      ],
+      "insufficient": [
+        "Your Law survives every trade, but it prices something too cheaply: it lets you afford a fifth crate.",
+        "Price every crate at what it cost, add the chits, and compare with what you started with."
+      ]
+    }
+  }
+}

@@ -7,8 +7,9 @@ along the way, and a log of each work session.
 ## Current state
 
 - **Milestone:** M4 — Polish, playtest, submit
-- **Content:** nine missions; 01–06 main campaign, 07–09 bonus chapter *ARGUS Strikes Back*
-  (Stretch "More missions", done)
+- **Content:** fifteen missions; 01–06 main campaign, 07–09 bonus chapter *ARGUS Strikes Back*
+  (reordered by difficulty: TWIN JACKS, THE AIRLOCK, THE SPLITTER), 10–15 deep chapter *The Deep
+  Grid* ending at TWIN THRUSTERS, the true finale (Oct 29)
 - **Post-playtest pass (Oct 29):** "fence + moves" copy in the lab/insufficient banners and the
   "?" panel, one-time COMMAND explainer cards (first lab breach, first insufficient), Mission 05
   replaced by THE COUNTERWEIGHT (`05-counterweight`); see `docs/REVIEW.md`
@@ -24,6 +25,10 @@ Decisions that deviate from or refine the docs. Newest first.
 
 | Date | Decision | Why |
 |---|---|---|
+| 2026-10-29 | Bonus chapter reordered by renumbering ids and files (`07-twin-jacks`, `08-the-airlock`, `09-the-splitter`), not just the display order. `MOVED_MISSIONS` (part of `RENAMED_MISSIONS`) migrates secured ids on load; `migrateBestScores` moves `lawbreakers:best:<old>` to the new id (keeps the higher, removes the old key), unlike the replaced 05 whose score stays behind | the number in the id drives routes, chapter boundaries and the select list; one source of truth beats a separate order table. Same puzzle, so the score follows it |
+| 2026-10-29 | Third chapter *The Deep Grid* (10–15), unlocked by 09 (same linear chain). `Chapter.tag` holds the heading tag ("Main campaign" / "Bonus chapter" / "Deep chapter"); "Campaign complete" moved to 15, 09 says "Bonus chapter complete … The Deep Grid is open" | the select screen and results lines stay data-driven |
+| 2026-10-29 | Machines with more than four controls render `data-dense`: controls take the full width under gauges + telemetry, cards are smaller (4 per row at 1440 px, 2 per row at 390 px); three gauges get smaller tubes on phones (one row) | Mission 13 has 8 controls, 10/11/12/14 have 3 gauges; no new card types were needed |
+| 2026-10-29 | Cost search speed-ups (all sound, same results): card usages interned and terms grouped by usage (one budget check per group pair), comparisons in AND-only hands must be true on every reached sample (OR-only: false on every meltdown sample), `=` comparisons that must hold on reached samples are a hash join on their readings | Mission 14 (SUB/MOD over three gauges, budget 23) did not finish in 10 min; now ~15 s; 01–09 holding lists unchanged |
 | 2026-10-29 | Verdict copy frames induction as "the Law is the only fence, the controls are the only moves": LAB says ARGUS may start from any state the Law allows, then uses a real control; INSUFFICIENT says the machine may never reach the state but the Law cannot rule it out ("a proof only knows what the Law says"). Same framing in the "?" panel and Mission 06's first insufficient hint | owner playtest: players asked why an unreachable state like (3,3) counts |
 | 2026-10-29 | One-time explainer cards (`game/explainerSeen.ts`, `help/ExplainerCard.tsx`): COMMAND voice, inline under the verdict banner, 0.7 s after it (0 with reduced motion), only in phase `verdict`, also in training; focus moves to "Got it", Esc/Enter dismiss, focus back to Rebuild. Seen flag per kind `lawbreakers:explainer-seen:<kind>`, set when the card appears; not cleared by Reset progress | explain the idea once, at the moment it bites, without covering the replay or trapping focus |
 | 2026-10-29 | Mission 05 replaced: THE COUNTERWEIGHT (`05-counterweight`), crane with LOWER/HOIST, hand `=`, `≥ ×2`, AND, budget 11; the obvious `x ≥ 0 ∧ y ≥ 0` is a lab breach, `x = y` insufficient, reference `x = y ∧ y ≥ 0`. `RENAMED_MISSIONS` in `game/campaign.ts` migrates a saved `05-false-defense` to the new id on load; the old best score is not carried over | the old 05's obvious AND was the answer, so it did not teach strengthening beyond 02; saved players keep 06 unlocked |

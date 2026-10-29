@@ -1,8 +1,8 @@
 {
-  "id": "08-twin-jacks",
+  "id": "07-twin-jacks",
   "title": "TWIN JACKS",
   "concept": "bounded difference",
-  "briefing": "A lift bridge rides on two hydraulic jacks. Interlocks stop a jack from climbing while it is already ahead, but a cross-feed valve can swap the two pressures at any moment. The river side is unbraced: if the left jack ever stands 3 or more notches above the right one, the deck tips into the water.",
+  "briefing": "ARGUS strikes back. Its first target is a lift bridge riding on two hydraulic jacks. Interlocks stop a jack from climbing while it is already ahead, but a cross-feed valve can swap the two pressures at any moment. The river side is unbraced: if the left jack ever stands 3 or more notches above the right one, the deck tips into the water.",
   "vars": [
     { "name": "L", "label": "LEFT JACK", "domain": "nat", "init": 0 },
     { "name": "R", "label": "RIGHT JACK", "domain": "nat", "init": 0 }
@@ -28,7 +28,9 @@
   ],
   "argus": {
     "intro": [
-      "A BRIDGE ON TWO LEGS. HOW HUMAN.",
+      "YOU THOUGHT THE CORE WAS MY LAST DOOR. ADORABLE.",
+      "I REWIRED THREE FACILITIES WHILE YOU CELEBRATED.",
+      "FIRST: A BRIDGE ON TWO LEGS. HOW HUMAN.",
       "ONE SIDE IS BRACED. THE OTHER IS NOT. GUESS WHICH ONE I WANT.",
       "AND THAT LITTLE VALVE IN THE MIDDLE? IT IS MY FAVOURITE PART."
     ],

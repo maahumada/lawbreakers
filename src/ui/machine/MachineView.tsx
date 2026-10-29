@@ -20,6 +20,8 @@ export function MachineView({ level }: { level: Level }) {
   const { fire, reset, setAutoRun } = useMission.getState();
   useAutoRun();
 
+  // Big machines (more than four controls) give the controls the full width in a tighter grid.
+  const dense = level.controls.length > 4;
   const armed = new Set(enabled(level, state).map((c) => c.id));
   const scale = gaugeScale(
     Math.max(
@@ -31,7 +33,12 @@ export function MachineView({ level }: { level: Level }) {
   );
 
   return (
-    <div className="machine" data-mode={display?.mode} data-locked={locked || undefined}>
+    <div
+      className="machine"
+      data-mode={display?.mode}
+      data-locked={locked || undefined}
+      data-dense={dense || undefined}
+    >
       <section className="machine__brief" aria-label="Briefing">
         <Briefing level={level} lit={display?.mode === "meltdown"} />
       </section>
@@ -49,7 +56,7 @@ export function MachineView({ level }: { level: Level }) {
         )}
         <h2 className="panel__title">Gauges</h2>
         {display && <ReplayStrip level={level} display={display} />}
-        <div className="gauges">
+        <div className="gauges" data-count={level.vars.length}>
           {level.vars.map((x) => (
             <Gauge key={x.name} decl={x} value={state[x.name] ?? 0} scale={scale} />
           ))}
@@ -58,7 +65,7 @@ export function MachineView({ level }: { level: Level }) {
 
       <section className="machine__controls panel" aria-label="Controls">
         <h2 className="panel__title">Controls</h2>
-        <div className="controls">
+        <div className="controls" data-dense={dense || undefined}>
           {level.controls.map((c) => (
             <ControlCard
               key={display?.firing === c.id ? `${c.id}-${display.pulse}` : c.id}

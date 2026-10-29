@@ -24,8 +24,17 @@
   grid-template-rows: auto minmax(0, 1fr);
 }
 
+/* Many controls: they take the full width under gauges and telemetry. */
+.machine[data-dense] {
+  grid-template-areas:
+    "brief brief"
+    "gauges telemetry"
+    "controls controls";
+}
+
 @media (max-width: 720px) {
-  .machine {
+  .machine,
+  .machine[data-dense] {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "brief" "gauges" "controls" "telemetry";
   }
@@ -206,6 +215,23 @@
   font-size: 2.2rem;
 }
 
+/* Three gauges stay on one row: smaller tubes and a narrower basis. */
+.gauges[data-count="3"] {
+  gap: var(--space-3);
+}
+
+.gauges[data-count="3"] .gauge {
+  flex-basis: 6rem;
+}
+
+@media (max-width: 720px) {
+  .gauges[data-count="3"] .tube {
+    width: 2.2rem;
+    height: 3.3rem;
+    font-size: 2.3rem;
+  }
+}
+
 @keyframes tube-strike {
   0% {
     color: var(--human-text);
@@ -266,6 +292,29 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
   gap: var(--space-3);
+}
+
+/* Dense grid: smaller cards, two columns even on a phone. */
+.controls[data-dense] {
+  grid-template-columns: repeat(auto-fill, minmax(min(13rem, 40vw), 1fr));
+  gap: var(--space-2);
+}
+
+.controls[data-dense] .control-card {
+  padding: var(--space-2) var(--space-2) var(--space-3);
+  gap: var(--space-1);
+}
+
+.controls[data-dense] .control-card__label {
+  font-size: var(--text-md);
+}
+
+.controls[data-dense] .control-card__guard {
+  font-size: var(--text-xs);
+}
+
+.controls[data-dense] .control-card__effect {
+  font-size: var(--text-sm);
 }
 
 .control-card {

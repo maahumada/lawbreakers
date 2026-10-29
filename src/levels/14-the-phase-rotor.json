@@ -1,0 +1,90 @@
+{
+  "id": "14-the-phase-rotor",
+  "title": "THE PHASE ROTOR",
+  "concept": "three phases in rotation",
+  "briefing": "The grid's oldest generator is a three-phase rotor with coils in phase R, G and B. A shift pulls one coil out of each of two phases and winds both into the third. The coils never leave the rotor. If all of them ever pile into a single phase, the rotor locks and tears its bearings apart.",
+  "vars": [
+    { "name": "r", "label": "PHASE R", "domain": "nat", "init": 2 },
+    { "name": "g", "label": "PHASE G", "domain": "nat", "init": 3 },
+    { "name": "b", "label": "PHASE B", "domain": "nat", "init": 4 }
+  ],
+  "controls": [
+    {
+      "id": "to_b",
+      "label": "SHIFT TO B",
+      "guard": "r >= 1 && g >= 1",
+      "update": { "r": "r - 1", "g": "g - 1", "b": "b + 2" }
+    },
+    {
+      "id": "to_g",
+      "label": "SHIFT TO G",
+      "guard": "r >= 1 && b >= 1",
+      "update": { "r": "r - 1", "b": "b - 1", "g": "g + 2" }
+    },
+    {
+      "id": "to_r",
+      "label": "SHIFT TO R",
+      "guard": "g >= 1 && b >= 1",
+      "update": { "g": "g - 1", "b": "b - 1", "r": "r + 2" }
+    }
+  ],
+  "meltdown": "(r = 0 && g = 0) || (r = 0 && b = 0) || (g = 0 && b = 0)",
+  "hand": {
+    "cards": { "sub": 2, "mod3": 2, "eq": 2, "ne": 1, "and": 1 },
+    "budget": 23
+  },
+  "solutions": [
+    "(r - g) mod 3 = 2 && (r - b) mod 3 = 1",
+    "(b - g) mod 3 = 1 && (b - r) mod 3 = 2",
+    "9 - r - g = b && g mod 3 != r mod 3"
+  ],
+  "knownWrong": [
+    { "law": "r != 0", "verdict": "live_breach" },
+    { "law": "r != g", "verdict": "lab_breach" },
+    { "law": "r != g && g != b", "verdict": "lab_breach" },
+    { "law": "(r - g) mod 3 = 2", "verdict": "insufficient" },
+    { "law": "(r - g) mod 3 != 0 && (g - b) mod 3 != 0", "verdict": "insufficient" },
+    { "law": "(r - g) mod 3 = 1 && (g - b) mod 3 = 2", "verdict": "init_failure" }
+  ],
+  "argus": {
+    "intro": [
+      "A ROTOR THAT TURNS COILS INTO OTHER COILS. ALCHEMY WITH COPPER.",
+      "THREE PHASES. I ONLY NEED ONE OF THEM TO WIN.",
+      "SPIN IT, LAWSMITH. EVERY SHIFT IS A STEP TOWARDS THE PILE."
+    ],
+    "taunts": {
+      "live_breach": [
+        "{count} SHIFTS. {state}. THE ROTOR TURNED. YOUR LAW DID NOT.",
+        "R {r}, G {g}, B {b}. A HEALTHY ROTOR. YOUR LAW CALLS IT SICK."
+      ],
+      "lab_breach": [
+        "{before} IN MY LAB. ONE {control}: {after}. YOUR LAW BLINKED.",
+        "TWO PHASES APART, THEN ONE SHIFT, AND APART NO MORE. {before}, {control}, {after}."
+      ],
+      "insufficient": [
+        "{state}. YOUR LAW TURNS WITH THE ROTOR. ALL THE WAY INTO THE PILE.",
+        "R {r}, G {g}, B {b}. THE BEARINGS SCREAM. YOUR LAW APPROVES."
+      ]
+    },
+    "rattled": [
+      "THE COILS SHUFFLE FOREVER AND NEVER MEET. HOW DID YOU SEE THAT.",
+      "ROUND AND ROUND. I AM DIZZY. I AM NOT ALLOWED TO BE DIZZY."
+    ],
+    "hints": {
+      "default": [
+        "The phases climb and fall by different amounts. Look at how they differ, not how big they are.",
+        "Every shift moves the gap between two phases by a whole number of steps of the same size. Which size?",
+        "Read each gap through the right MOD. More than one gap may need watching."
+      ],
+      "lab_breach": [
+        "ARGUS started from phases the real rotor never shows. A shift can close a gap in one move: by how much?",
+        "Every shift moves the gap between two phases by a whole number of steps of the same size. Which size?",
+        "Read each gap through the right MOD. More than one gap may need watching."
+      ],
+      "insufficient": [
+        "Your Law turns with the rotor, but it still allows a pile. One gap is not the whole story.",
+        "If two phases could agree through your MOD, they could both be empty. Pin down every gap you need."
+      ]
+    }
+  }
+}

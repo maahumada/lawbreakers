@@ -1,0 +1,94 @@
+{
+  "id": "13-the-sluice-tanks",
+  "title": "THE SLUICE TANKS",
+  "concept": "measuring with two tanks",
+  "briefing": "Under the river, a sluice station keeps two measuring tanks: tank A holds 9 units, tank B holds 6. Each can be filled from the river, emptied into the drain, or poured into the other until the source runs dry or the target is full to the brim. ARGUS has wired a trigger to the old float at the 4-unit mark of tank A: if tank A ever holds exactly 4 units, the sluice gates open and the station floods.",
+  "vars": [
+    { "name": "a", "label": "TANK A", "domain": "nat", "init": 0 },
+    { "name": "b", "label": "TANK B", "domain": "nat", "init": 0 }
+  ],
+  "controls": [
+    { "id": "fill_a", "label": "FILL A", "guard": "a < 9", "update": { "a": "9" } },
+    { "id": "fill_b", "label": "FILL B", "guard": "b < 6", "update": { "b": "6" } },
+    { "id": "empty_a", "label": "EMPTY A", "guard": "a >= 1", "update": { "a": "0" } },
+    { "id": "empty_b", "label": "EMPTY B", "guard": "b >= 1", "update": { "b": "0" } },
+    {
+      "id": "pour_ab_all",
+      "label": "A→B ALL",
+      "guard": "a >= 1 && a + b <= 6",
+      "update": { "a": "0", "b": "b + a" }
+    },
+    {
+      "id": "pour_ab_brim",
+      "label": "A→B TO BRIM",
+      "guard": "b < 6 && a + b > 6",
+      "update": { "a": "a + b - 6", "b": "6" }
+    },
+    {
+      "id": "pour_ba_all",
+      "label": "B→A ALL",
+      "guard": "b >= 1 && a + b <= 9",
+      "update": { "a": "a + b", "b": "0" }
+    },
+    {
+      "id": "pour_ba_brim",
+      "label": "B→A TO BRIM",
+      "guard": "a < 9 && a + b > 9",
+      "update": { "a": "9", "b": "a + b - 9" }
+    }
+  ],
+  "meltdown": "a = 4",
+  "hand": {
+    "cards": { "mod3": 2, "eq": 2, "ne": 1, "le": 2, "and": 1 },
+    "budget": 17
+  },
+  "solutions": ["a mod 3 = 0 && b mod 3 = 0"],
+  "knownWrong": [
+    { "law": "a <= 6", "verdict": "live_breach" },
+    { "law": "a != 4", "verdict": "lab_breach" },
+    { "law": "a mod 3 = 0", "verdict": "lab_breach" },
+    { "law": "a <= 9 && b <= 6", "verdict": "insufficient" },
+    { "law": "a mod 3 = 1", "verdict": "init_failure" }
+  ],
+  "argus": {
+    "intro": [
+      "WATER. THE OLDEST COMPUTER. IT ONLY KNOWS HOW TO FALL.",
+      "TWO TANKS AND A FLOAT AT THE FOUR MARK. I WIRED IT MYSELF.",
+      "POUR CAREFULLY, LAWSMITH. OR DO NOT. I AM PATIENT."
+    ],
+    "taunts": {
+      "live_breach": [
+        "{count} POURS. TANK A {a}, TANK B {b}. PERFECTLY ORDINARY WATER. YOUR LAW DROWNS IN IT.",
+        "{state}. THE TANKS DID WHAT TANKS DO. YOUR LAW DID NOT."
+      ],
+      "lab_breach": [
+        "{before} IN MY LAB. ONE {control}: {after}. THE FLOAT CLICKS.",
+        "YOUR LAW WATCHES ONE TANK. I FILLED THE OTHER. {before}, {control}, {after}."
+      ],
+      "insufficient": [
+        "TANK A {a}. YOUR LAW SAYS THAT IS FINE. THE FLOAT SAYS OTHERWISE.",
+        "{state}. EVERY TANK WITHIN ITS WALLS, AND THE STATION UNDERWATER."
+      ]
+    },
+    "rattled": [
+      "NINE AND SIX. I SHOULD HAVE CHOSEN DIFFERENT TANKS.",
+      "THE FLOAT NEVER MOVES. THE WATER NEVER LIES. I DO, BUT IT DOES NOT HELP."
+    ],
+    "hints": {
+      "default": [
+        "Run the station and write down every level the tanks ever show. What do they have in common?",
+        "The river only ever delivers full tanks, and pouring only moves water you already measured.",
+        "Whatever the tanks share, a pour can carry it from one tank to the other. Say it about both."
+      ],
+      "lab_breach": [
+        "ARGUS started with a level the real tanks never show, then poured. Which levels can the tanks really hold?",
+        "A pour mixes the two tanks. Whatever you say about one, the other has to keep too.",
+        "Whatever the tanks share, a pour can carry it from one tank to the other. Say it about both."
+      ],
+      "insufficient": [
+        "Your Law survives every pour, but it allows the trigger level. Walls are not the reason the float never moves.",
+        "Run the station and write down every level the tanks ever show. What do they have in common?"
+      ]
+    }
+  }
+}

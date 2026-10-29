@@ -104,6 +104,8 @@ happen, why does it break?"). Teach: the Law is the only fence, the controls are
 - [x] One-time COMMAND explainer cards: first lab breach, first insufficient (also in training).
 - [x] "?" How to play: fence + moves paragraph; lab breach and insufficient lines reworded.
 - [x] Mission 05 replaced by THE COUNTERWEIGHT (strengthening where the obvious AND fails).
+- [x] Bonus chapter reordered by difficulty: 07 TWIN JACKS, 08 THE AIRLOCK, 09 THE SPLITTER (ids
+  renumbered; saved progress and best scores migrated, `MOVED_MISSIONS`).
 
 ## Stretch (only after M4-T6)
 
@@ -114,3 +116,9 @@ happen, why does it break?"). Teach: the Law is the only fence, the controls are
 - [x] **More missions** — bonus chapter *ARGUS Strikes Back*: 07 THE SPLITTER (weighted
   conservation), 08 TWIN JACKS (bounded difference), 09 THE AIRLOCK (disjunctive Laws); chapter
   heading on mission select, "main campaign complete" line after 06.
+- [x] **Deep chapter *The Deep Grid* (10–15)** — THE READING ROOM, THE LOSSY EXCHANGE, THE FUEL
+  CELL, THE SLUICE TANKS, THE PHASE ROTOR, TWIN THRUSTERS (true finale); unlocked by 09; dense
+  machine layout for 3 gauges / 8 controls.
+- Deep Grid follow-ups: an on-demand hint (DESIGN "Hint used +10%") would suit these harder
+  missions; a single "POUR" control with a MIN effect would replace the split pour cards of
+  Mission 13 if the engine ever supports it.

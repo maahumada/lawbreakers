@@ -18,6 +18,15 @@ const check = (ok, what) => {
 };
 
 const VERDICT_TIMEOUT = 45_000;
+const MISSION_COUNT = 15;
+const MAIN = [
+  "01-last-reactor",
+  "02-coolant-valve",
+  "03-mirror-pistons",
+  "04-parity-lock",
+  "05-counterweight",
+  "06-final-breach",
+];
 
 async function put(page, item, key, value) {
   await page.getByTestId(`hand-${item}`).click();
@@ -32,8 +41,7 @@ const search = (page) => page.evaluate(() => window.location.search);
 const status = async (page, n) => (await page.getByTestId(`status-${n}`).textContent()).trim();
 const statuses = async (page) => {
   const out = [];
-  for (const n of ["01", "02", "03", "04", "05", "06", "07", "08", "09"])
-    out.push(await status(page, n));
+  for (let i = 1; i <= MISSION_COUNT; i++) out.push(await status(page, String(i).padStart(2, "0")));
   return out.join(",");
 };
 const breach = async (page) =>
@@ -70,7 +78,7 @@ try {
   check((await search(page)) === "?missions", "START → intro → skip → ?missions");
   const fresh = await statuses(page);
   check(
-    fresh === "Ready,Locked,Locked,Locked,Locked,Locked,Locked,Locked,Locked",
+    fresh === ["Ready", ...Array(MISSION_COUNT - 1).fill("Locked")].join(","),
     `fresh: only 01 available (${fresh})`,
   );
   check((await page.getByTestId("open-02").count()) === 0, "fresh: locked 02 is not a link");
@@ -180,7 +188,7 @@ try {
   await page.getByTestId("reset-confirm").click();
   const reset = await statuses(page);
   check(
-    reset === "Ready,Locked,Locked,Locked,Locked,Locked,Locked,Locked,Locked",
+    reset === ["Ready", ...Array(MISSION_COUNT - 1).fill("Locked")].join(","),
     `reset progress (${reset})`,
   );
   check(
@@ -237,8 +245,107 @@ try {
   await page.goto(`${url}?missions`);
   await page.getByTestId("mission-select").waitFor();
   const bonus = await statuses(page);
-  check(bonus.endsWith("Secured,Ready,Locked,Locked"), `after 06: ${bonus}`);
+  check(
+    bonus.endsWith(["Secured", "Ready", ...Array(MISSION_COUNT - 7).fill("Locked")].join(",")),
+    `after 06: ${bonus}`,
+  );
   await page.screenshot({ path: `${dir}/stretch-missions.png`, fullPage: true });
+
+  // --- Reordered bonus chapter: a save with the old ids keeps its missions and best scores ---
+  await page.evaluate((main) => {
+    localStorage.setItem(
+      "lawbreakers:progress",
+      JSON.stringify({ secured: [...main, "08-twin-jacks", "09-the-airlock"] }),
+    );
+    localStorage.setItem("lawbreakers:best:08-twin-jacks", "777");
+  }, MAIN);
+  await page.goto(`${url}?missions`);
+  await page.getByTestId("mission-select").waitFor();
+  const moved = await statuses(page);
+  check(
+    moved ===
+      [...Array(8).fill("Secured"), "Ready", ...Array(MISSION_COUNT - 9).fill("Locked")].join(","),
+    `old bonus-chapter ids migrate (${moved})`,
+  );
+  check(
+    ((await page.getByTestId("station-07").textContent()) ?? "").includes("Best 777"),
+    "TWIN JACKS keeps its best score under its new number",
+  );
+  check(
+    (await page.evaluate(() => localStorage.getItem("lawbreakers:best:08-twin-jacks"))) === null,
+    "old best-score key removed",
+  );
+  check(
+    ((await page.getByTestId("chapter-10").textContent()) ?? "").includes("The Deep Grid"),
+    "mission select: Deep Grid heading before 10",
+  );
+
+  // --- THE SPLITTER (09) ends the bonus chapter and opens The Deep Grid -----------------------
+  await page.getByTestId("open-09").click();
+  await page.getByTestId("rack").waitFor();
+  await put(page, "card-eq", "root");
+  await put(page, "card-add", "0");
+  await put(page, "card-scale2", "0-0");
+  await put(page, "sensor-H", "0-0-0");
+  await put(page, "sensor-F", "0-1");
+  await put(page, "const", "1", 6);
+  await page.getByTestId("engage").click();
+  await page.getByTestId("results").waitFor({ timeout: VERDICT_TIMEOUT });
+  const end09 = (await page.getByTestId("results-end").textContent()) ?? "";
+  check(end09.includes("Bonus chapter complete"), `09 results: chapter end line (${end09})`);
+  check(
+    (await page.getByTestId("next-mission").getAttribute("href")) === "?mission=10",
+    "09 results: Next mission → 10",
+  );
+  await page.screenshot({ path: `${dir}/chapter3-09-results.png` });
+  await page.getByTestId("next-mission").click();
+  await page.getByTestId("rack").waitFor();
+  check((await page.getByTestId("off-campaign").count()) === 0, "10 unlocked: on campaign");
+  await page.goto(`${url}?missions`);
+  await page.getByTestId("mission-select").waitFor();
+  await page.screenshot({ path: `${dir}/chapter3-missions.png`, fullPage: true });
+
+  // --- TWIN THRUSTERS (15) is the true finale ----------------------------------------------
+  await page.evaluate((main) => {
+    const rest = [
+      "07-twin-jacks",
+      "08-the-airlock",
+      "09-the-splitter",
+      "10-the-reading-room",
+      "11-the-lossy-exchange",
+      "12-the-fuel-cell",
+      "13-the-sluice-tanks",
+      "14-the-phase-rotor",
+    ];
+    localStorage.setItem("lawbreakers:progress", JSON.stringify({ secured: [...main, ...rest] }));
+  }, MAIN);
+  await page.goto(`${url}?mission=15`);
+  await page.getByTestId("rack").waitFor();
+  for (const [item, key, value] of [
+    ["card-and", "root"],
+    ["card-and", "0"],
+    ["card-eq", "0-0"],
+    ["card-mod3", "0-0-0"],
+    ["card-add", "0-0-0-0"],
+    ["sensor-x", "0-0-0-0-0"],
+    ["sensor-y", "0-0-0-0-1"],
+    ["const", "0-0-1", 0],
+    ["card-le", "0-1"],
+    ["sensor-x", "0-1-0"],
+    ["card-scale2", "0-1-1"],
+    ["sensor-y", "0-1-1-0"],
+    ["card-le", "1"],
+    ["sensor-y", "1-0"],
+    ["card-scale2", "1-1"],
+    ["sensor-x", "1-1-0"],
+  ])
+    await put(page, item, key, value);
+  await page.getByTestId("engage").click();
+  await page.getByTestId("results").waitFor({ timeout: VERDICT_TIMEOUT });
+  const end15 = (await page.getByTestId("results-end").textContent()) ?? "";
+  check(end15.includes("Campaign complete"), `15 results: campaign end line (${end15})`);
+  check((await page.getByTestId("next-mission").count()) === 0, "15 results: no next mission");
+  await page.screenshot({ path: `${dir}/chapter3-15-results.png` });
 
   check(errors.length === 0, `no page errors ${errors.join("; ")}`);
   await context.close();

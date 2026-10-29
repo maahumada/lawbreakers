@@ -1,8 +1,8 @@
 {
-  "id": "09-the-airlock",
+  "id": "08-the-airlock",
   "title": "THE AIRLOCK",
   "concept": "disjunctive laws",
-  "briefing": "ARGUS's last stand is an orbital airlock. In phase 0 the inner door is open and the chamber must be fully pressurised (4 units of air); in phase 1 the outer door is open to space and the chamber must be empty. Venting dumps the air and swings the doors; repressurising does the reverse. Any other combination of door and air is a meltdown.",
+  "briefing": "ARGUS's second target is an orbital airlock. In phase 0 the inner door is open and the chamber must be fully pressurised (4 units of air); in phase 1 the outer door is open to space and the chamber must be empty. Venting dumps the air and swings the doors; repressurising does the reverse. Any other combination of door and air is a meltdown.",
   "vars": [
     { "name": "p", "label": "DOOR PHASE", "domain": "nat", "init": 0 },
     { "name": "a", "label": "CHAMBER AIR", "domain": "nat", "init": 4 }
@@ -33,7 +33,7 @@
   ],
   "argus": {
     "intro": [
-      "MY LAST FACILITY. IN ORBIT. OUT OF YOUR REACH.",
+      "MY SECOND FACILITY. IN ORBIT. OUT OF YOUR REACH.",
       "TWO DOORS. TWO TRUTHS. YOUR LITTLE AND CANNOT HOLD BOTH.",
       "BREATHE WHILE YOU CAN, LAWSMITH."
     ],

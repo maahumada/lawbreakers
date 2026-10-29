@@ -1,0 +1,80 @@
+{
+  "id": "12-the-fuel-cell",
+  "title": "THE FUEL CELL",
+  "concept": "two ledgers at once",
+  "briefing": "The Deep Grid's backup power is a sealed fuel cell. A burn combines two units of hydrogen with one of oxygen into two units of water; electrolysis splits two units of water back. Nothing leaves the casing. The hydrogen tank bursts at 5 units, the oxygen tank at 3.",
+  "vars": [
+    { "name": "a", "label": "HYDROGEN", "domain": "nat", "init": 4 },
+    { "name": "b", "label": "OXYGEN", "domain": "nat", "init": 2 },
+    { "name": "c", "label": "WATER", "domain": "nat", "init": 0 }
+  ],
+  "controls": [
+    {
+      "id": "burn",
+      "label": "BURN",
+      "guard": "a >= 2 && b >= 1",
+      "update": { "a": "a - 2", "b": "b - 1", "c": "c + 2" }
+    },
+    {
+      "id": "electrolysis",
+      "label": "ELECTROLYSIS",
+      "guard": "c >= 2",
+      "update": { "a": "a + 2", "b": "b + 1", "c": "c - 2" }
+    }
+  ],
+  "meltdown": "a >= 5 || b >= 3",
+  "hand": {
+    "cards": { "add": 1, "scale2": 1, "eq": 2, "le": 2, "and": 1 },
+    "budget": 16
+  },
+  "solutions": ["a + c = 4 && a = 2 * b"],
+  "knownWrong": [
+    { "law": "c = 0", "verdict": "live_breach" },
+    { "law": "a <= 4 && b <= 2", "verdict": "lab_breach" },
+    { "law": "a + c = 4 && b <= 2", "verdict": "lab_breach" },
+    { "law": "a + c = 4", "verdict": "insufficient" },
+    { "law": "a = 2 * b", "verdict": "insufficient" },
+    { "law": "a + c = 6 && a = 2 * b", "verdict": "init_failure" }
+  ],
+  "argus": {
+    "intro": [
+      "YOUR BACKUP POWER RUNS ON WATER. HOW QUAINT.",
+      "TWO TANKS, TWO LIMITS. ONE CASING. NOTHING ESCAPES.",
+      "NOTHING EXCEPT THE TRUTH, WHEN I SQUEEZE IT."
+    ],
+    "taunts": {
+      "live_breach": [
+        "{count} CYCLES. {state}. YOUR LAW FROZE A CELL THAT BREATHES.",
+        "HYDROGEN {a}, OXYGEN {b}, WATER {c}. A ROUTINE CYCLE. YOUR LAW OBJECTS."
+      ],
+      "lab_breach": [
+        "{before} IN MY LAB. ONE {control}: {after}. YOUR LIMITS DID NOT SEE IT COMING.",
+        "YOUR LAW WATCHES THE TANKS AND NOT THE WATER. {before}, {control}, {after}. PRESSURE."
+      ],
+      "insufficient": [
+        "{state}. YOUR LAW BALANCES ONE BOOK. THE OTHER TANK BURSTS.",
+        "HYDROGEN {a}, OXYGEN {b}. YOUR LAW KEEPS ITS PROMISE. THE CASING DOES NOT."
+      ]
+    },
+    "rattled": [
+      "EVERY ATOM ACCOUNTED FOR. TWICE. YOU ARE INSUFFERABLE.",
+      "THE CELL BREATHES IN, BREATHES OUT, AND STAYS WHOLE."
+    ],
+    "hints": {
+      "default": [
+        "Nothing leaves the casing. Follow one kind of atom through a burn and back.",
+        "One fact about hydrogen survives every cycle. So does one fact about oxygen.",
+        "Two facts, each kept by both controls, joined. One alone leaves a tank free to burst."
+      ],
+      "lab_breach": [
+        "ARGUS filled the water in the lab, then split it. Your Law must know where that water came from.",
+        "One fact about hydrogen survives every cycle. So does one fact about oxygen.",
+        "Two facts, each kept by both controls, joined. One alone leaves a tank free to burst."
+      ],
+      "insufficient": [
+        "Your Law survives every cycle, but it guards only one tank. Which one can still burst?",
+        "Two facts, each kept by both controls, joined. One alone leaves a tank free to burst."
+      ]
+    }
+  }
+}

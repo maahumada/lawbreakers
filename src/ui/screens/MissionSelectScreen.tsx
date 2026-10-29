@@ -70,7 +70,7 @@ export function MissionSelectScreen({ levels }: { levels: readonly Level[] }) {
                 >
                   {chapter && (
                     <h2 className="station__chapter" data-testid={`chapter-${number}`}>
-                      <span className="station__chapter-tag">Bonus chapter</span> {chapter.title}
+                      <span className="station__chapter-tag">{chapter.tag}</span> {chapter.title}
                     </h2>
                   )}
                   <MissionEntry level={level} number={number} status={status} prev={prev} />

@@ -32,3 +32,20 @@ export function clearBest(levelId: string): void {
     // Nothing stored that we can reach.
   }
 }
+
+/**
+ * Carry a best score over to a mission's new id (same puzzle, new number). Keeps the higher of the
+ * two if both exist; the old key is removed once the new one is written.
+ */
+export function moveBest(fromId: string, toId: string): void {
+  const old = loadBest(fromId);
+  if (old === null) return;
+  const current = loadBest(toId);
+  try {
+    if (current === null || current < old) window.localStorage.setItem(key(toId), String(old));
+  } catch {
+    // Not persisted: the old key stays, so the next load tries again.
+    return;
+  }
+  clearBest(fromId);
+}

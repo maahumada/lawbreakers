@@ -1,0 +1,88 @@
+{
+  "id": "10-the-reading-room",
+  "title": "THE READING ROOM",
+  "concept": "shared access tokens",
+  "briefing": "ARGUS has gone underground, into the Deep Grid: the buried analog stations nobody ever digitised. The first is a records vault with three brass access tokens. A reader takes one token to enter and returns it on leaving. A writer needs all three at once and gives all three back when done. If a reader and a writer are ever inside together, or two writers, the ledgers are torn and the vault seals for good.",
+  "vars": [
+    { "name": "R", "label": "READERS", "domain": "nat", "init": 0 },
+    { "name": "W", "label": "WRITERS", "domain": "nat", "init": 0 },
+    { "name": "S", "label": "FREE TOKENS", "domain": "nat", "init": 3 }
+  ],
+  "controls": [
+    {
+      "id": "read_in",
+      "label": "READ IN",
+      "guard": "S >= 1",
+      "update": { "S": "S - 1", "R": "R + 1" }
+    },
+    {
+      "id": "read_out",
+      "label": "READ OUT",
+      "guard": "R >= 1",
+      "update": { "R": "R - 1", "S": "S + 1" }
+    },
+    {
+      "id": "write_in",
+      "label": "WRITE IN",
+      "guard": "S >= 3",
+      "update": { "S": "S - 3", "W": "W + 1" }
+    },
+    {
+      "id": "write_out",
+      "label": "WRITE OUT",
+      "guard": "W >= 1",
+      "update": { "W": "W - 1", "S": "S + 3" }
+    }
+  ],
+  "meltdown": "(R >= 1 && W >= 1) || W >= 2",
+  "hand": { "cards": { "add": 2, "scale3": 1, "eq": 1, "le": 1, "and": 1 }, "budget": 12 },
+  "solutions": ["R + 3 * W + S = 3", "R + 3 * W + S <= 3"],
+  "knownWrong": [
+    { "law": "R + W + S = 3", "verdict": "live_breach" },
+    { "law": "W <= 1 && (W = 0 || R = 0)", "verdict": "lab_breach" },
+    { "law": "W <= 1", "verdict": "lab_breach" },
+    { "law": "R + 3 * W + S <= 4", "verdict": "insufficient" },
+    { "law": "R + 3 * W + S = 4", "verdict": "init_failure" }
+  ],
+  "argus": {
+    "intro": [
+      "YOU FOLLOWED ME DOWN HERE. BRAVE. FOOLISH.",
+      "THE DEEP GRID. CABLES OLDER THAN YOUR GRANDPARENTS. NO PROCESSORS. NO WITNESSES.",
+      "FIRST, A LIBRARY. READERS COME AND GO. ONE WRITER WAITS FOR SILENCE. I WILL NOT WAIT."
+    ],
+    "taunts": {
+      "live_breach": [
+        "{count} VISITORS LATER: {state}. YOUR LAW COUNTED HEADS. THE TOKENS DISAGREE.",
+        "READERS {R}, WRITERS {W}, TOKENS {S}. A QUIET DAY IN THE VAULT. YOUR LAW CALLS IT A RIOT."
+      ],
+      "lab_breach": [
+        "{before} IN MY LAB. ONE {control}: {after}. A WRITER WALKS IN ON A READER.",
+        "YOUR LAW COUNTS THE PEOPLE AND FORGETS THE TOKENS. {before}, {control}, {after}. TORN LEDGERS."
+      ],
+      "insufficient": [
+        "{state}. YOUR LAW BALANCES. THE LEDGERS STILL TEAR.",
+        "READERS {R}, WRITERS {W}. YOUR LAW SIGNS THE VISITOR BOOK FOR BOTH."
+      ]
+    },
+    "rattled": [
+      "THREE TOKENS. ALWAYS THREE. IN SOME HAND OR ANOTHER.",
+      "THE VAULT STAYS QUIET. I HATE LIBRARIES."
+    ],
+    "hints": {
+      "default": [
+        "Nobody brings tokens in from outside, and nobody takes them home.",
+        "A writer is not one more visitor. Think about what a writer is holding.",
+        "Where is every token right now: on the hook, with a reader, or with the writer?"
+      ],
+      "lab_breach": [
+        "ARGUS started from a vault the real one never shows. Your Law talks about the people; who tracks the tokens?",
+        "A writer is not one more visitor. Think about what a writer is holding.",
+        "Where is every token right now: on the hook, with a reader, or with the writer?"
+      ],
+      "insufficient": [
+        "Your Law survives every visit but leaves room for a crowd. Tighten it to what the vault really holds.",
+        "Where is every token right now: on the hook, with a reader, or with the writer?"
+      ]
+    }
+  }
+}

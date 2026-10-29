@@ -1,0 +1,79 @@
+{
+  "id": "15-twin-thrusters",
+  "title": "TWIN THRUSTERS",
+  "concept": "where the burns can reach",
+  "briefing": "ARGUS's last core rides an old orbital tug at the bottom of the launch silo, the deepest point of the grid. The tug steers with two thrusters, and every burn loads both hull frames: a port burn puts 1 unit of stress on the port frame and 2 on the starboard frame, a starboard burn the reverse. The interlock stops burning once 10 units are loaded. Two failure modes: a frame at 3 while the other is still unloaded shears the hull, and both frames at exactly 2 ring the hull at its resonance and crack it.",
+  "vars": [
+    { "name": "x", "label": "PORT FRAME", "domain": "nat", "init": 0 },
+    { "name": "y", "label": "STARBOARD FRAME", "domain": "nat", "init": 0 }
+  ],
+  "controls": [
+    {
+      "id": "burn_port",
+      "label": "BURN PORT",
+      "guard": "x + y <= 9",
+      "update": { "x": "x + 1", "y": "y + 2" }
+    },
+    {
+      "id": "burn_starboard",
+      "label": "BURN STARBOARD",
+      "guard": "x + y <= 9",
+      "update": { "x": "x + 2", "y": "y + 1" }
+    }
+  ],
+  "meltdown": "(x = 3 && y = 0) || (x = 0 && y = 3) || (x = 2 && y = 2)",
+  "hand": {
+    "cards": { "add": 1, "scale2": 2, "mod3": 1, "eq": 1, "le": 2, "and": 2 },
+    "budget": 28
+  },
+  "solutions": ["(x + y) mod 3 = 0 && x <= 2 * y && y <= 2 * x"],
+  "knownWrong": [
+    { "law": "x <= y", "verdict": "live_breach" },
+    { "law": "x + y != 4", "verdict": "lab_breach" },
+    { "law": "(x + y) mod 3 = 0", "verdict": "insufficient" },
+    { "law": "x <= 2 * y && y <= 2 * x", "verdict": "insufficient" },
+    { "law": "(x + y) mod 3 = 0 && x <= 2 * y", "verdict": "insufficient" },
+    { "law": "(x + y) mod 3 = 1", "verdict": "init_failure" }
+  ],
+  "argus": {
+    "intro": [
+      "THE BOTTOM OF THE SILO. MY LAST CORE. MY LAST WAY OUT.",
+      "TWO THRUSTERS. EVERY BURN STRAINS BOTH FRAMES. SHEAR OR RESONANCE, I DO NOT MIND WHICH.",
+      "THIS IS WHERE YOUR LAWS END, LAWSMITH. ONE OF US LEAVES THIS SILO."
+    ],
+    "taunts": {
+      "live_breach": [
+        "{count} BURNS. {state}. THE TUG FLEW. YOUR LAW STAYED ON THE GROUND.",
+        "PORT {x}, STARBOARD {y}. A CLEAN FLIGHT. YOUR LAW CALLS IT A CRASH."
+      ],
+      "lab_breach": [
+        "{before} IN MY LAB. ONE {control}: {after}. YOUR LAW NEVER SAW THE FRAMES RING.",
+        "A STATE NO BURN EVER MADE: {before}. THEN {control}. THEN {after}. GOODBYE, HULL."
+      ],
+      "insufficient": [
+        "{state}. YOUR LAW FLIES THE TUG STRAIGHT INTO IT.",
+        "PORT {x}, STARBOARD {y}. YOUR LAW HAS NO OBJECTION. THE HULL HAS SEVERAL."
+      ]
+    },
+    "rattled": [
+      "EVERY BURN ACCOUNTED FOR. THE TUG IS YOURS. SO IS EVERYTHING ELSE.",
+      "NO SHEAR. NO RESONANCE. NO WAY OUT. WELL PLAYED, LAWSMITH."
+    ],
+    "hints": {
+      "default": [
+        "Two failure modes, and each one is ruled out by a different kind of fact.",
+        "Look at what one burn adds to the two frames together. Then look at how lopsided one burn can make them.",
+        "One fact about the total load, one fact about the balance between the frames. The balance may need saying from both sides."
+      ],
+      "lab_breach": [
+        "ARGUS started from loads no sequence of burns produces. What does every burn add to the total?",
+        "One fact about the total load, one fact about the balance between the frames. The balance may need saying from both sides."
+      ],
+      "insufficient": [
+        "Your Law survives every burn but still allows one of the failure modes. Which one, and what kind of fact rules it out?",
+        "Look at what one burn adds to the two frames together. Then look at how lopsided one burn can make them.",
+        "One fact about the total load, one fact about the balance between the frames. The balance may need saying from both sides."
+      ]
+    }
+  }
+}

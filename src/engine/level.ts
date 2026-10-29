@@ -15,9 +15,15 @@ import level03 from "../levels/03-mirror-pistons.json";
 import level04 from "../levels/04-parity-lock.json";
 import level05 from "../levels/05-counterweight.json";
 import level06 from "../levels/06-final-breach.json";
-import level07 from "../levels/07-the-splitter.json";
-import level08 from "../levels/08-twin-jacks.json";
-import level09 from "../levels/09-the-airlock.json";
+import level07 from "../levels/07-twin-jacks.json";
+import level08 from "../levels/08-the-airlock.json";
+import level09 from "../levels/09-the-splitter.json";
+import level10 from "../levels/10-the-reading-room.json";
+import level11 from "../levels/11-the-lossy-exchange.json";
+import level12 from "../levels/12-the-fuel-cell.json";
+import level13 from "../levels/13-the-sluice-tanks.json";
+import level14 from "../levels/14-the-phase-rotor.json";
+import level15 from "../levels/15-twin-thrusters.json";
 
 // ---------------------------------------------------------------------------
 // Cards
@@ -356,6 +362,12 @@ const BUNDLED: readonly unknown[] = [
   level07,
   level08,
   level09,
+  level10,
+  level11,
+  level12,
+  level13,
+  level14,
+  level15,
 ];
 
 /** All shipped missions, in campaign order. Throws `LevelError` if any file is invalid. */

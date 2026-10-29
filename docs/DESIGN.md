@@ -291,7 +291,9 @@ attack replays, breach meter, score, Show the Proof, intro sequence, sound, depl
 README with how-to-play and design ideas.
 
 **Stretch (only if MVP is done):** global leaderboard, daily challenge, more missions, hint system,
-team mode (KAIST vs POSTECH score aggregation).
+team mode (KAIST vs POSTECH score aggregation). *More missions* shipped as two bonus chapters after
+the main campaign: *ARGUS Strikes Back* (07–09) and *The Deep Grid* (10–15, ending at TWIN
+THRUSTERS, the true finale); see `LEVELS.md`.
 
 **Out of scope for this deadline:** human-vs-human multiplayer, patch cards that modify the machine,
 procedural level generation.

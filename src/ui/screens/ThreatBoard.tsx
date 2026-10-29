@@ -1,7 +1,7 @@
 import type { Level } from "../../engine/level.ts";
 import type { MissionStatus } from "../../game/campaign.ts";
 
-/** Fixed radar positions (angle in degrees, distance 0–1) for the nine facilities. */
+/** Fixed radar positions (angle in degrees, distance 0–1) for the fifteen facilities. */
 const BLIPS: readonly [number, number][] = [
   [-50, 0.42],
   [20, 0.7],
@@ -12,6 +12,12 @@ const BLIPS: readonly [number, number][] = [
   [55, 0.25],
   [180, 0.32],
   [-15, 0.94],
+  [125, 0.95],
+  [250, 0.3],
+  [335, 0.6],
+  [70, 0.9],
+  [-100, 0.62],
+  [165, 0.58],
 ];
 
 const R = 92;

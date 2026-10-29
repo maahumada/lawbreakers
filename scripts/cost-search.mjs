@@ -39,9 +39,10 @@ try {
     );
     const cheapest = holding[0]?.cost;
     console.log(`  cheapest holding cost: ${cheapest ?? "none"}`);
-    for (const h of holding.slice(0, 12))
+    for (const h of holding.slice(0, Number(arg("--show", "12"))))
       console.log(`  ${String(h.cost).padStart(3)}  ${pretty(h.law)}`);
-    if (holding.length > 12) console.log(`  … ${holding.length - 12} more`);
+    if (holding.length > Number(arg("--show", "12")))
+      console.log(`  … ${holding.length - Number(arg("--show", "12"))} more`);
   }
   await shutdownZ3();
 } finally {

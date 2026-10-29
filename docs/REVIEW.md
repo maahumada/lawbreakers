@@ -17,6 +17,39 @@ Things decided autonomously while the owner was away, or that need a human. Newe
 
 ## Decisions worth a second look
 
+- **Bonus chapter reorder + deep chapter *The Deep Grid* (10–15).** Written spoiler-free on purpose
+  (the owner wants to play 10–15 blind); the Laws, traps and holding lists are in `LEVELS.md`.
+  - *Reorder:* 07 TWIN JACKS, 08 THE AIRLOCK, 09 THE SPLITTER. Ids and files were renumbered
+    (`07-twin-jacks`, `08-the-airlock`, `09-the-splitter`); `MOVED_MISSIONS` in `game/campaign.ts`
+    migrates a saved secured list and moves best scores to the new keys (keeps the higher, deletes
+    the old key). Consequence: an old shared link `?mission=07` now opens TWIN JACKS, not THE
+    SPLITTER. Intros/briefings of the three were re-sequenced ("first target", "second target",
+    "last stand on the surface").
+  - *Chapter 3 arc:* tag "Deep chapter" on mission select; 09's results now say "Bonus chapter
+    complete … The Deep Grid is open" and "Campaign complete" moved to 15. The chapter heading
+    tags are now data (`Chapter.tag`).
+  - *Changed from the research specs (engine/cost search disagreed):* 11 (A-crates now resell at
+    full price, otherwise a cheaper Law held), 14 (the spec's one-fact Law is INSUFFICIENT; init
+    raised; one `≠` card instead of two), 15 (meltdown got a mirror point, otherwise half of the
+    intended Law was enough and cheaper). Details per mission in `LEVELS.md`.
+  - *13 THE SLUICE TANKS:* each pour is two cards ("A→B ALL" / "A→B TO BRIM", same for B→A); only
+    one of each pair is ever armed. Please judge whether that reads naturally. A lab breach there
+    can start from a tank level above its capacity (the Law is the only fence, tanks included):
+    correct by the rules, possibly surprising.
+  - *14 THE PHASE ROTOR, Dafny quirk:* one particular (correct) spelling of a holding Law makes
+    Dafny's Z3 time out (> 5 min) while the in-game engine proves it at once and every other
+    spelling verifies in ~2 s in Dafny. If a player builds that spelling, "Show the Proof" exports
+    a program Dafny cannot finish. The exact spelling is in `LEVELS.md` §14.
+  - *Hints* were written to nudge (what to watch, what each control does to a quantity) without
+    naming the Law; the `argus.test.ts` checks (no reference Law, no "comparator + number") pass.
+    Worth a read once you have played them.
+  - *Layout:* machines with more than four controls get a full-width, denser control grid (4 per
+    row on desktop, 2 on a 390 px phone); three gauges get smaller tubes on phones so they stay on
+    one row. Screenshots `docs/screenshots/chapter3-*.png`.
+  - *Cost search* (`tests/fixtures/lawSearch.ts`) got three sound speed-ups (usage grouping,
+    AND-only comparison filter, hash join for `=`); same holding lists for 01–09; Mission 14's
+    search went from > 10 min (unfinished) to ~15 s.
+
 - **Post-playtest: "fence + moves" copy and explainer cards (Oct 29).** Please read them in the game
   (screenshots `docs/screenshots/post-playtest-explainer-lab.png`, `…-insufficient-mobile.png`).
   - *Insufficient banner:* "The real machine may never reach A = 3, B = 3, but A + B = 6 cannot

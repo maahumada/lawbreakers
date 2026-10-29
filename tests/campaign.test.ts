@@ -4,11 +4,13 @@ import {
   CHAPTERS,
   chapterIndex,
   chapterStartingAt,
+  migrateBestScores,
   migrateSecured,
   missionStatus,
   nextMission,
   useCampaign,
 } from "../src/game/campaign.ts";
+import { loadBest, saveBest } from "../src/game/bestScores.ts";
 import { useMission } from "../src/game/missionStore.ts";
 import { parseRoute, routeHref } from "../src/ui/router.ts";
 
@@ -21,7 +23,7 @@ const statuses = (secured: string[]) => ids.map((_, i) => missionStatus(ids, new
 
 describe("campaign unlocks", () => {
   it("fresh profile: only Mission 01 is available", () => {
-    expect(statuses([])).toEqual(["available", ...Array<string>(8).fill("locked")]);
+    expect(statuses([])).toEqual(["available", ...Array<string>(ids.length - 1).fill("locked")]);
     expect(nextMission(ids, new Set())).toBe(ids[0]);
   });
 
@@ -39,7 +41,7 @@ describe("campaign unlocks", () => {
       "locked",
       "secured",
       "available",
-      ...Array<string>(4).fill("locked"),
+      ...Array<string>(ids.length - 5).fill("locked"),
     ]);
   });
 
@@ -47,7 +49,27 @@ describe("campaign unlocks", () => {
     const main = ids.slice(0, 6);
     expect(statuses(main)[6]).toBe("available");
     expect(statuses(main.slice(0, 5))[6]).toBe("locked");
-    expect(nextMission(ids, new Set(main))).toBe("07-the-splitter");
+    expect(nextMission(ids, new Set(main))).toBe("07-twin-jacks");
+  });
+
+  it("The Deep Grid opens when the last bonus mission is secured", () => {
+    const first9 = ids.slice(0, 9);
+    expect(statuses(first9)[9]).toBe("available");
+    expect(statuses(first9.slice(0, 8))[9]).toBe("locked");
+    expect(nextMission(ids, new Set(first9))).toBe("10-the-reading-room");
+  });
+
+  it("a save from before the bonus chapter was reordered keeps every secured mission", () => {
+    const old = [...ids.slice(0, 6), "07-the-splitter", "08-twin-jacks"];
+    const secured = migrateSecured(old);
+    expect(secured).toEqual([...ids.slice(0, 6), "09-the-splitter", "07-twin-jacks"]);
+    // 07 and 09 secured; 08 (the airlock, never won) is available because 07 is.
+    expect(statuses(secured).slice(6, 10)).toEqual([
+      "secured",
+      "available",
+      "secured",
+      "available",
+    ]);
   });
 
   it("a save that secured the replaced Mission 05 keeps 05 secured and 06 open", () => {
@@ -57,16 +79,47 @@ describe("campaign unlocks", () => {
     expect(statuses(secured).slice(4, 6)).toEqual(["secured", "available"]);
   });
 
+  it("best scores of renumbered missions follow them (needs storage)", () => {
+    const store = new Map<string, string>();
+    const fake = {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => void store.set(k, v),
+      removeItem: (k: string) => void store.delete(k),
+    };
+    const g = globalThis as { window?: unknown };
+    const had = "window" in g;
+    const prev = g.window;
+    g.window = { localStorage: fake };
+    try {
+      saveBest("07-the-splitter", 900);
+      saveBest("08-twin-jacks", 700);
+      saveBest("07-twin-jacks", 800);
+      saveBest("05-false-defense", 500);
+      migrateBestScores();
+      migrateBestScores();
+      expect(loadBest("09-the-splitter")).toBe(900);
+      expect(loadBest("07-twin-jacks")).toBe(800);
+      expect(loadBest("07-the-splitter")).toBeNull();
+      expect(loadBest("08-twin-jacks")).toBeNull();
+      // A replaced mission's score is not carried over.
+      expect(loadBest("05-counterweight")).toBeNull();
+    } finally {
+      if (had) g.window = prev;
+      else delete g.window;
+    }
+  });
+
   it("all secured: nothing left to continue", () => {
     expect(nextMission(ids, new Set(ids))).toBeNull();
   });
 });
 
 describe("chapters", () => {
-  it("split the campaign after FINAL BREACH", () => {
-    expect(CHAPTERS.map((c) => c.first)).toEqual(["01", "07"]);
-    expect(ids.map(chapterIndex)).toEqual([0, 0, 0, 0, 0, 0, 1, 1, 1]);
-    expect(chapterStartingAt("07-the-splitter")?.title).toBe("ARGUS Strikes Back");
+  it("split the campaign after FINAL BREACH and after THE SPLITTER", () => {
+    expect(CHAPTERS.map((c) => c.first)).toEqual(["01", "07", "10"]);
+    expect(ids.map(chapterIndex)).toEqual([0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2]);
+    expect(chapterStartingAt("07-twin-jacks")?.title).toBe("ARGUS Strikes Back");
+    expect(chapterStartingAt("10-the-reading-room")?.title).toBe("The Deep Grid");
     expect(chapterStartingAt("08")).toBeUndefined();
   });
 
