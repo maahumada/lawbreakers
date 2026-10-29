@@ -205,10 +205,10 @@ obvious AND was the answer.
 *Concept: bounded difference. Two gauges stay within a band of each other; the band needs both
 sides because a control swaps them.*
 
-> ARGUS strikes back. Its first target is a lift bridge riding on two hydraulic jacks. Interlocks stop a jack from climbing while it is
-> already ahead, but a cross-feed valve can swap the two pressures at any moment. The river side is
-> unbraced: if the left jack ever stands 3 or more notches above the right one, the deck tips into
-> the water.
+> ARGUS strikes back. Its first target is a lift bridge riding on two hydraulic jacks. Interlocks stop
+> a jack from climbing once it is two notches ahead, but a cross-feed valve can swap the two pressures
+> at any moment. The river side is unbraced: if the left jack ever stands 3 or more notches above
+> the right one, the deck tips into the water.
 
 - State: `L ∈ ℕ`, `R ∈ ℕ`. Init: `L = 0, R = 0`.
 - Controls:
@@ -240,8 +240,8 @@ mission where OR is the answer.*
 
 > ARGUS's second target is an orbital airlock. In phase 0 the inner door is open and the chamber must
 > be fully pressurised (4 units of air); in phase 1 the outer door is open to space and the chamber
-> must be empty. Venting dumps the air and swings the doors; repressurising does the reverse. Any
-> other combination of door and air is a meltdown.
+> must be empty. Venting dumps the air and swings the doors; repressurising does the reverse. Losing
+> pressure with the inner door open, or keeping any air with the outer door open, is a meltdown.
 
 - State: `p ∈ ℕ` (door phase), `a ∈ ℕ` (chamber air). Init: `p = 0, a = 4`.
 - Controls:

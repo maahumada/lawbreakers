@@ -31,6 +31,9 @@ export function typeset(text: string): string {
  * players should not need to know precedence rules to read a meltdown condition.
  */
 export function formatExpr(e: BoolExpr | NumExpr): string {
+  // Recurse under NOT too, or `NOT ((A AND B) OR C)` loses the brackets it needs to read.
+  if (e.k === "not" && (e.e.k === "and" || e.e.k === "or")) return `NOT (${formatExpr(e.e)})`;
+  if (e.k === "not" && e.e.k === "not") return `NOT ${formatExpr(e.e)}`;
   if (e.k !== "and" && e.k !== "or") return typeset(pretty(e));
   const other = e.k === "and" ? "or" : "and";
   // Left-nested chains of the same operator read left to right without brackets.

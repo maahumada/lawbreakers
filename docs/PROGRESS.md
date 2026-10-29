@@ -119,6 +119,33 @@ Decisions that deviate from or refine the docs. Newest first.
 Newest first. One entry per completed task: what was done, files touched, anything surprising,
 follow-ups.
 
+### 2026-10-29 — Independent review: engine soundness, mission content, recent UI
+- **Engine:** re-read `expr`, `parse`, `smt`, `verify`, `simulate`, `dafny`, the worker and
+  client. No soundness bug: simultaneous updates go through one-shot substitution, `mod` is
+  Euclidean on both sides, `D(s)` and `D(s')` are in every lab query, the 10 → 100 → unbounded
+  escalation only moves on `unsat` (the last query is unbounded), every model is re-checked with
+  the evaluator, and an `unknown` throws instead of becoming a verdict. Cross-checked with a
+  throwaway oracle (not committed): ~9 800 random Laws over all 15 missions, brute-forced over the
+  box `|v| ≤ 10`; no HOLDS with a counterexample in the box, no INSUFFICIENT where a lab breach
+  exists, init verdicts agree. `dafny-check`: 22 verified, 67 correctly rejected, 0 wrong.
+- **Fixed (content):** 07 TWIN JACKS briefing said the interlocks stop a jack "while it is already
+  ahead", but `RAISE L` is armed at `L − R ≤ 1` (a jack one notch ahead may climb). Now "once it is
+  two notches ahead", which is exactly the guard printed on the control card. 08 THE AIRLOCK said
+  "any other combination of door and air is a meltdown", but over-pressure in phase 0 (e.g.
+  `(0, 5)`) is not one; now it names the two meltdowns of the placard. JSON and `LEVELS.md` updated
+  together; tests: "briefing claims match the rules" in `tests/level.test.ts`.
+- **Fixed (display):** `formatExpr` lost the AND/OR brackets under a NOT (`NOT (A = 0 AND B = 0
+  OR A = 3)`), against its own "players should not need precedence rules" contract; it recurses
+  under NOT now (`ui/machine/format.ts`, test in `tests/format.test.ts`). Affects the engaged Law
+  line, the probe, the results and guards.
+- **Docs:** `REVIEW.md` note on explainer cards corrected (a REBUILD within 0.7 s cancels the card
+  without marking it seen; it does not skip it for good). Open questions (hint ladders, solutions
+  in the bundle, Airlock phase 2, first frame after a mission change, prototype keys) are in
+  `REVIEW.md` under "Independent review (Oct 29)".
+- **Checks:** lint, typecheck, test (485), build, `dafny-check` (22 verified, 67 rejected, 0
+  wrong) all pass; smokes engage, missions, campaign, a11y, gauges, juice, proof and rack pass
+  against `vite preview` (screenshots went to a scratch folder; `docs/screenshots` is unchanged).
+
 ### 2026-10-29 — Gauge skins for all 15 missions (G0–G6) + a11y smoke stabilised
 - **a11y root cause:** `VerdictAnnouncer` emptied the live region as soon as the phase left
   `verdict`; on THE LAW HOLDS the results open after 450 ms (reduced motion) / 950 ms, so the

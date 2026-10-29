@@ -2,7 +2,7 @@
   "id": "07-twin-jacks",
   "title": "TWIN JACKS",
   "concept": "bounded difference",
-  "briefing": "ARGUS strikes back. Its first target is a lift bridge riding on two hydraulic jacks. Interlocks stop a jack from climbing while it is already ahead, but a cross-feed valve can swap the two pressures at any moment. The river side is unbraced: if the left jack ever stands 3 or more notches above the right one, the deck tips into the water.",
+  "briefing": "ARGUS strikes back. Its first target is a lift bridge riding on two hydraulic jacks. Interlocks stop a jack from climbing once it is two notches ahead, but a cross-feed valve can swap the two pressures at any moment. The river side is unbraced: if the left jack ever stands 3 or more notches above the right one, the deck tips into the water.",
   "vars": [
     { "name": "L", "label": "LEFT JACK", "domain": "nat", "init": 0 },
     { "name": "R", "label": "RIGHT JACK", "domain": "nat", "init": 0 }

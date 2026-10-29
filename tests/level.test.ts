@@ -136,3 +136,35 @@ describe("loader errors", () => {
     ]);
   });
 });
+
+// Briefings describe the rules in prose; these pin the claims that once disagreed with them.
+describe("briefing claims match the rules", () => {
+  const byId = new Map(loadBundledLevels().map((l) => [l.id.slice(0, 2), l]));
+  const guardOf = (id: string, control: string) => {
+    const ctl = byId.get(id)?.controls.find((c) => c.id === control);
+    if (!ctl) throw new Error(`${id}: no control ${control}`);
+    return ctl.guard;
+  };
+
+  it("07: a jack one notch ahead may still climb; two notches ahead it may not", () => {
+    expect(byId.get("07")?.briefing).toContain("once it is two notches ahead");
+    const raiseL = guardOf("07", "raise_l");
+    expect(evalBool(raiseL, { L: 1, R: 0 })).toBe(true);
+    expect(evalBool(raiseL, { L: 2, R: 0 })).toBe(false);
+    const raiseR = guardOf("07", "raise_r");
+    expect(evalBool(raiseR, { L: 0, R: 1 })).toBe(true);
+    expect(evalBool(raiseR, { L: 0, R: 2 })).toBe(false);
+  });
+
+  it("08: the meltdowns are exactly the two the briefing names", () => {
+    const m08 = byId.get("08");
+    if (!m08) throw new Error("Mission 08 missing");
+    expect(m08.briefing).not.toContain("Any other combination");
+    const melt = (p: number, a: number) => evalBool(m08.meltdown, { p, a });
+    // Losing pressure with the inner door open; any air with the outer door open.
+    expect([0, 1, 2, 3].map((a) => melt(0, a))).toEqual([true, true, true, true]);
+    expect([1, 4, 5].map((a) => melt(1, a))).toEqual([true, true, true]);
+    // The two proper phases, and over-pressure, are not meltdowns.
+    expect([melt(0, 4), melt(1, 0), melt(0, 5)]).toEqual([false, false, false]);
+  });
+});

@@ -7,13 +7,38 @@ Things decided autonomously while the owner was away, or that need a human. Newe
 - [ ] **Firefox check** of the live site (Playwright here only has Chromium).
 - [ ] **Playtest with 3–5 real people** (M4-T4 was done with an agent-driven playtest only; notes
       and the issue list are in `docs/PLAYTEST.md`, a template for the human round).
-- [ ] **Independent engine review did not run.** The `code-reviewer` agent failed with
-      `model_not_found` (its definition points to `claude-4.6-opus-high-thinking`, request
-      `req_011CgUXnYN6DJESRhzKru7nK`). Fix the agent's model or run `/code-review` on `src/engine/`
-      together. The engine is still cross-checked by the conformance tests, the bounded cost search
-      and `npm run dafny-check` against real Dafny.
+- [x] **Independent engine review** ran on Oct 29 (see "Independent review (Oct 29)" below): no
+      soundness bug found; two briefing fixes and one display fix applied.
 - [ ] **Submission post** on the Social Contributions board (M4-T7): draft is in `docs/SUBMISSION.md`;
       posting is the owner's call.
+
+## Independent review (Oct 29): open questions
+
+Fixed items are in the `PROGRESS.md` session log. These were left alone on purpose (design calls,
+or too small to be worth a change without you). Solution Laws of 07–15 are not written here.
+
+- **Hint ladders near-spell the reference Law on the last rung.** 07 (lab rung 3 + insufficient
+  rung 2 together give the shape and the constant), 08 (rung 3 names the exact shape), 09 (rung 3),
+  like 01/03/04 in the main campaign. They only appear after the third failed engagement, and
+  `argus.test.ts` passes (no Law is spelled out), but they are close. Also: the per-kind ladder is
+  indexed by the *total* failure count, so a first LAB BREACH after two INIT FAILUREs jumps straight
+  to that kind's most specific rung. Decide whether that is intended.
+- **Reference Laws ship in the client bundle.** `level.ts` imports the level JSON whole, so
+  `solutions`/`knownWrong` are in the main bundle and the worker (readable in devtools). Never used
+  for a verdict; stripping them at build time would need a Vite transform. Probably fine for a class
+  game.
+- **08 THE AIRLOCK, phase 2.** `p` is ℕ, so states with `p ≥ 2` exist in the lab; they are not
+  meltdowns and no control is enabled there (the selector shows `?`). A Law can also allow them and
+  still hold. Harmless; the briefing (now) names only the two real meltdowns.
+- **First frame after a mission change uses the previous mission's stores.** `MissionScreen`
+  resets mission/rack/engage in a `useEffect`, so its first commit can still see the old phase
+  (e.g. `results`) and mount the old overlay for one commit. Click navigation flushes the effect
+  before paint; browser Back (popstate) may flash for a frame. Not seen in the smokes; a
+  `useLayoutEffect` (or resetting before navigation) would close it.
+- **Plain-object lookup by variable name.** `substNum` reads a control's update map with
+  `map[name] ?? e`, so a level variable named `constructor` or `toString` that a control leaves
+  unchanged would hit `Object.prototype`. No bundled level has such a name; `loadLevel` could
+  reject them (or use `Object.hasOwn`) if you add more missions.
 
 ## Decisions worth a second look
 
@@ -105,8 +130,8 @@ Things decided autonomously while the owner was away, or that need a human. Newe
   - Cards sit inline under the verdict banner (not an overlay), appear 0.7 s after it (at once
     with reduced motion), take focus (Esc/Enter/Got it dismiss, focus returns to Rebuild). Seen
     flags `lawbreakers:explainer-seen:lab_breach|insufficient` are set when the card appears, so
-    a fast REBUILD within 0.7 s skips it for good; "Reset progress" does not clear them (like the
-    tutorial flag).
+    a REBUILD within those 0.7 s cancels the card without marking it (it shows on the next such
+    verdict); "Reset progress" does not clear them (like the tutorial flag).
 - **New Mission 05 THE COUNTERWEIGHT (replaces THE FALSE DEFENSE).** Spillway cable crane: LOAD
   `x`, COUNTERWEIGHT `y` (ℤ, init 0); LOWER `x+1, y+1`; HOIST `y ≥ 1 → x−1, y−1`; meltdown `x < 0`.
   Hand `=`, `≥ ×2`, AND, budget 11. `x ≥ 0 ∧ y ≥ 0` is a LAB BREACH (from `(0,1)`, HOIST), `x = y`

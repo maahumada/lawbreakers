@@ -37,6 +37,17 @@ describe("machine view text", () => {
       "NOT (x ≠ −1) OR 2×x − 3 ≤ x MOD 2",
     );
   });
+
+  it("brackets a mixed AND/OR under NOT as well", () => {
+    expect(formatExpr(parseBool("!((A = 0 && B = 0) || A = 3)"))).toBe(
+      "NOT ((A = 0 AND B = 0) OR A = 3)",
+    );
+    expect(formatExpr(parseBool("x = 1 && !(y = 2 || x = 3 && y = 4)"))).toBe(
+      "x = 1 AND NOT (y = 2 OR (x = 3 AND y = 4))",
+    );
+    expect(formatExpr(parseBool("!!(x = 1 && y = 2)"))).toBe("NOT NOT (x = 1 AND y = 2)");
+    expect(formatExpr(parseBool("!(x = 1)"))).toBe("NOT (x = 1)");
+  });
 });
 
 describe("gaugeScale", () => {
