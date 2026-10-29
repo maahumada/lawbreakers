@@ -4,12 +4,13 @@ import { useMission } from "../../game/missionStore.ts";
 import { Briefing } from "./Briefing.tsx";
 import { ControlCard } from "./ControlCard.tsx";
 import { gaugeScale } from "./format.ts";
-import { Gauge } from "./Gauge.tsx";
 import { ReplayStrip } from "./ReplayStrip.tsx";
+import { GaugePanel } from "./skins/GaugePanel.tsx";
 import { Telemetry } from "./Telemetry.tsx";
 import { useAutoRun } from "./useAutoRun.ts";
 import "./machine.css";
 import "./replay.css";
+import "./skins/skins.css";
 
 export function MachineView({ level }: { level: Level }) {
   const state = useMission((m) => m.state);
@@ -31,6 +32,11 @@ export function MachineView({ level }: { level: Level }) {
       ),
     ),
   );
+
+  const skinned = level.display.panels.some((p) => p.skin !== "nixie");
+  const history = log.map((e) => e.state);
+  // Fires so far (free play cycles + replayed fires): restarts one-shot skin feedback.
+  const tick = (log.at(-1)?.cycle ?? 0) + (display?.pulse ?? 0);
 
   return (
     <div
@@ -56,9 +62,19 @@ export function MachineView({ level }: { level: Level }) {
         )}
         <h2 className="panel__title">Gauges</h2>
         {display && <ReplayStrip level={level} display={display} />}
-        <div className="gauges" data-count={level.vars.length}>
-          {level.vars.map((x) => (
-            <Gauge key={x.name} decl={x} value={state[x.name] ?? 0} scale={scale} />
+        <div className="gauges" data-count={level.vars.length} data-skinned={skinned || undefined}>
+          {level.display.panels.map((p) => (
+            <GaugePanel
+              key={p.vars.join(",")}
+              panel={p}
+              decls={level.vars}
+              state={state}
+              scale={scale}
+              mode={display?.mode ?? null}
+              from={display?.from ?? null}
+              tick={tick}
+              history={history}
+            />
           ))}
         </div>
       </section>

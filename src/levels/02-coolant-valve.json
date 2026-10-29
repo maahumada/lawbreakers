@@ -9,6 +9,17 @@
     { "id": "close", "label": "CLOSE", "guard": "x > 0", "update": { "x": "x - 1" } }
   ],
   "meltdown": "x = 11",
+  "display": {
+    "panels": [
+      {
+        "skin": "dial",
+        "vars": ["x"],
+        "min": 0,
+        "max": 10,
+        "marks": { "x": [{ "at": 11, "label": "BURST", "alarm": true }] }
+      }
+    ]
+  },
   "hand": { "cards": { "le": 1, "ne": 1 }, "budget": 4 },
   "solutions": ["x <= 10"],
   "knownWrong": [

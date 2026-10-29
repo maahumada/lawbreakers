@@ -22,6 +22,16 @@
     }
   ],
   "meltdown": "(x = 3 && y = 0) || (x = 0 && y = 3) || (x = 2 && y = 2)",
+  "display": {
+    "panels": [
+      {
+        "skin": "scope",
+        "vars": ["x", "y"],
+        "trail": 6,
+        "alarms": [{ "at": [3, 0] }, { "at": [0, 3] }, { "at": [2, 2] }]
+      }
+    ]
+  },
   "hand": {
     "cards": { "add": 1, "scale2": 2, "mod3": 1, "eq": 1, "le": 2, "and": 2 },
     "budget": 28

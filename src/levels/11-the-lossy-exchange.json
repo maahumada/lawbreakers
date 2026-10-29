@@ -35,6 +35,16 @@
     }
   ],
   "meltdown": "y >= 5",
+  "display": {
+    "panels": [
+      {
+        "skin": "tokens",
+        "vars": ["x", "y", "m"],
+        "glyph": { "x": "crate", "y": "barrel", "m": "coin" },
+        "marks": { "y": [{ "at": 5, "label": "COLLAPSE", "alarm": true }] }
+      }
+    ]
+  },
   "hand": { "cards": { "add": 2, "scale2": 1, "scale3": 1, "eq": 1, "le": 1 }, "budget": 14 },
   "solutions": ["2 * x + 3 * y + m <= 12"],
   "knownWrong": [

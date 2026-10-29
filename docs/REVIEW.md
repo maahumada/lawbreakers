@@ -17,6 +17,43 @@ Things decided autonomously while the owner was away, or that need a human. Newe
 
 ## Decisions worth a second look
 
+- **Gauge skins on all 15 missions (Oct 29).** Implemented from `docs/GAUGES-PROPOSAL.md`; nothing
+  of the mockup was dropped. Look at `docs/screenshots/gauges-live-NN.png` (desktop),
+  `gauges-live-NN-mobile.png` (390 px), and the lab / meltdown states
+  `gauges-live-NN-lab.png` / `gauges-live-NN-meltdown.png`. Per-mission notes are the "Display"
+  lines in `LEVELS.md`. Please eyeball these for hints at the invariant (play 10–15 first if you
+  still want them blind):
+  - *13 THE SLUICE TANKS:* the red FLOAT line at 4 is the placard's own number, but on a 9-unit
+    bottle with one-unit ticks it is the only labelled level besides the rims. It cannot reveal
+    more than the placard, yet it does draw the eye to "4 vs the rims 9 and 6". Remove the mark if
+    it feels like a nudge (delete `marks` from the JSON; the test only checks marks that exist).
+  - *15 TWIN THRUSTERS:* the scope draws the three meltdown points as red crosses (public) and a
+    6-state trail of real runs. A long auto-run makes the trail wander inside a cone; 6 dots keep it
+    from drawing the reachable set, but a careful player can still see "the dot never goes near the
+    axes". That is the same information telemetry gives; judge whether it is too visual.
+  - *12 THE FUEL CELL / 01 / 06:* tanks share one scale, so "hydrogen stands at twice oxygen" or
+    "the two cells always sum to the same height" is visible (as the old shared bars already did).
+    No total line, no molecule art.
+  - *03 MIRROR PISTONS:* both rods on one ruler: the big rod is visibly twice the small one. The
+    briefing already says so.
+  - *10 THE READING ROOM:* every tray has 12 slots (never 3 hooks), writers are badges, not three
+    tokens; *09 THE SPLITTER:* cores are hexagons, fragments triangles (no "two of one").
+  - *14 THE PHASE ROTOR:* the rotor only spins once per fire and always rests upright (tested), so
+    it never encodes the counts mod 3.
+  - *05 THE COUNTERWEIGHT:* hook depth (cable notches) and the counterweight rack (2 columns of
+    blocks) use different units on purpose so "LOAD = COUNTERWEIGHT" is never drawn as equal heights.
+  - *Marks:* every red mark is checked by `tests/display.test.ts` to sit exactly where the meltdown
+    flips; other marks/capacities must appear in the briefing.
+  - *README media:* `docs/media/live-breach.png` and `lab-simulation.png` were replaced with the
+    fresh smoke shots (new gauges; wrong Laws only, no answers). Still showing the old nixie gauges:
+    the hero clip `mission-01-run.webp`, `mission-rack.png` and `mobile-breach.png`; re-shoot them
+    if you want the README to match (the M4-T6 log says how they were made).
+- **Flaky a11y smoke fixed (Oct 29).** Root cause in the app: the screen-reader live region was
+  emptied when the results dialog opened (450 ms after THE LAW HOLDS with reduced motion), so an
+  announcement could be cut off and the smoke sometimes read an empty region. It now keeps the
+  verdict text while the banner is up. The axe hit on `.results__btn--primary` was the dialog
+  caught mid fade-in; the smoke now waits for animations to finish. 3 green runs in a row.
+
 - **Bonus chapter reorder + deep chapter *The Deep Grid* (10–15).** Written spoiler-free on purpose
   (the owner wants to play 10–15 blind); the Laws, traps and holding lists are in `LEVELS.md`.
   - *Reorder:* 07 TWIN JACKS, 08 THE AIRLOCK, 09 THE SPLITTER. Ids and files were renumbered

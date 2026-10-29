@@ -233,7 +233,24 @@ async function sumLaw(page, k) {
   await put(page, "const", "1", k);
 }
 
+/**
+ * Wait until every finite CSS/Web animation has finished (endless ones, like the hologram flicker,
+ * are ignored). axe computes contrast from the live colours, so a dialog caught mid fade-in reads
+ * as low contrast although it never is once shown.
+ */
+async function settle(page) {
+  await page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity)
+        .map((a) => a.finished.catch(() => undefined)),
+    ),
+  );
+}
+
 async function axe(page, what) {
+  await settle(page);
   const result = await new AxeBuilder({ page }).analyze();
   const bad = result.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   for (const v of result.violations)
@@ -355,9 +372,10 @@ async function layoutPass(browser, vp) {
     const kind = await engageAndWait(page);
     check(kind === "holds", `${n}: A + B = 6 holds (${kind})`);
     await noOverflow(page, `${n} verdict holds`);
-    if (n === "desktop") await axe(page, `${n} mission (verdict)`);
+    // The results open by themselves 950 ms after the banner: scan once they are up and still.
     await page.getByTestId("results").waitFor();
     await page.waitForTimeout(1200);
+    if (n === "desktop") await axe(page, `${n} mission (verdict)`);
     await noOverflow(page, `${n} results`);
     await page.getByTestId("show-proof").click();
     await page.getByTestId("proof").waitFor();

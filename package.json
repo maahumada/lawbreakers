@@ -25,6 +25,7 @@
     "proof-smoke": "node scripts/proof-smoke.mjs",
     "juice-smoke": "node scripts/juice-smoke.mjs",
     "a11y-smoke": "node scripts/a11y-smoke.mjs",
+    "gauges-smoke": "node scripts/gauges-smoke.mjs",
     "cost-search": "node scripts/cost-search.mjs"
   },
   "dependencies": {

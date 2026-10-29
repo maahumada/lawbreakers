@@ -23,6 +23,18 @@
     }
   ],
   "meltdown": "a >= 5 || b >= 3",
+  "display": {
+    "panels": [
+      {
+        "skin": "tank",
+        "vars": ["a", "b", "c"],
+        "marks": {
+          "a": [{ "at": 5, "label": "BURST", "alarm": true }],
+          "b": [{ "at": 3, "label": "BURST", "alarm": true }]
+        }
+      }
+    ]
+  },
   "hand": {
     "cards": { "add": 1, "scale2": 1, "eq": 2, "le": 2, "and": 1 },
     "budget": 16

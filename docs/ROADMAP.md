@@ -106,6 +106,20 @@ happen, why does it break?"). Teach: the Law is the only fence, the controls are
 - [x] Mission 05 replaced by THE COUNTERWEIGHT (strengthening where the obvious AND fails).
 - [x] Bonus chapter reordered by difficulty: 07 TWIN JACKS, 08 THE AIRLOCK, 09 THE SPLITTER (ids
   renumbered; saved progress and best scores migrated, `MOVED_MISSIONS`).
+- [x] a11y smoke stabilised: the verdict live region keeps its text through results / mission
+  failed; axe scans after animations settle (and after the results open).
+- [x] **Gauge skins** (`docs/GAUGES-PROPOSAL.md`, all 15 missions):
+  - [x] G0 `display` schema + default nixie, `GaugePanel`, `Readout`, geometry module, tests
+  - [x] G1 `tank` + `jug`: THE LAST REACTOR, FINAL BREACH, THE FUEL CELL, THE SLUICE TANKS,
+    THE AIRLOCK (air)
+  - [x] G2 `piston` + `dial`: MIRROR PISTONS, COOLANT VALVE
+  - [x] G3 `scope`: TWIN THRUSTERS (short real-run trail, lab step arrow, edge clamp)
+  - [x] G4 `tokens` + `selector`: PARITY LOCK, THE SPLITTER, THE READING ROOM, THE LOSSY
+    EXCHANGE, THE AIRLOCK (doors)
+  - [x] G5 scenes: `deck` (TWIN JACKS), `hoist` (THE COUNTERWEIGHT), `rotor` (THE PHASE ROTOR)
+  - [x] G6 docs (DESIGN §8, LEVELS "Display" lines + checklist, ARCHITECTURE), `gauges-smoke`,
+    screenshots `gauges-live-*`
+  - [ ] Owner spoiler review of every skin (`docs/REVIEW.md`)
 
 ## Stretch (only after M4-T6)
 

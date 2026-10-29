@@ -33,6 +33,8 @@ export interface Display {
   firing: string | null;
   /** Increments on every replayed fire, so the same control firing twice re-flashes. */
   pulse: number;
+  /** The shown state before the last replayed fire (`null` after `show`), for skins that draw a step. */
+  from: State | null;
 }
 
 interface MissionStore {
@@ -153,7 +155,7 @@ export const useMission = create<MissionStore>()((set, get) => {
 
     lock: () => set({ locked: true, autoRun: false }),
     show: (state, mode) => {
-      const display: Display = { mode, firing: null, pulse: get().display?.pulse ?? 0 };
+      const display: Display = { mode, firing: null, pulse: get().display?.pulse ?? 0, from: null };
       if (mode === "live") set({ state, log: startLog(state), display });
       else set({ state, display });
     },
@@ -161,7 +163,12 @@ export const useMission = create<MissionStore>()((set, get) => {
       const { level, state, log, display } = get();
       if (!level || !display) return;
       const next = step(level, state, controlId);
-      const shown: Display = { ...display, firing: controlId, pulse: display.pulse + 1 };
+      const shown: Display = {
+        ...display,
+        firing: controlId,
+        pulse: display.pulse + 1,
+        from: state,
+      };
       if (display.mode === "live") {
         const cycle = (log.at(-1)?.cycle ?? 0) + 1;
         set({

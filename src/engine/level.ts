@@ -2,6 +2,8 @@
 // and static checks that do not need the solver.
 
 import { z } from "zod";
+import type { DisplaySpec } from "./display.ts";
+import { defaultDisplay, displayIssues, rawDisplaySchema } from "./display.ts";
 import type { BoolExpr, Expr, NumExpr, State } from "./expr.ts";
 import { freeVars } from "./expr.ts";
 import { ParseError, parseBool, parseNum } from "./parse.ts";
@@ -184,6 +186,8 @@ export const rawLevelSchema = z.strictObject({
     cards: z.partialRecord(z.enum(CARD_IDS), z.int().positive()),
     budget: z.int().positive(),
   }),
+  /** How the gauges are drawn (UI only). Absent → one nixie gauge per variable. */
+  display: rawDisplaySchema.optional(),
   solutions: z.array(nonEmpty).min(1),
   knownWrong: z.array(z.strictObject({ law: nonEmpty, verdict: z.enum(VERDICT_KINDS) })),
   argus: z.strictObject({
@@ -234,6 +238,8 @@ export interface Level {
   controls: Control[];
   meltdown: BoolExpr;
   hand: { cards: Partial<Record<CardId, number>>; budget: number };
+  /** Gauge panels (UI only; the verifier never reads it). Filled with the default when absent. */
+  display: DisplaySpec;
   /** Test-only: reference Laws that must verify. Never used to decide a verdict. */
   solutions: BoolExpr[];
   /** Test-only: wrong Laws with the verdict the engine must return. */
@@ -334,6 +340,16 @@ export function loadLevel(raw: unknown): Level {
     verdict: w.verdict,
   }));
 
+  // The default is right by construction; only an authored display needs checking.
+  const display = r.display ?? defaultDisplay(r.vars);
+  if (r.display)
+    issues.push(
+      ...displayIssues(
+        r.display,
+        r.vars.map((x) => x.name),
+      ),
+    );
+
   if (issues.length > 0 || !meltdown) throw new LevelError(r.id, issues);
 
   return {
@@ -345,6 +361,7 @@ export function loadLevel(raw: unknown): Level {
     controls,
     meltdown,
     hand: r.hand,
+    display,
     // No issues means every entry parsed.
     solutions: solutions.filter((s) => s !== undefined),
     knownWrong: knownWrong.flatMap((w) => (w.law ? [{ law: w.law, verdict: w.verdict }] : [])),

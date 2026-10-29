@@ -22,6 +22,7 @@
     }
   ],
   "meltdown": "A = 0 && B = 0",
+  "display": { "panels": [{ "skin": "tank", "vars": ["A", "B"] }] },
   "hand": { "cards": { "add": 1, "eq": 1, "ge": 1 }, "budget": 7 },
   "solutions": ["A + B = 6", "A + B >= 1"],
   "knownWrong": [

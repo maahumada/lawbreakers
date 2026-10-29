@@ -45,6 +45,7 @@ row here, add it to the JSON too.
   - `TRANSFER B→A`: `B ≥ 1 → B := B − 1, A := A + 1`
 - Meltdown: `A = 0 ∧ B = 0` (Safe: `¬(A = 0 ∧ B = 0)`).
 - Cards: `ADD`, `=`, `≥`. Budget: 7. Cheapest holding Laws (cost 7): `A + B = 6` and `A + B ≥ c` for every `c` in 1…6.
+- Display: `tank` ×2 (energy cells, shared scale). Risk low: no pipe between the cells, no total line.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -70,6 +71,7 @@ row here, add it to the JSON too.
   - `CLOSE`: `x > 0 → x := x − 1`
 - Meltdown: `x = 11`.
 - Cards: `≤`, `≠`. Budget: 4. Cheapest holding Law (cost 4): `x ≤ 10`, the only one.
+- Display: `dial`, notches 0–10 printed, red BURST arc at 11, dashed unprinted zone past 10 (a lab `x = 12` sits there; farther out the needle pegs). Risk low: no stop pin drawn at 10.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -96,6 +98,7 @@ state. The player learns a Law must protect itself.
   - `PULL`: `x > 0 → x := x − 1, y := y − 2`
 - Meltdown: `y = 7`.
 - Cards: `×2`, `=`, `≠`. Budget: 6. Cheapest holding Law (cost 6): `y = 2·x`, the only one.
+- Display: `piston` ×2 on one ruler (same unit length), red FUEL LINE at 7 on the big rail; negative positions retract into a red hatch. Risk medium: no lever, linkage or ratio readout is drawn.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -120,6 +123,7 @@ state. The player learns a Law must protect itself.
   - `REMOVE PAIR`: `n ≥ 2 → n := n − 2`
 - Meltdown: `n = 0`.
 - Cards: `MOD 2`, `=`, `≥`. Budget: 7. Cheapest holding Laws (cost 7): `n mod 2 = 1`, `n mod 2 ≥ 1`.
+- Display: `tokens` (pins) in one evenly spaced row of 12, `+k MORE` beyond, negative counts as red dashed "owed" pins. Risk high if pins were grouped in pairs: they never are.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -147,6 +151,7 @@ strengthening (guard both gauges); the helper fact is a relation between them.*
 - Meltdown: `x < 0`.
 - Cards: `=`, `≥ ×2`, `AND`. Budget: 11. Cheapest holding Laws (cost 11): `x = y ∧ y ≥ 0`,
   `x = y ∧ x ≥ 0`, `x ≥ y ∧ y ≥ 0`, `x ≥ 0 ∧ x ≥ y`, nothing cheaper.
+- Display: `hoist`: cable drum with the hook at depth LOAD, red DRUM STOP line (snaps below 0), counterweight blocks in a 2-column rack (a different unit on purpose, so load and blocks never line up as equal heights); `(−10, −10)` shows cable past the stop and 10 owed blocks.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -182,6 +187,7 @@ obvious AND was the answer.
   - `PULSE B→A`: `B ≥ 2 → B := B − 2, A := A + 2`
 - Meltdown: `(A = 0 ∧ B = 0) ∨ A = 3`.
 - Cards: `ADD`, `MOD 2`, `= ×2`, `AND`, `OR`. Budget: 17. Cheapest holding Laws (cost 17): `A + B = 6 ∧ A mod 2 = 0`, `A + B = 6 ∧ B mod 2 = 0`.
+- Display: `tank` ×2 (capacitor banks, shared scale), red RESONANCE line at 3 on bank A (placard). Risk low: uniform ticks, emphasis only every 5.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -212,6 +218,7 @@ sides because a control swaps them.*
 - Meltdown: `L − R ≥ 3`.
 - Cards: `SUB ×2`, `≤ ×2`, `AND`. Budget: 17. Cheapest holding Laws (cost 17): 16 spellings of
   the same band (`L − R ≤ 2 ∧ R − L ≤ 2`, `−2 ≤ L − R ∧ L − 2 ≤ R`, …), nothing else.
+- Display: `deck`: plank on two jacks, tilt = left − right (the placard's own quantity), river on the right, a dashed red ghost plank at the tipping tilt. Risk medium: no ±2 tolerance band is drawn.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -243,6 +250,7 @@ mission where OR is the answer.*
 - Meltdown: `(p = 0 ∧ a < 4) ∨ (p = 1 ∧ a > 0)`.
 - Cards: `= ×4`, `≥`, `AND ×2`, `OR`. Budget: 25. Cheapest holding Laws (cost 25): the reference
   and three spellings of it (`0 ≥ a` for `a = 0`, `p ≥ 1` for `p = 1`).
+- Display: `selector` for the door phase (INNER OPEN / OUTER OPEN, any other value lights a `?` notch) + `tank` for the air with a FULL mark at 4 (briefing). Risk medium: nothing pairs a phase with an air level.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -275,6 +283,7 @@ Mission 15 (28) costs more.
 - Meltdown: `F ≥ 7`.
 - Cards: `ADD`, `×2`, `=`, `≤`. Budget: 9. Cheapest holding Laws (cost 9): `2·H + F = 6`,
   `2·H + F ≤ 6`, the only two.
+- Display: `tokens`: hexagonal cores and triangular fragments (unrelated shapes, same size), red slot at the 7th fragment (FAILS AT 7). Risk high if a core looked like two fragments: it does not.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -311,6 +320,7 @@ three of them.*
 - Meltdown: `(R ≥ 1 ∧ W ≥ 1) ∨ W ≥ 2`.
 - Cards: `ADD ×2`, `×3`, `=`, `≤`, `AND`. Budget: 12. Cheapest holding Laws (cost 12): the weighted
   token count `= 3` and `≤ 3`, in three addition orders each (6 spellings), nothing else.
+- Display: `tokens` in three trays: readers (figures), writers (badges), free tokens (rings); red slot at the 2nd writer (TORN AT 2). Risk high if the free tray had exactly three hooks: every tray has the same 12 slots.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -346,6 +356,7 @@ Law is a ceiling, not an equation.*
 - Meltdown: `y ≥ 5`.
 - Cards: `ADD ×2`, `×2`, `×3`, `=`, `≤`. Budget: 14. Cheapest holding Laws (cost 14): the reference
   in three addition orders, nothing else.
+- Display: `tokens`: A-crates, B-crates (barrels) with the 5th slot red (COLLAPSE AT 5), chits as coins. Risk medium-high: no price tags, no portfolio value.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -377,6 +388,7 @@ resold at full price the A weight is forced to exactly 2 and the reference is th
 - Cards: `ADD`, `×2`, `= ×2`, `≤ ×2`, `AND`. Budget: 16. Cheapest holding Laws (cost 16): five, all
   "hydrogen + water fixed AND hydrogen tied to oxygen": `a + c = 4 ∧ a = 2·b`, with `≤` on either
   side (`2·b ≤ a ∧ a + c ≤ 4` …), and `2·b = a ∧ a + c ≤ 5`.
+- Display: `tank` ×3 (hydrogen, oxygen, water; shared scale), red BURST lines at 5 and 3 (placard). Risk medium: no molecule art or atom counters.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -412,6 +424,7 @@ of gcd(9, 6) = 3.*
 - Meltdown: `a = 4`.
 - Cards: `MOD 3 ×2`, `= ×2`, `≠`, `≤ ×2`, `AND`. Budget: 17. Cheapest holding Laws (cost 17): the
   reference with `≤ 0` for `= 0` on either side (4 spellings).
+- Display: `jug` ×2: bottles with their rim at capacity 9 and 6 (briefing), one-unit ticks only, red FLOAT line at 4 on tank A (placard); a lab level above the rim spills over it (`▲ k OVER THE RIM`). Risk high if ticks grouped by 3: they do not (owner review: the FLOAT line itself is public but sits on a non-multiple).
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -446,6 +459,7 @@ pairwise difference by 0 or ±3, so the differences mod 3 never change.*
   spellings), 18 are "the total is 9 AND one pair of phases differs mod 3"
   (`9 − r − g = b ∧ g MOD 3 ≠ r MOD 3` and spellings). No cheaper Law holds; there is no OR card, so
   enumerating states is impossible.
+- Display: `rotor`: three coils, one ring per unit (six, then `+k`), phases told apart by stroke (solid / brass / dashed); the rotor only spins once per fire and always rests upright. Risk high if its angle followed the counts: it never does (tested).
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -487,6 +501,7 @@ kinds of fact, and one of them needs both sides.*
 - Meltdown: `(x = 3 ∧ y = 0) ∨ (x = 0 ∧ y = 3) ∨ (x = 2 ∧ y = 2)`.
 - Cards: `ADD`, `×2 ×2`, `MOD 3`, `=`, `≤ ×2`, `AND ×2`. Budget: 28. Cheapest holding Laws (cost
   28): the reference in three bracketings/orders, nothing else.
+- Display: `scope`: phosphor dot at (PORT, STARBOARD) with a 6-state fading trail of real runs only, axes and a 5-unit grid, red crosses at the three meltdown points (placard); lab states show only the invented step as a dashed arrow. Risk medium-high: a long trail would draw the reachable cone, so the trail is short (tested) and there are no diagonal guides.
 
 | Law | Verdict | Why |
 |---|---|---|
@@ -513,3 +528,7 @@ reference was not the cheapest. The mirror point `(0, 3)` makes both sides of th
    itself unless that is the trap.
 4. At least one known-wrong Law per verdict type the mission is meant to teach.
 5. Telemetry from init shows the pattern within ~10 steps.
+6. The `display` (gauge skin) draws no derived quantity except the meltdown's own: no sum, total,
+   ratio, difference or grouping by 2/3 that the placard does not print; marks come only from the
+   placard (`alarm`, tested to sit where the meltdown flips) or the briefing (tested to appear in
+   it). Add a "Display" line with the spoiler risk (docs/GAUGES-PROPOSAL.md §2, §4).

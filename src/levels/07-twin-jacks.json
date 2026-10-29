@@ -18,6 +18,16 @@
     }
   ],
   "meltdown": "L - R >= 3",
+  "display": {
+    "panels": [
+      {
+        "skin": "deck",
+        "vars": ["L", "R"],
+        "tipAt": 3,
+        "label": "TIPS INTO THE RIVER AT L − R ≥ 3"
+      }
+    ]
+  },
   "hand": { "cards": { "sub": 2, "le": 2, "and": 1 }, "budget": 17 },
   "solutions": ["L - R <= 2 && R - L <= 2"],
   "knownWrong": [

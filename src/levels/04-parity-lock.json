@@ -9,6 +9,11 @@
     { "id": "remove", "label": "REMOVE PAIR", "guard": "n >= 2", "update": { "n": "n - 2" } }
   ],
   "meltdown": "n = 0",
+  "display": {
+    "panels": [
+      { "skin": "tokens", "vars": ["n"], "glyph": { "n": "pin" }, "slots": 12, "cols": 12 }
+    ]
+  },
   "hand": { "cards": { "mod2": 1, "eq": 1, "ge": 1 }, "budget": 7 },
   "solutions": ["n mod 2 = 1"],
   "knownWrong": [

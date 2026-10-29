@@ -1,6 +1,10 @@
 # Gauge skins: proposal
 
-Status: **proposal, nothing implemented.** Written 2026-10-29 while another agent was adding the
+Status: **implemented (G0–G6, Oct 29)** for all 15 missions; see `LEVELS.md` "Display" lines for
+what shipped per mission (13 is THE SLUICE TANKS, the jugs puzzle; Die Hard Jugs below) and
+`ARCHITECTURE.md` "`display`" for the schema. The text below is the original proposal.
+
+Original status: **proposal, nothing implemented.** Written 2026-10-29 while another agent was adding the
 Deep Grid missions and renumbering the campaign, so this doc names missions by **title** first.
 Current files: 07 TWIN JACKS, 08 THE AIRLOCK, 09 THE SPLITTER, 10 THE READING ROOM, 11 THE LOSSY
 EXCHANGE, 12 THE FUEL CELL. Die Hard Jugs, Phase Rotor and Twin Thrusters had no JSON yet, so their

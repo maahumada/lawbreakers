@@ -22,6 +22,12 @@
     }
   ],
   "meltdown": "(p = 0 && a < 4) || (p = 1 && a > 0)",
+  "display": {
+    "panels": [
+      { "skin": "selector", "vars": ["p"], "positions": { "0": "INNER OPEN", "1": "OUTER OPEN" } },
+      { "skin": "tank", "vars": ["a"], "marks": { "a": [{ "at": 4, "label": "FULL" }] } }
+    ]
+  },
   "hand": { "cards": { "eq": 4, "ge": 1, "and": 2, "or": 1 }, "budget": 25 },
   "solutions": ["(p = 0 && a = 4) || (p = 1 && a = 0)"],
   "knownWrong": [

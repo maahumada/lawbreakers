@@ -12,6 +12,15 @@
     { "id": "pull", "label": "HOIST", "guard": "y >= 1", "update": { "x": "x - 1", "y": "y - 1" } }
   ],
   "meltdown": "x < 0",
+  "display": {
+    "panels": [
+      {
+        "skin": "hoist",
+        "vars": ["x", "y"],
+        "marks": { "x": [{ "at": -1, "label": "SNAPS BELOW 0", "alarm": true }] }
+      }
+    ]
+  },
   "hand": { "cards": { "eq": 1, "ge": 2, "and": 1 }, "budget": 11 },
   "solutions": ["x = y && y >= 0", "x = y && x >= 0", "x >= y && y >= 0"],
   "knownWrong": [

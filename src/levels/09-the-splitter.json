@@ -22,6 +22,17 @@
     }
   ],
   "meltdown": "F >= 7",
+  "display": {
+    "panels": [
+      {
+        "skin": "tokens",
+        "vars": ["H", "F"],
+        "glyph": { "H": "core", "F": "fragment" },
+        "cols": 6,
+        "marks": { "F": [{ "at": 7, "label": "FAILS", "alarm": true }] }
+      }
+    ]
+  },
   "hand": { "cards": { "add": 1, "scale2": 1, "eq": 1, "le": 1 }, "budget": 9 },
   "solutions": ["2 * H + F = 6", "2 * H + F <= 6"],
   "knownWrong": [

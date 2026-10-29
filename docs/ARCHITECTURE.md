@@ -31,6 +31,7 @@ lawbreakers/
 │   │   ├── expr.ts          Expr AST, type checker, evaluator, pretty-printer
 │   │   ├── parse.ts         infix text → Expr (used by level files, tests, dev console)
 │   │   ├── level.ts         level schema (zod), loader, static validation
+│   │   ├── display.ts       optional `display` block (gauge skins per level): zod schema, default, coverage checks
 │   │   ├── simulate.ts      step, enabled transitions, random telemetry, BFS live attack
 │   │   ├── smt.ts           Expr → Z3 terms
 │   │   ├── verify.ts        init / live / lab / safety pipeline → Verdict
@@ -47,7 +48,8 @@ lawbreakers/
 │   │   ├── screens/         BootScreen (coi reload), Title, MissionSelect, TrainingToggle, Mission, ResultsOverlay, MissionFailedOverlay, VerdictAnnouncer (screen-reader live region), IntroScreen (+ introScript), ThreatBoard (mission select radar)
 │   │   ├── rack/            RackEditor (dnd-kit context), Hand, RackBoard (sockets, modules, SVG wires, SHIELD), Dial, Readout, layout.ts (pure)
 │   │   ├── layout/          Slot (reserved areas for later features, `data-slot`)
-│   │   ├── machine/         MachineView, Briefing, Gauge, ControlCard, Telemetry, ReplayStrip (shown state + Law/meltdown probe), format.ts (guard/effect text), replay.css (verdict modes)
+│   │   ├── machine/         MachineView, Briefing, Gauge (nixie), ControlCard, Telemetry, ReplayStrip (shown state + Law/meltdown probe), format.ts (guard/effect text), replay.css (verdict modes)
+│   │   │   └── skins/       GaugePanel (skin switch), Readout (numeral + a11y/test hooks), tank/jug, dial, piston, tokens, selector, scope, deck, hoist, rotor skins, geometry.ts (pure), skins.css
 │   │   ├── argus/           ArgusPanel, Terminal (typed lines), BreachMeter, EngageConsole + VerdictBanner (engage slot), engage.ts (the ENGAGE sequence), verdictText.ts
 │   │   ├── proof/           ShowTheProof
 │   │   ├── help/            HowToPlay + HelpButton ("?"), Tutorial (coach marks) + tutorialSteps.ts, helpStore.ts, HelpLayer (per screen)
@@ -59,10 +61,11 @@ lawbreakers/
 │   ├── screenshot-mission.mjs  mission screen screenshots (1440×900, 390×844) + interaction checks (`npm run screenshots`)
 │   ├── rack-smoke.mjs       rack editor in Chromium: builds Missions 01 and 06, screenshots (`npm run rack-smoke`)
 │   ├── engage-smoke.mjs     ENGAGE end to end with real Z3: every verdict, breach, results, mission failed (`npm run engage-smoke`)
-│   ├── missions-smoke.mjs   Missions 02–15: wrong Laws + reference Law, results, screenshots m3-t2-*, stretch-*, chapter3-* (`npm run missions-smoke`)
+│   ├── missions-smoke.mjs   Missions 02–15: wrong Laws + reference Law, results, screenshots m3-t2-*, stretch-*, chapter3-*, gauges-live-NN-lab/-meltdown (`npm run missions-smoke`)
 │   ├── campaign-smoke.mjs   title → select → unlocks, persistence, Back, CONTINUE, off-campaign, training, reset (`npm run campaign-smoke`)
 │   ├── pages-preview.mjs    GitHub Pages emulation: `dist/` under `/lawbreakers/`, no COOP/COEP (`npm run pages-preview`)
 │   ├── juice-smoke.mjs      intro, mute, threat board, current/breach/holds effects; screenshots m4-t1-*, m3-t5-* (`npm run juice-smoke`)
+│   ├── gauges-smoke.mjs     every mission's skin: readouts (role/label/value), follow the controls, no sideways scroll at 360/390/1440, reduced motion; screenshots gauges-live-* (`npm run gauges-smoke`)
 │   ├── a11y-smoke.mjs       keyboard-only win, reduced motion, no horizontal overflow at 3 viewports, tutorial/help, axe; screenshots m4-t3-*, m4-t5-* (`npm run a11y-smoke`)
 │   └── coi-smoke.mjs        first visit through coi-serviceworker: one reload, isolated, Z3 works (`npm run coi-smoke`)
 └── tests/                   engine tests, level conformance (+ a few component smoke tests)
@@ -171,6 +174,45 @@ Safe is `!meltdown`.
 Precedence, loosest to tightest: `||` < `&&` < `!` < comparisons (non-chaining) < `+ -` <
 `* mod` < unary `-`. Binary operators are left-associative. `e mod k` needs a positive integer
 literal `k`. A unary minus on a literal is a negative constant; on anything else it is `-1 * e`.
+
+### `display` (gauge skins, UI only)
+
+Optional. Absent → one `nixie` panel per variable (the original tubes + bar, same markup). The
+verifier never reads it. Panels list the variables they draw; every variable must be in exactly one
+panel (checked by `displayIssues`, a load error otherwise):
+
+```json
+"display": { "panels": [
+  { "skin": "tank", "vars": ["a", "b", "c"],
+    "marks": { "a": [{ "at": 5, "label": "BURST", "alarm": true }] } }
+] }
+```
+
+| Skin | Vars | Params |
+|---|---|---|
+| `nixie` | 1 | – |
+| `tank` | 1–3 | `marks` (shared scale `gaugeScale`, like the bars) |
+| `jug` | 1–3 | `capacity` per var (the rim), `marks` |
+| `dial` | 1 | `min`, `max` (printed notches; ±2 unprinted, then PEGGED), `marks` |
+| `piston` | 1–3 | `marks` (one unit length for every rod, shared scale) |
+| `tokens` | 1–3 | `glyph` per var (`pin core fragment reader badge token crate barrel coin`), `slots` (12), `cols` (4), `marks` (slot outlined) |
+| `selector` | 1 | `positions` (`{"0": "INNER OPEN", …}`); any other value → `?` notch |
+| `scope` | 2 | `trail` (≤ 12 logged states, never lab states), `alarms` (meltdown points) |
+| `deck` | 2 | `tipAt` (left − right), `label` |
+| `hoist` | 2 | `marks` (cable var; blocks in a 2×6 rack) |
+| `rotor` | 3 | – (rotor spins once per fire, never a function of the state) |
+
+A mark is `{ at, label, alarm? }`; `alarm` marks are the meltdown's own thresholds and
+`tests/display.test.ts` checks the meltdown flips exactly there; other marks and jug capacities
+must appear in the briefing. Skins never draw a sum, difference, ratio or grouping that the
+meltdown placard does not already print (docs/GAUGES-PROPOSAL.md §2).
+
+UI contract: every skin keeps one `Readout` per variable (`data-testid="gauge-<name>"`,
+`data-value`, `role="img"`, `aria-label="LABEL reads N"` plus out-of-range words such as
+`, over capacity 9`), paints only with `--human-*` / `--meltdown` tokens (so `replay.css`'s lab
+cyan and meltdown red apply unchanged), and animates only with CSS transitions/keyframes (the
+global reduced-motion rule covers them). `Display.from` (missionStore) is the shown state before a
+replayed fire, used by the scope's dashed lab step.
 
 `hand.cards` keys are card ids (`CARD_IDS` in `level.ts`): `add sub scale2 scale3 mod2 mod3 eq ne
 lt le gt ge and or not`. `scaleK` is the `×k` card, `modK` the `MOD k` card. Sensors and constants

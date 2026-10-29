@@ -276,6 +276,14 @@ This is the reveal: the player was doing program verification the whole time.
 - Wires light up when a circuit is well-formed; current visibly flows into the SHIELD.
 - Breach: screen shake, red flash, the broken module sparks.
 - Success: relays clack shut in sequence, nixie tubes count the score.
+- Gauges are machines, not just numbers: each mission draws its variables in their physical form
+  (energy cells, a valve dial, pistons on one ruler, a pin row, a crane, jugs, a rotor, a scope…),
+  always with a small nixie numeral of the exact value. A skin never draws the Law: no totals,
+  ratios, differences or groupings the meltdown placard does not already print, marks only from
+  the placard or the briefing. Impossible states (lab, insufficient) are drawn honestly: below
+  empty as a red hatch, owed units as red dashed ghosts, over the rim as a spill, an unnamed
+  position as a `?` notch. Lab cyan and meltdown red recolour every skin through the same tokens.
+  Mapping and rules: `docs/GAUGES-PROPOSAL.md`; per mission: `LEVELS.md` "Display".
 
 **Audio** (WebAudio, mostly synthesized, so no asset licensing): relay click on plug, hum while the
 circuit is complete, scanning beeps during attack, klaxon on breach, a rising chord on success. Mute

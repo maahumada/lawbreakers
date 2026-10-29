@@ -29,6 +29,7 @@
     }
   ],
   "meltdown": "(r = 0 && g = 0) || (r = 0 && b = 0) || (g = 0 && b = 0)",
+  "display": { "panels": [{ "skin": "rotor", "vars": ["r", "g", "b"] }] },
   "hand": {
     "cards": { "sub": 2, "mod3": 2, "eq": 2, "ne": 1, "and": 1 },
     "budget": 23

@@ -13,6 +13,10 @@ along the way, and a log of each work session.
 - **Post-playtest pass (Oct 29):** "fence + moves" copy in the lab/insufficient banners and the
   "?" panel, one-time COMMAND explainer cards (first lab breach, first insufficient), Mission 05
   replaced by THE COUNTERWEIGHT (`05-counterweight`); see `docs/REVIEW.md`
+- **Gauge skins (Oct 29):** every mission draws its gauges as a machine (tanks, dial, pistons, pin
+  row, crane, deck, selector, token trays, jugs, rotor, scope), each with an exact nixie numeral;
+  optional `display` block in the level JSON, nixie stays the default. Owner spoiler review pending
+  (`docs/REVIEW.md`)
 - **Next task:** M4-T7 Submit (draft in `docs/SUBMISSION.md`). M4-T4 was an agent playtest; a
   human playtest with classmates is still pending (`docs/REVIEW.md`)
 - **Blockers:** none
@@ -25,6 +29,15 @@ Decisions that deviate from or refine the docs. Newest first.
 
 | Date | Decision | Why |
 |---|---|---|
+| 2026-10-29 | Gauge skins: optional `display: { panels: [...] }` in the level JSON (zod discriminated union on `skin`, `engine/display.ts`); every variable in exactly one panel; absent → one `nixie` panel per variable rendered by the unchanged `Gauge`. Skins: `tank jug dial piston tokens selector scope deck hoist rotor` | composite pictures span several variables; the verifier never reads it; old levels stay pixel-identical |
+| 2026-10-29 | Every skin keeps one `Readout` per variable (small nixie tubes) carrying `data-testid="gauge-<name>"`, `data-value`, `role="img"` and `aria-label="LABEL reads N"` plus out-of-range words (`, over capacity 9`, `, below empty`, `, no such position`, `, off the scope`); the SVG picture is `aria-hidden` | exact numbers stay readable (rule 5), smokes and screen readers keep working unchanged |
+| 2026-10-29 | Skins paint only with `--human-*`/`--meltdown` tokens and animate with CSS transitions on `transform` (no JS timers) | `replay.css` lab cyan / meltdown red and the global reduced-motion rule apply with zero mode logic |
+| 2026-10-29 | Marks: `alarm` marks must sit exactly where the meltdown flips (tested from the power-on state), other marks and jug capacities must appear in the briefing (tested); scope alarm points must be meltdown states; deck `tipAt` must flip the meltdown | "marks only from public facts" (proposal rule 2) is enforced, not just reviewed |
+| 2026-10-29 | Ticks are uniform (one per unit up to a scale of 20) with emphasis every 5; tested that 5 is not a multiple of any `MOD k` a mission deals | rule 3: no grouping by 2 or 3 |
+| 2026-10-29 | Scope trail = the last 6 telemetry states, drawn only in free play / live / holds; lab, meltdown and init show the shown state only, and after a replayed lab fire a dashed arrow from `Display.from` (new field: shown state before the last replayed fire) | a long trail would draw the reachable set; invented states never join the real trail |
+| 2026-10-29 | Rotor spin is keyed on a fire counter (`log` cycle + replay pulse) and always rests at the same angle | the rotor's angle must never be a function of the state (it would draw a mod-3 invariant) |
+| 2026-10-29 | `VerdictAnnouncer` keeps its text while the banner is up (`verdict`, `results`, `failed`), not only in `verdict` | root cause of the flaky a11y smoke and a real bug: on THE LAW HOLDS the results open 450 ms (reduced motion) / 950 ms after the banner and the region was emptied mid-announcement |
+| 2026-10-29 | `a11y-smoke` runs axe after every finite animation has finished, and the "mission (verdict)" scan after the results dialog has opened | axe read the results button mid fade-in as low contrast (a false positive); the scan is now deterministic and covers the dialog too |
 | 2026-10-29 | Bonus chapter reordered by renumbering ids and files (`07-twin-jacks`, `08-the-airlock`, `09-the-splitter`), not just the display order. `MOVED_MISSIONS` (part of `RENAMED_MISSIONS`) migrates secured ids on load; `migrateBestScores` moves `lawbreakers:best:<old>` to the new id (keeps the higher, removes the old key), unlike the replaced 05 whose score stays behind | the number in the id drives routes, chapter boundaries and the select list; one source of truth beats a separate order table. Same puzzle, so the score follows it |
 | 2026-10-29 | Third chapter *The Deep Grid* (10–15), unlocked by 09 (same linear chain). `Chapter.tag` holds the heading tag ("Main campaign" / "Bonus chapter" / "Deep chapter"); "Campaign complete" moved to 15, 09 says "Bonus chapter complete … The Deep Grid is open" | the select screen and results lines stay data-driven |
 | 2026-10-29 | Machines with more than four controls render `data-dense`: controls take the full width under gauges + telemetry, cards are smaller (4 per row at 1440 px, 2 per row at 390 px); three gauges get smaller tubes on phones (one row) | Mission 13 has 8 controls, 10/11/12/14 have 3 gauges; no new card types were needed |
@@ -105,6 +118,57 @@ Decisions that deviate from or refine the docs. Newest first.
 
 Newest first. One entry per completed task: what was done, files touched, anything surprising,
 follow-ups.
+
+### 2026-10-29 — Gauge skins for all 15 missions (G0–G6) + a11y smoke stabilised
+- **a11y root cause:** `VerdictAnnouncer` emptied the live region as soon as the phase left
+  `verdict`; on THE LAW HOLDS the results open after 450 ms (reduced motion) / 950 ms, so the
+  announcement could be cut off and the smoke read `""`. Now kept during `verdict`/`results`/
+  `failed`. The axe `.results__btn--primary` contrast hit was the dialog mid fade-in: `a11y-smoke`
+  now awaits all finite animations before axe and scans the mission after the results open.
+  3 green runs in a row (before and after the gauge work).
+- **Engine:** `engine/display.ts` (zod union per skin, `defaultDisplay`, `displayIssues`), wired
+  into `level.ts` (`Level.display`, default nixie). Verifier untouched.
+- **UI:** `ui/machine/skins/` — `GaugePanel` (nixie → unchanged `Gauge`), `Readout`, `TankSkin`
+  (+ `JugSkin`), `DialSkin`, `PistonSkin`, `TokensSkin` (+ `glyphs.tsx`), `SelectorSkin`,
+  `ScopeSkin`, `DeckSkin`, `HoistSkin`, `RotorSkin`, `geometry.ts` (pure), `svg.ts`, `Hatch.tsx`,
+  `skins.css`; `MachineView` maps `level.display.panels`; `missionStore` `Display.from`.
+- **Levels:** a `display` block in all 15 JSON files (mapping in `LEVELS.md` "Display" lines).
+- **Tests:** `tests/display.test.ts` (schema, coverage, arity, alarm marks vs meltdown, briefing
+  marks, deck/scope alarms), `tests/skinGeometry.test.ts`, `tests/skins.test.ts` (SSR render of
+  every mission at normal / negative / huge values, out-of-range words, spoiler guards: lab hides
+  the trail, short trail, rotor independent of the state, no TOTAL/SUM/RATIO text). 482 tests.
+- **Smokes:** new `scripts/gauges-smoke.mjs` (`npm run gauges-smoke`; readouts, follow the
+  controls, 360/390/1440 px no sideways scroll, reduced motion; `gauges-live-NN(-mobile).png`).
+  `missions-smoke` writes `gauges-live-NN-lab/-meltdown.png` and got four extra wrong Laws so every
+  skin is seen in both states (03 `y = y`, 07 `L − R ≤ 3 AND R − L ≤ 3`, 08 `a = 4 OR a = 0`,
+  15 `x ≤ 8`; verdicts confirmed by the real engine in the run). No selector changes were needed
+  in the other smokes (test ids kept).
+- **Checks:** lint, typecheck, 482 tests, build; `dafny-check` 22 verified / 67 rejected / 0 wrong;
+  engage, missions, campaign, rack, a11y (×3), juice, proof, gauges smokes pass on `vite preview`.
+- **Docs:** ARCHITECTURE (`display`, skins, smoke), DESIGN §8, LEVELS (Display lines + checklist
+  item 6), GAUGES-PROPOSAL status, ROADMAP, REVIEW; `docs/media/live-breach.png` and
+  `lab-simulation.png` refreshed.
+- **Surprises:** the mockup's Die Hard row became 13 THE SLUICE TANKS (capacities 9/6 and the
+  4-unit float are in the briefing); 14's rotor and 15's scope matched the real JSON. A 3-gauge
+  media rule (`.gauges[data-count="3"] .tube`) outranked the small tubes; fixed by specificity.
+- **Follow-ups:** owner spoiler review per skin (REVIEW); re-shoot the README hero clip,
+  `mission-rack.png`, `mobile-breach.png`.
+
+### 2026-10-29 — Deep chapter *The Deep Grid* (10–15) + bonus chapter reorder
+Recorded afterwards: the agent that did this work was interrupted before writing its log entry;
+this summary is reconstructed from its decisions, `REVIEW.md`, `LEVELS.md` and the repo state.
+- Bonus chapter reordered by difficulty with renumbered ids/files (`07-twin-jacks`,
+  `08-the-airlock`, `09-the-splitter`); `MOVED_MISSIONS` migrates secured ids and best scores.
+- Six new missions in `src/levels/10-…15-…json`: THE READING ROOM, THE LOSSY EXCHANGE, THE FUEL
+  CELL, THE SLUICE TANKS, THE PHASE ROTOR, TWIN THRUSTERS (true finale); chapter *The Deep Grid*
+  (`Chapter.tag` "Deep chapter"), unlocked by 09; "Campaign complete" moved to 15.
+- Dense machine layout (`data-dense`) for more than four controls; smaller tubes for three gauges
+  on phones. Cost search speed-ups (usage grouping, AND-only filter, hash join for `=`).
+- Changed from the research specs where the engine/cost search disagreed: 11, 14, 15 (details in
+  `LEVELS.md`). Dafny quirk on one spelling of a 14 Law noted in `LEVELS.md` §14.
+- Smokes: `missions-smoke` covers 02–15 (screenshots `chapter3-*.png`).
+- Checks at the end of that session: 432 tests; `dafny-check` 22 verified / 67 rejected / 0 wrong.
+- **Follow-ups:** owner plays 10–15 blind; review items in `docs/REVIEW.md`.
 
 ### 2026-10-29 — Post-playtest: "fence + moves", explainer cards, new Mission 05
 - Copy: `ui/argus/verdictText.ts` (lab and insufficient bodies; new `explainerCopy`),

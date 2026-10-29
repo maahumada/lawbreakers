@@ -1,0 +1,494 @@
+/* Gauge skins (docs/GAUGES-PROPOSAL.md). Every colour is a --human-* token (or --meltdown), so the
+   lab hologram and the meltdown red in replay.css recolour every skin with no mode logic here.
+   SVG text sizes are in viewBox units (CSS px inside an SVG). */
+
+.gauges > .skin {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.skin {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.skin__cols,
+.skin__readouts {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr));
+  align-items: end;
+  gap: var(--space-3);
+}
+
+.skin__cols[data-cols="2"],
+.skin__readouts {
+  --cols: 2;
+}
+
+.skin__cols[data-cols="3"],
+.skin__readouts[data-cols="3"] {
+  --cols: 3;
+}
+
+.skin__col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.skin__rows {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.skin__row {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.skin__rowbody {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.skin__scope,
+.skin__scene {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+}
+
+.skin__scope .skin__readouts,
+.skin__scene .skin__readouts {
+  width: 100%;
+}
+
+.skin__label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--human-text);
+}
+
+/* --- Readout: the exact numeral (small nixie tubes) ---------------------- */
+
+.readout {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.readout__tubes {
+  display: flex;
+  gap: 3px;
+}
+
+.gauges .readout .tube.tube--sm {
+  width: 1.75rem;
+  height: 2.5rem;
+  font-size: 1.8rem;
+}
+
+.gauges .readout .tube.tube--sm.tube--sign {
+  width: 1.2rem;
+  font-size: 1.3rem;
+}
+
+.readout__var {
+  font-size: var(--text-xs);
+  color: var(--human-muted);
+}
+
+.machine[data-mode="init"] .tube--sm {
+  border-color: var(--argus-primary);
+}
+
+/* --- SVG basics ---------------------------------------------------------- */
+
+.sk-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.sk-svg text {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  fill: var(--human-muted);
+}
+
+.skin__col[data-part="tank"] .sk-svg {
+  max-height: 12rem;
+}
+.skin__col[data-part="tray"] .sk-svg {
+  max-height: 10rem;
+}
+.sk-svg--dial {
+  max-height: 13rem;
+}
+.sk-svg--rail {
+  max-height: 4.6rem;
+}
+.sk-svg--selector {
+  max-height: 10rem;
+}
+.sk-svg--scope {
+  max-width: 19rem;
+}
+.sk-svg--deck,
+.sk-svg--hoist {
+  max-width: 26rem;
+}
+.sk-svg--rotor {
+  max-width: 20rem;
+}
+
+.sk-hatch-line {
+  stroke: var(--meltdown);
+  stroke-width: 2;
+  stroke-opacity: 0.75;
+}
+
+.sk-glass,
+.sk-face {
+  fill: var(--human-nixie-off);
+  stroke: var(--human-secondary);
+  stroke-width: 1.2;
+}
+
+.sk-brass {
+  fill: var(--human-surface-2);
+  stroke: var(--human-secondary);
+  stroke-width: 1.2;
+}
+
+.sk-liquid {
+  fill: var(--human-primary);
+  fill-opacity: 0.8;
+  filter: drop-shadow(0 0 5px var(--human-primary));
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: transform var(--dur-med) ease-out;
+}
+
+.sk-tick {
+  stroke: var(--human-line);
+  stroke-width: 1;
+}
+.sk-tick--major {
+  stroke: var(--human-secondary);
+}
+.sk-tick--void {
+  stroke: var(--human-muted);
+  stroke-dasharray: 2 2;
+}
+
+.sk-svg .sk-small,
+.sk-svg .sk-rim {
+  fill: var(--human-muted);
+}
+
+.sk-mark line {
+  stroke: var(--human-secondary);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 3;
+}
+.sk-svg .sk-mark text {
+  fill: var(--human-secondary);
+  font-size: 9px;
+}
+
+.sk-svg--deck text,
+.sk-svg--hoist text,
+.sk-svg--deck .sk-mark text,
+.sk-svg--hoist .sk-mark text {
+  font-size: 11px;
+}
+.sk-mark--alarm line {
+  stroke: var(--meltdown);
+  stroke-width: 1.5;
+}
+.sk-svg .sk-mark--alarm text,
+.sk-svg .sk-alarm-text,
+.sk-svg .sk-under text,
+.sk-svg .sk-under-text {
+  fill: var(--meltdown);
+}
+.sk-svg .sk-under text,
+.sk-svg .sk-under-text,
+.sk-svg .sk-over,
+.sk-svg .sk-spill text {
+  font-size: 9px;
+}
+
+.sk-under rect {
+  stroke: var(--meltdown);
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+}
+
+.sk-svg .sk-over,
+.sk-svg .sk-spill text {
+  fill: var(--human-primary);
+}
+
+.sk-spill path {
+  fill: none;
+  stroke: var(--human-primary);
+  stroke-width: 3;
+}
+
+/* Dial */
+.sk-void {
+  fill: none;
+  stroke: var(--human-muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.sk-arc path {
+  fill: none;
+  stroke: var(--human-secondary);
+  stroke-width: 6;
+}
+.sk-arc--alarm path {
+  stroke: var(--meltdown);
+}
+.sk-svg .sk-arc--alarm text {
+  fill: var(--meltdown);
+}
+.sk-needle line {
+  stroke: var(--human-primary);
+  stroke-width: 3;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px var(--human-primary));
+}
+.sk-needle,
+.sk-knob,
+.sk-slide {
+  transition: transform var(--dur-med) ease-out;
+}
+.sk-hub {
+  fill: var(--human-secondary);
+}
+
+/* Piston */
+.sk-rod {
+  fill: var(--human-primary);
+  filter: drop-shadow(0 0 4px var(--human-primary));
+  transform-box: fill-box;
+  transform-origin: 0 50%;
+  transition: transform var(--dur-med) ease-out;
+}
+
+/* Tokens */
+.sk-tok {
+  fill: var(--human-primary);
+  stroke: var(--human-primary);
+  stroke-width: 0.5;
+}
+.sk-tok--ring {
+  fill: none;
+  stroke-width: 3;
+}
+.sk-tok .sk-tok__line {
+  fill: none;
+  stroke: var(--human-surface);
+  stroke-width: 1.4;
+}
+.sk-ghost,
+.sk-ghost * {
+  fill: none;
+  stroke: var(--meltdown);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 2;
+}
+.sk-slot {
+  fill: var(--human-line);
+}
+.sk-slotmark {
+  fill: none;
+  stroke: var(--human-secondary);
+  stroke-dasharray: 3 2;
+}
+.sk-slotmark--alarm {
+  stroke: var(--meltdown);
+  stroke-width: 1.4;
+}
+.sk-pop {
+  animation: sk-pop var(--dur-med) ease-out;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+@keyframes sk-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+
+/* Selector */
+.sk-lamp {
+  fill: var(--human-nixie-off);
+  stroke: var(--human-secondary);
+}
+.sk-pos--on .sk-lamp {
+  fill: var(--human-primary);
+  filter: drop-shadow(0 0 5px var(--human-primary));
+}
+.sk-svg .sk-pos text {
+  font-size: 10px;
+}
+.sk-svg .sk-pos--on text {
+  fill: var(--human-primary);
+}
+.sk-svg .sk-pos--nowhere text {
+  font-size: 18px;
+}
+.sk-pointer {
+  fill: var(--human-primary);
+  filter: drop-shadow(0 0 4px var(--human-primary));
+}
+
+/* Scope */
+.sk-face--scope {
+  stroke: var(--human-secondary);
+}
+.sk-grid line {
+  stroke: var(--human-line);
+  stroke-width: 1;
+}
+.sk-axis {
+  stroke: var(--human-secondary);
+  stroke-width: 1.2;
+}
+.sk-cross {
+  stroke: var(--meltdown);
+  stroke-width: 1.6;
+}
+.sk-trail {
+  fill: var(--human-primary);
+}
+.sk-dot,
+.sk-edge {
+  fill: var(--human-primary);
+  filter: drop-shadow(0 0 6px var(--human-primary));
+}
+.sk-step {
+  stroke: var(--human-primary);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+/* Deck */
+.sk-jack {
+  fill: var(--human-surface-2);
+  stroke: var(--human-secondary);
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: transform var(--dur-med) ease-out;
+}
+.sk-plank {
+  fill: var(--human-primary);
+  filter: drop-shadow(0 0 4px var(--human-primary));
+}
+.sk-tip line {
+  stroke: var(--meltdown);
+  stroke-width: 1;
+  stroke-dasharray: 5 4;
+  opacity: 0.7;
+}
+.sk-river rect {
+  fill: var(--human-secondary);
+  opacity: 0.22;
+}
+.sk-river path {
+  fill: none;
+  stroke: var(--human-secondary);
+}
+
+/* Hoist */
+.sk-beam {
+  stroke: var(--human-secondary);
+  stroke-width: 3;
+}
+.sk-cable {
+  fill: var(--human-primary);
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  transition: transform var(--dur-med) ease-out;
+}
+.sk-hook {
+  fill: none;
+  stroke: var(--human-primary);
+  stroke-width: 2.5;
+}
+.sk-rack {
+  fill: var(--human-nixie-off);
+}
+
+/* Rotor */
+.sk-ring {
+  fill: none;
+  stroke: var(--human-line);
+  stroke-width: 1;
+}
+.sk-ring--on {
+  stroke: var(--human-primary);
+  stroke-width: 2;
+}
+.sk-coil--brass .sk-ring--on {
+  stroke: var(--human-secondary);
+  stroke-width: 3;
+}
+.sk-coil--dashed .sk-ring--on {
+  stroke-dasharray: 3 2;
+}
+.sk-svg .sk-coil__name {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  fill: var(--human-text);
+}
+.sk-blade {
+  fill: var(--human-secondary);
+}
+.sk-rotor--spin {
+  animation: sk-spin 0.6s ease-out;
+}
+
+@keyframes sk-spin {
+  0% {
+    transform: rotate(-120deg);
+  }
+}
+
+@media (max-width: 720px) {
+  .gauges[data-skinned] {
+    gap: var(--space-3);
+  }
+  .gauges .readout .tube.tube--sm {
+    width: 1.45rem;
+    height: 2.1rem;
+    font-size: 1.5rem;
+  }
+  .gauges .readout .tube.tube--sm.tube--sign {
+    width: 1rem;
+    font-size: 1.1rem;
+  }
+  .skin__rowbody {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+  }
+}

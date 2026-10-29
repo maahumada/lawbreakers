@@ -38,6 +38,16 @@
     }
   ],
   "meltdown": "a = 4",
+  "display": {
+    "panels": [
+      {
+        "skin": "jug",
+        "vars": ["a", "b"],
+        "capacity": { "a": 9, "b": 6 },
+        "marks": { "a": [{ "at": 4, "label": "FLOAT", "alarm": true }] }
+      }
+    ]
+  },
   "hand": {
     "cards": { "mod3": 2, "eq": 2, "ne": 1, "le": 2, "and": 1 },
     "budget": 17

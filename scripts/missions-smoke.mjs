@@ -4,7 +4,9 @@
 // the page never scrolls sideways. Writes docs/screenshots/m3-t2-NN.png (desktop, after the first
 // wrong Law: the replay state) and m3-t2-NN-mobile.png; the bonus chapter (07–09) writes
 // stretch-NN.png, stretch-NN-mobile.png and stretch-NN-reference.png (the largest Law, built),
-// and The Deep Grid (10–15) the same as chapter3-NN*.png.
+// and The Deep Grid (10–15) the same as chapter3-NN*.png. The gauge skins are captured in the lab
+// hologram and in meltdown red the first time a mission shows each (gauges-live-NN-lab.png,
+// gauges-live-NN-meltdown.png).
 // Then the one-time explainer cards on Mission 05 (post-playtest-explainer-*.png, desktop and
 // mobile) and Mission 05 at rest (post-playtest-05.png). Not part of `npm test`.
 // Usage: start a server (`npx vite preview --port 4173`), then
@@ -64,6 +66,12 @@ const MISSIONS = [
         verdict: "live_breach",
       },
       { text: "y ≠ 7", steps: cmp("ne", "y", 7), verdict: "lab_breach" },
+      // A Law that is always true allows the meltdown (shows the pistons in meltdown red).
+      {
+        text: "y = y",
+        steps: law(["card-eq", "root"], ["sensor-y", "0"], ["sensor-y", "1"]),
+        verdict: "insufficient",
+      },
     ],
     ref: {
       text: "y = 2×x",
@@ -163,6 +171,23 @@ const MISSIONS = [
         steps: law(["card-le", "root"], ["sensor-L", "0"], ["sensor-R", "1"]),
         verdict: "live_breach",
       },
+      {
+        text: "L − R ≤ 3 AND R − L ≤ 3",
+        steps: law(
+          ["card-and", "root"],
+          ["card-le", "0"],
+          ["card-sub", "0-0"],
+          ["sensor-L", "0-0-0"],
+          ["sensor-R", "0-0-1"],
+          ["const", "0-1", 3],
+          ["card-le", "1"],
+          ["card-sub", "1-0"],
+          ["sensor-R", "1-0-0"],
+          ["sensor-L", "1-0-1"],
+          ["const", "1-1", 3],
+        ),
+        verdict: "insufficient",
+      },
     ],
     ref: {
       text: "L − R ≤ 2 AND R − L ≤ 2",
@@ -194,6 +219,11 @@ const MISSIONS = [
         text: "p = 0 OR p = 1",
         steps: law(["card-or", "root"], ...cmp("eq", "p", 0, "0"), ...cmp("eq", "p", 1, "1")),
         verdict: "insufficient",
+      },
+      {
+        text: "a = 4 OR a = 0",
+        steps: law(["card-or", "root"], ...cmp("eq", "a", 4, "0"), ...cmp("eq", "a", 0, "1")),
+        verdict: "lab_breach",
       },
     ],
     ref: {
@@ -432,6 +462,8 @@ const MISSIONS = [
         ),
         verdict: "insufficient",
       },
+      // True on every real run (x never passes 8) but not inductive: the scope's lab step.
+      { text: "x ≤ 8", steps: cmp("le", "x", 8), verdict: "lab_breach" },
     ],
     ref: {
       text: "(x + y) MOD 3 = 0 AND x ≤ 2×y AND y ≤ 2×x",
@@ -496,12 +528,25 @@ try {
       const tag = `${m.n} ${vp.name}`;
 
       // Wrong Laws (desktop: all of them; mobile: the first, for the screenshot).
+      const skinShots = new Set();
       for (const [i, w] of (mobile ? m.wrong.slice(0, 1) : m.wrong).entries()) {
         await build(page, w.steps);
         const text = await readout(page);
         check(text === w.text, `${tag}: built "${text}" (expected "${w.text}")`);
         const kind = await engageAndWait(page);
         check(kind === w.verdict, `${tag} ${w.text}: ${kind} (expected ${w.verdict})`);
+        // The gauge skin in the lab hologram and in meltdown red, once per mission.
+        const mode = { lab_breach: "lab", insufficient: "meltdown" }[kind];
+        if (!mobile && mode && !skinShots.has(mode)) {
+          skinShots.add(mode);
+          await page.waitForTimeout(400);
+          const gauges = page.getByTestId("machine-gauges");
+          check(
+            (await page.locator(".machine").getAttribute("data-mode")) === mode,
+            `${tag} ${w.text}: machine shows the ${mode} state`,
+          );
+          await gauges.screenshot({ path: `${dir}/gauges-live-${m.n}-${mode}.png` });
+        }
         const ov = await overflow(page);
         check(ov <= 0, `${tag} ${w.text}: no horizontal page scroll (${ov}px)`);
         if (i === 0) {
